@@ -1,0 +1,10 @@
+# AgentDesk — local/internal files (managed by the app; not committed)
+.DS_Store
+.agentdesk/
+workspace/
+state/
+.mcp.json
+documents/*
+!documents/deliveries/
+!documents/inputs/
+!documents/output/

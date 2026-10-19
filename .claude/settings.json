@@ -1,0 +1,59 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/bash \"/Users/user/Documents/gdrive_cellqlick/2026/ai/agentDispatcher/.agentdesk/hooks/fetch_memory.sh\""
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/bash \"/Users/user/Documents/gdrive_cellqlick/2026/ai/agentDispatcher/.agentdesk/hooks/log_user_prompt.sh\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/bash \"/Users/user/Documents/gdrive_cellqlick/2026/ai/agentDispatcher/.agentdesk/hooks/log_session_stop.sh\"",
+            "timeout": 120
+          },
+          {
+            "type": "command",
+            "command": "/bin/bash \"/Users/user/Documents/gdrive_cellqlick/2026/ai/agentDispatcher/.agentdesk/hooks/auto_commit_push.sh\""
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/bash \"/Users/user/Documents/gdrive_cellqlick/2026/ai/agentDispatcher/.agentdesk/hooks/log_tool_observation.sh\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/bash \"/Users/user/Documents/gdrive_cellqlick/2026/ai/agentDispatcher/.agentdesk/hooks/log_tool_observation.sh\""
+          }
+        ]
+      }
+    ]
+  }
+}
