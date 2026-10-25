@@ -1,3 +1,0 @@
-[mcp_servers.agentdesk_project]
-url = "https://api.biskilled.com/mcp/?project=agentdispatcher1"
-http_headers = { "X-API-Key" = "ad_hVg0JXPNAC01RZqa7TfvflEInedXfT5rWwILsqof" }
