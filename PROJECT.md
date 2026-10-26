@@ -1,5 +1,5 @@
 # agentdispatcher
-_Last updated: 2026-10-25_
+_Last updated: 2026-10-26_
 
 Self-installable, open-source (Apache 2.0) LLM gateway + usage ledger. Captures every LLM request and tool call across Claude Code, Codex, web chat and own apps (AgentData, AgentDesk) via two collectors — LiteLLM proxy for traffic we can route (metered) and an OpenTelemetry collector for CLI subscription logins (reported) — plus an optional browser extension (estimated). Normalises everything into one usage_event ledger in Postgres. Goal 1: monitoring per user/session/project/model/provider/tool. Goal 2: improvement via model policies, routing/fallbacks, A/B experiments with a quality signal, and savings suggestions. Ships with a local desktop UI (AgentDesk theme), an MCP server, AgentDesk work-item attribution, and an AgentData connector + semantic model. Full source attribution for all reused open-source components. Full stories: docs/USER_STORIES.md (DSP-01..DSP-50). Mockups: mockups/agentdispatcher-mockups.html.
 
@@ -43,21 +43,31 @@ _Born as a design-mode export; review and refine — this file is the project's 
 
 ## Key Decisions
 
-- Use LiteLLM as the core gateway layer for LLM provider abstraction and routing
-- Postgres as authoritative ledger for normalized usage_event records with full attribution chain
-- OpenTelemetry for distributed tracing and OTEL_RESOURCE_ATTRIBUTES as primary session context carrier
-- AgentDesk integration via session→project/work-item attribution through OTEL_RESOURCE_ATTRIBUTES (not direct API)
-- Apache 2.0 license with explicit AGPL/commercial exclusions in CI license check
-- Model policies enforced via LiteLLM key settings per virtual key/team/app (no separate policy engine initially)
-- Desktop monitoring UI built with Electron + Vite using shared AgentDesk/AgentData token palette (light/dark theme)
-- Read-only agentdata_ro Postgres role for AgentData semantic connector (llm_usage.yaml)
-- Docker Compose stack as install/first-run mechanism (LiteLLM proxy, OTel collector, Postgres, Dispatcher core)
-- Usage event pricing and cost calculation computed at ledger insert time (normalized schema, multi-provider)
-- A/B experiment routing via weighted model distribution per key/team
-- Three-tier monitoring: overview KPIs, client/provider/model breakdowns with source labels, per-session drill-down
-- In-app licenses screen + THIRD_PARTY_NOTICES.md + README 'Built on' for open-source attribution
-- No custom auth layer; rely on LiteLLM key management + AgentDesk session validation via OTEL context
+- Core architecture: LiteLLM proxy + OTel collector + Postgres ledger + React web UI + Electron desktop client
+- Open-source licensing: Apache 2.0 for core, with THIRD_PARTY_NOTICES.md and CI license checks (blocking AGPL, commercial)
+- Usage tracking: normalised usage_event ledger capturing timestamp, user, key, team, project, work_item, client, provider, model, with pricing attached
+- AgentDesk integration: session→project/work-item attribution via OTEL_RESOURCE_ATTRIBUTES (agentdesk.project, agentdesk.work_item)
+- AgentData integration: read-only semantic model (llm_usage.yaml) consumed by AgentData for cross-tenant analytics
+- Model governance: allow-lists per virtual key/team/app, force-model rules, weighted routing by task tag or priority
+- UI monitoring dimensions: breakdown by client, provider, model, source, with Overview KPIs and per-session drill-down
+- Multi-tenant support: isolated usage ledgers per tenant with team-level key management and budget policies
+- Mobile-first monitoring: React web app usable on desktop and mobile, shared design tokens with AgentDesk
+- Agent instrumentation: small agents (e.g., AgentTrade) can integrate via OTEL_RESOURCE_ATTRIBUTES to tag scheduled/hard-to-monitor LLM jobs
+- A/B experiments: routing policies support weighted model variants for experimentation
+- Deployment: single docker-compose stack with LiteLLM, OTel collector, Postgres, Dispatcher core, and optional UI components
+- Security hardening: pip-licenses/license-checker CI step, OTEL attribute validation, read-only AgentData role
+- First-run UX: guided setup flow for docker-compose deployment, connection verification, and license attestation
+- Extensibility: OTEL semantic conventions allow future sources (tools, frameworks) to emit usage without SDK changes
 
 ## Open Items
 
 _No open items._
+
+## Recent Work
+
+- [ui] Clarifying monitoring scope: how to instrument scheduled/hard-to-monitor LLM jobs (e.g., AgentTrade) via OTEL attributes and small agent SDK
+- [use_case] AgentDispatcher product definition: multi-tenant LLM usage ledger + monitoring UI + governance policies, integrating AgentDesk sessions and AgentData analytics
+- [arch] Confirm agent instrumentation pattern: OTEL_RESOURCE_ATTRIBUTES for job/task tagging in user applications vs. in-app SDK wrapper
+- [feature] Open-source attribution, security and privacy: THIRD_PARTY_NOTICES.md, README 'Built on' section, in-app licenses screen, CI license checks
+- [feature] AgentDesk & AgentData integration: session attribution via OTEL_RESOURCE_ATTRIBUTES and semantic llm_usage model
+- [feature] Install & first-run setup: docker-compose stack scaffold with guided connection verification and license flow
