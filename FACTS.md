@@ -11,9 +11,9 @@ _Explicit user instructions — always apply these. When a rule shapes your acti
 - **reusable_minimal_code**: Write once, reuse many: keep AgentDispatcher minimal with single-purpose classes, short well-named methods/functions and shared modules as the single source of each behaviour. Prefer composition and clear data flow; no duplicated pricing, attribution, validation or connector logic, speculative abstractions or silent failures. Add short public docstrings explaining purpose and non-obvious constraints; comments explain why. Match surrounding style, remove dead code, validate boundaries, configure URLs/ports/paths/limits through env/config and keep secrets out of source. SQL is named _SQL_* constants at file top with parameterised queries; migrations are appended and idempotent. Use focused tests for meaningful behaviour.
 
 ## Architecture
-- **cost_provenance_and_no_double_counting**: Maintain one tenant-scoped ledger with stable source/event/request IDs and parent-child execution links. SDK, OTel and gateway records for the same attempt are
+- **cost_provenance_and_no_double_counting**: Maintain one tenant-scoped ledger with stable source/event/request IDs and parent-child execution links. SDK, OTel and gateway records for the same attempt are 
 - **yaml_configuration_optimisation**: Manage authorised application YAML using reusable repository, app API and local connector adapters. Preserve YAML as authoritative app configuration, record red
-- **react_monitoring_and_embedded_sdk**: React is primarily the responsive desktop/mobile monitoring interface, not the app-execution agent. Use a small reusable OpenTelemetry-based integration inside
+- **react_monitoring_and_embedded_sdk**: React is primarily the responsive desktop/mobile monitoring interface, not the app-execution agent. Use a small reusable OpenTelemetry-based integration inside 
 - **independent_services_single_monorepo**: Use one Git monorepo with real independently deployable services: responsive React/TypeScript UI, Python/FastAPI Dispatcher API, dedicated background worker/sch
 - **postgresql_tenant_data**: PostgreSQL is the authoritative store for all durable AgentDispatcher product data: tenant/app identities, usage/price records, jobs/runs/traces, policies, conf
 

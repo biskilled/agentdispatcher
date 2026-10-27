@@ -47,9 +47,9 @@ _When one of these rules shapes an action or answer, SAY SO briefly — e.g. “
 - 🏢 **session start checks**: Always check that all hooks are running when you start a session, and make sure you are connected to AgentDesk.
 - 🏢 **node_modules folder**: Always store node_modules under /Users/user/Documents/node_modules folder (linked folder) and venv under /Users/user/Documents/venv
 
-<!-- Last updated: 2026-10-26 18:10 UTC -->
+<!-- Last updated: 2026-10-26 18:11 UTC -->
 # agentdispatcher
-_2026-10-26 18:10 UTC | Memory synced: 2026-10-26_
+_2026-10-26 18:11 UTC | Memory synced: 2026-10-26_
 
 ## Recent Work
 - [ui] Clarifying monitoring scope: how to instrument scheduled/hard-to-monitor LLM jobs (e.g., AgentTrade) via OTEL attributes and small agent SDK
