@@ -1,0 +1,47 @@
+# Cube semantic model, matching AgentData's emitted model format. Use a separate
+# credential/data source for EACH tenant; the database enforces credential scope.
+cubes:
+  - name: llm_usage
+    title: LLM and API attempts
+    sql: SELECT * FROM public.llm_usage
+    measures:
+      - { name: attempts, type: count }
+      - { name: operations, type: count_distinct, sql: "{CUBE}.operation_id" }
+      - {
+          name: cost,
+          type: sum,
+          sql: "{CUBE}.cost",
+          description: "Group by currency and cost_kind; excludes subscriptions and adjustments.",
+        }
+      - { name: input_tokens, type: sum, sql: "{CUBE}.input_tokens" }
+      - { name: output_tokens, type: sum, sql: "{CUBE}.output_tokens" }
+      - { name: average_latency_ms, type: avg, sql: "{CUBE}.duration_ms" }
+    dimensions:
+      - {
+          name: event_id,
+          type: string,
+          sql: "{CUBE}.event_id",
+          primary_key: true,
+        }
+      - { name: occurred_at, type: time, sql: "{CUBE}.occurred_at" }
+      - { name: tenant_id, type: string, sql: "{CUBE}.tenant_id" }
+      - { name: service_id, type: string, sql: "{CUBE}.service_id" }
+      - { name: verified_user_id, type: string, sql: "{CUBE}.verified_user_id" }
+      - { name: reported_user_id, type: string, sql: "{CUBE}.reported_user_id" }
+      - { name: app, type: string, sql: "{CUBE}.app" }
+      - { name: environment, type: string, sql: "{CUBE}.environment" }
+      - { name: provider, type: string, sql: "{CUBE}.provider" }
+      - { name: model, type: string, sql: "{CUBE}.model" }
+      - { name: resource_kind, type: string, sql: "{CUBE}.resource_kind" }
+      - { name: api_id, type: string, sql: "{CUBE}.api_id" }
+      - { name: currency, type: string, sql: "{CUBE}.currency" }
+      - { name: cost_kind, type: string, sql: "{CUBE}.cost_kind" }
+      - { name: source, type: string, sql: "{CUBE}.source" }
+      - { name: operation, type: string, sql: "{CUBE}.operation" }
+      - { name: job_run_id, type: string, sql: "{CUBE}.job_run_id" }
+      - { name: session_id, type: string, sql: "{CUBE}.session_id" }
+      - { name: trace_id, type: string, sql: "{CUBE}.trace_id" }
+      - { name: project, type: string, sql: "{CUBE}.project" }
+      - { name: work_item, type: string, sql: "{CUBE}.work_item" }
+      - { name: config_version, type: string, sql: "{CUBE}.config_version" }
+      - { name: status, type: string, sql: "{CUBE}.status" }

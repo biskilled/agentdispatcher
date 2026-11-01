@@ -37,6 +37,7 @@ type Tab =
   | "Job runs"
   | "API catalog"
   | "SDK keys"
+  | "LLM keys"
   | "Access"
   | "Schedules"
   | "Budgets";
@@ -45,6 +46,7 @@ const navigation = [
   { label: "Job runs", icon: Workflow },
   { label: "API catalog", icon: Database },
   { label: "SDK keys", icon: KeyRound },
+  { label: "LLM keys", icon: KeyRound },
   { label: "Access", icon: Shield },
   { label: "Schedules", icon: Workflow },
   { label: "Budgets", icon: Database },
@@ -425,22 +427,38 @@ function KeyView({
   keys,
   refresh,
   report,
+  gateway = false,
 }: {
   tenant: string;
   keys: Key[];
   refresh: () => void;
   report: (s: string) => void;
+  gateway?: boolean;
 }) {
   const [secret, setSecret] = useState("");
   async function create(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
-    const data = Object.fromEntries(new FormData(form));
+    const fields = Object.fromEntries(new FormData(form));
+    const { models, ...scope } = fields;
+    const data = gateway
+      ? {
+          ...scope,
+          models: String(models)
+            .split(",")
+            .map((model) => model.trim())
+            .filter(Boolean),
+        }
+      : scope;
     try {
-      const result = await api<{ secret: string }>("/keys", tenant, {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      const result = await api<{ secret: string }>(
+        gateway ? "/gateway/keys" : "/keys",
+        tenant,
+        {
+          method: "POST",
+          body: JSON.stringify(data),
+        },
+      );
       setSecret(result.secret);
       form.reset();
       refresh();
@@ -459,7 +477,11 @@ function KeyView({
   return (
     <>
       <section className="panel form-panel">
-        <h2>Connect an application</h2>
+        <h2>
+          {gateway
+            ? "Connect an application to LiteLLM"
+            : "Connect an application"}
+        </h2>
         <p>
           Create a key for one application and environment. Store it in your
           backend’s secret store.
@@ -492,6 +514,15 @@ function KeyView({
               placeholder="production"
             />
           </label>
+          {gateway && (
+            <label>
+              Allowed model names
+              <input name="models" required placeholder="configured-model" />
+              <small>
+                Comma-separated names from your gateway configuration.
+              </small>
+            </label>
+          )}
           <button className="primary">Create key</button>
         </form>
         {secret && (
@@ -565,6 +596,7 @@ function App() {
   const [events, setEvents] = useState<Usage[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [keys, setKeys] = useState<Key[]>([]);
+  const [gatewayKeys, setGatewayKeys] = useState<Key[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [message, setMessage] = useState("");
   const [revision, setRevision] = useState(0);
@@ -592,6 +624,7 @@ function App() {
     setEvents([]);
     setJobs([]);
     setKeys([]);
+    setGatewayKeys([]);
     setPlans([]);
     if (!tenant) return;
     let cancelled = false;
@@ -602,14 +635,16 @@ function App() {
       api<Job[]>("/jobs", tenant),
       admin ? api<Key[]>("/keys", tenant) : Promise.resolve([]),
       admin ? api<Plan[]>("/plans", tenant) : Promise.resolve([]),
+      admin ? api<Key[]>("/gateway/keys", tenant) : Promise.resolve([]),
     ])
-      .then(([o, e, j, k, p]) => {
+      .then(([o, e, j, k, p, g]) => {
         if (!cancelled) {
           setOverview(o);
           setEvents(e);
           setJobs(j);
           setKeys(k);
           setPlans(p);
+          setGatewayKeys(g);
         }
       })
       .catch((error) => {
@@ -816,10 +851,12 @@ function App() {
                   report={setMessage}
                 />
               )}{" "}
-              {tab === "SDK keys" && admin && (
+              {(tab === "SDK keys" || tab === "LLM keys") && admin && (
                 <KeyView
+                  key={tab}
                   tenant={tenant}
-                  keys={keys}
+                  keys={tab === "LLM keys" ? gatewayKeys : keys}
+                  gateway={tab === "LLM keys"}
                   refresh={refresh}
                   report={setMessage}
                 />

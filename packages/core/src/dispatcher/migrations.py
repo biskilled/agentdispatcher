@@ -6,6 +6,7 @@ import psycopg
 
 from dispatcher.schema_access import SQL_ACCESS
 from dispatcher.schema_accounting import SQL_ACCOUNTING
+from dispatcher.schema_analytics import SQL_ANALYTICS
 from dispatcher.schema_gateway import SQL_GATEWAY
 from dispatcher.schema_operations import SQL_OPERATIONS
 
@@ -134,6 +135,7 @@ MIGRATIONS = (
     (3, SQL_ACCOUNTING),
     (4, SQL_OPERATIONS),
     (5, SQL_GATEWAY),
+    (6, SQL_ANALYTICS),
 )
 
 

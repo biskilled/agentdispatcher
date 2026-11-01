@@ -2,6 +2,8 @@
 
 import argparse
 import json
+import os
+from uuid import UUID
 
 from dispatcher.bootstrap import create_tenant
 from dispatcher.db import Database
@@ -16,7 +18,21 @@ def main() -> None:
     bootstrap.add_argument("--name", required=True)
     bootstrap.add_argument("--email", required=True)
     commands.add_parser("tick")
+    analytics = commands.add_parser("analytics-access")
+    analytics.add_argument("--tenant", type=UUID, required=True)
+    analytics.add_argument("--revoke", action="store_true")
     args = parser.parse_args()
+    if args.command == "analytics-access":
+        from dispatcher.analytics import provision, revoke
+
+        dsn = os.environ["DISPATCHER_MIGRATION_DATABASE_URL"]
+        if args.revoke:
+            revoke(dsn, args.tenant)
+            print(json.dumps({"revoked": str(args.tenant)}))
+        else:
+            role = provision(dsn, args.tenant, os.environ["DISPATCHER_ANALYTICS_PASSWORD"])
+            print(json.dumps({"role": role, "tenant_id": str(args.tenant)}))
+        return
     db = Database(get_settings())
     if args.command == "create-tenant":
         principal = create_tenant(db, args.name, args.email)
