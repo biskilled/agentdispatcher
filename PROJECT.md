@@ -1,5 +1,5 @@
 # agentdispatcher
-_Last updated: 2026-10-26_
+_Last updated: 2026-10-29_
 
 Self-installable, open-source (Apache 2.0) LLM gateway + usage ledger. Captures every LLM request and tool call across Claude Code, Codex, web chat and own apps (AgentData, AgentDesk) via two collectors — LiteLLM proxy for traffic we can route (metered) and an OpenTelemetry collector for CLI subscription logins (reported) — plus an optional browser extension (estimated). Normalises everything into one usage_event ledger in Postgres. Goal 1: monitoring per user/session/project/model/provider/tool. Goal 2: improvement via model policies, routing/fallbacks, A/B experiments with a quality signal, and savings suggestions. Ships with a local desktop UI (AgentDesk theme), an MCP server, AgentDesk work-item attribution, and an AgentData connector + semantic model. Full source attribution for all reused open-source components. Full stories: docs/USER_STORIES.md (DSP-01..DSP-50). Mockups: mockups/agentdispatcher-mockups.html.
 
@@ -43,7 +43,7 @@ _Born as a design-mode export; review and refine — this file is the project's 
 
 ## Key Decisions
 
-- Core architecture: LiteLLM proxy + OTel collector + Postgres ledger + React web UI + Electron desktop client
+- Core architecture: LiteLLM proxy + OTel collector + Postgres ledger + React web UI (browser-first, no Electron desktop required)
 - Open-source licensing: Apache 2.0 for core, with THIRD_PARTY_NOTICES.md and CI license checks (blocking AGPL, commercial)
 - Usage tracking: normalised usage_event ledger capturing timestamp, user, key, team, project, work_item, client, provider, model, with pricing attached
 - AgentDesk integration: session→project/work-item attribution via OTEL_RESOURCE_ATTRIBUTES (agentdesk.project, agentdesk.work_item)
@@ -52,7 +52,7 @@ _Born as a design-mode export; review and refine — this file is the project's 
 - UI monitoring dimensions: breakdown by client, provider, model, source, with Overview KPIs and per-session drill-down
 - Multi-tenant support: isolated usage ledgers per tenant with team-level key management and budget policies
 - Mobile-first monitoring: React web app usable on desktop and mobile, shared design tokens with AgentDesk
-- Agent instrumentation: small agents (e.g., AgentTrade) can integrate via OTEL_RESOURCE_ATTRIBUTES to tag scheduled/hard-to-monitor LLM jobs
+- Agent instrumentation: small agents (e.g., AgentTrade) integrate via OTEL_RESOURCE_ATTRIBUTES to tag scheduled/hard-to-monitor LLM jobs
 - A/B experiments: routing policies support weighted model variants for experimentation
 - Deployment: single docker-compose stack with LiteLLM, OTel collector, Postgres, Dispatcher core, and optional UI components
 - Security hardening: pip-licenses/license-checker CI step, OTEL attribute validation, read-only AgentData role
@@ -65,9 +65,22 @@ _No open items._
 
 ## Recent Work
 
-- [ui] Clarifying monitoring scope: how to instrument scheduled/hard-to-monitor LLM jobs (e.g., AgentTrade) via OTEL attributes and small agent SDK
-- [use_case] AgentDispatcher product definition: multi-tenant LLM usage ledger + monitoring UI + governance policies, integrating AgentDesk sessions and AgentData analytics
-- [arch] Confirm agent instrumentation pattern: OTEL_RESOURCE_ATTRIBUTES for job/task tagging in user applications vs. in-app SDK wrapper
-- [feature] Open-source attribution, security and privacy: THIRD_PARTY_NOTICES.md, README 'Built on' section, in-app licenses screen, CI license checks
-- [feature] AgentDesk & AgentData integration: session attribution via OTEL_RESOURCE_ATTRIBUTES and semantic llm_usage model
-- [feature] Install & first-run setup: docker-compose stack scaffold with guided connection verification and license flow
+- [ui] Browser-first React monitoring: clarify why Electron desktop is not needed; confirm web UI handles desktop/mobile use cases
+- [arch] Agent instrumentation pattern: finalize OTEL_RESOURCE_ATTRIBUTES for scheduled jobs (AgentTrade) vs. in-app SDK wrapper
+- [feature] PostgreSQL tenant isolation: ensure all durable data (tenants, apps, usage events, policies) stored per-tenant
+- [feature] Code practices: implement reusable classes, methods, and clear comments for maintainability across services
+- [feature] AgentDesk & AgentData integration: validate session attribution and semantic llm_usage model consumption
+- [feature] Install & first-run setup: docker-compose scaffold with guided connection verification and license flow
+
+## Project Facts
+
+### Architecture
+- **cost_provenance_and_no_double_counting**: Maintain one tenant-scoped ledger with stable source/event/request IDs and parent-child execution links. SDK, OTel and gateway records for the same attempt are correlated, not counted as extra charges
+- **yaml_configuration_optimisation**: Manage authorised application YAML using reusable repository, app API and local connector adapters. Preserve YAML as authoritative app configuration, record redacted versions/diffs/audits in tenant-sc
+- **react_monitoring_and_embedded_sdk**: React is primarily the responsive desktop/mobile monitoring interface, not the app-execution agent. Use a small reusable OpenTelemetry-based integration inside consuming apps at their shared LLM clien
+- **independent_services_single_monorepo**: Use one Git monorepo with real independently deployable services: responsive React/TypeScript UI, Python/FastAPI Dispatcher API, dedicated background worker/scheduler, LiteLLM gateway and OTel collect
+- **postgresql_tenant_data**: PostgreSQL is the authoritative store for all durable AgentDispatcher product data: tenant/app identities, usage/price records, jobs/runs/traces, policies, configuration snapshots, evaluations and aud
+
+### Convention
+- **open_source_easy_install_and_credits**: AgentDispatcher is intended for public Apache-2.0 open-source distribution. Keep dependencies and custom code minimal; reuse suitable open-source components while preserving attribution and license ob
+- **reusable_minimal_code**: Write once, reuse many: keep AgentDispatcher minimal with single-purpose classes, short well-named methods/functions and shared modules as the single source of each behaviour. Prefer composition and c
