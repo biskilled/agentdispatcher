@@ -1,0 +1,285 @@
+--- a/packages/py-sdk/src/agenttrade_sdk/provider_operations.py
++++ b/packages/py-sdk/src/agenttrade_sdk/provider_operations.py
+@@ -49,6 +49,29 @@
+ _RUN_CALLS: ContextVar[dict[str, int] | None] = ContextVar("provider_run_calls", default=None)
+ 
+ 
++_PROVIDER_OBSERVER: ContextVar[Any] = ContextVar("provider_observer", default=None)
++
++
++@contextmanager
++def observe_provider_calls(observer):
++    """Bind a request/job observer; results stay in memory and observer failures are isolated."""
++    token = _PROVIDER_OBSERVER.set(observer)
++    try:
++        yield
++    finally:
++        _PROVIDER_OBSERVER.reset(token)
++
++
++def _notify_observer(provider, result, error, started):
++    observer = _PROVIDER_OBSERVER.get()
++    if observer is None:
++        return
++    try:
++        observer(provider, result, error, (time.monotonic() - started) * 1000)
++    except Exception:
++        get_logger().warning("provider observer failed; business outcome preserved")
++
++
+ def meter_provider(provider: str, operation: Callable[[], Result]) -> Result:
+     """Measure one provider call without logging credentials or request payloads.
+ 
+@@ -64,12 +87,15 @@
+         result = operation()
+     except Exception as error:
+         _record(provider, False, started, error)
++        _notify_observer(provider, None, error, started)
+         raise
+     status = getattr(result, "status_code", None)
+     if isinstance(status, int) and status >= 400:
+         _record(provider, False, started, None, status=status, detail=_status_detail(result))
++        _notify_observer(provider, result, None, started)
+         return result
+     _record(provider, True, started, None)
++    _notify_observer(provider, result, None, started)
+     return result
+ 
+ 
+--- /dev/null
++++ b/packages/py-sdk/src/agenttrade_sdk/dispatcher_monitoring.py
+@@ -0,0 +1,60 @@
++"""Optional AgentDispatcher bridge; enabled only by explicit server-side tenant bindings."""
++
++import atexit
++import inspect
++import logging
++from contextlib import contextmanager
++from contextvars import copy_context
++from functools import lru_cache, wraps
++
++from agenttrade_sdk.provider_operations import observe_provider_calls
++
++
++@lru_cache(maxsize=1)
++def _registry():
++    import os
++
++    if not os.environ.get("AGENTTRADE_DISPATCHER_BINDINGS"):
++        return None
++    try:
++        from agentdispatcher_sdk.registry import MonitorRegistry
++
++        registry = MonitorRegistry.from_environment("AGENTTRADE_DISPATCHER_BINDINGS")
++    except Exception:
++        logging.error("AgentDispatcher integration unavailable; check package and binding configuration")
++        return None
++    atexit.register(registry.close)
++    return registry
++
++
++@contextmanager
++def monitor_scope(organisation_id, job_name=None, **attributes):
++    """Enter after trusted organisation resolution; unset/global scope never uses another tenant's key."""
++    registry = _registry()
++    if registry is None:
++        yield
++        return
++    with registry.scope(organisation_id, job_name=job_name, **attributes) as monitor:
++        with observe_provider_calls(registry.observer(organisation_id, monitor)):
++            yield
++
++
++def monitor_job(name, organisation_parameter="organisation_id"):
++    """Instrument a synchronous business entrypoint once, preserving its return and exception."""
++    def decorate(function):
++        signature = inspect.signature(function)
++
++        @wraps(function)
++        def wrapped(*args, **kwargs):
++            arguments = signature.bind(*args, **kwargs)
++            arguments.apply_defaults()
++            with monitor_scope(arguments.arguments.get(organisation_parameter), job_name=name):
++                return function(*args, **kwargs)
++
++        return wrapped
++    return decorate
++
++
++def submit_context(executor, function, *args, **kwargs):
++    """Copy job/tenant attribution independently for each thread-pool submission."""
++    return executor.submit(copy_context().run, function, *args, **kwargs)
+--- /dev/null
++++ b/packages/py-sdk/tests/test_provider_observer.py
+@@ -0,0 +1,26 @@
++import pytest
++
++from agenttrade_sdk.provider_operations import meter_provider, observe_provider_calls
++
++
++def test_observer_context_and_original_errors():
++    rows = []
++    with observe_provider_calls(lambda *args: rows.append(args)):
++        assert meter_provider("fixture", lambda: "ok") == "ok"
++        with observe_provider_calls(None):
++            meter_provider("uncovered", lambda: "ok")
++        with pytest.raises(ValueError, match="business"):
++            meter_provider("fixture", lambda: (_ for _ in ()).throw(ValueError("business")))
++    meter_provider("outside", lambda: "ok")
++    assert len(rows) == 2
++    assert rows[0][0:3] == ("fixture", "ok", None)
++    assert isinstance(rows[1][2], ValueError)
++
++
++def test_observer_outage_does_not_replace_business_outcome():
++    def unavailable(*args):
++        raise RuntimeError("observer unavailable")
++    with observe_provider_calls(unavailable):
++        assert meter_provider("fixture", lambda: 7) == 7
++        with pytest.raises(ValueError, match="business"):
++            meter_provider("fixture", lambda: (_ for _ in ()).throw(ValueError("business")))
+--- a/services/advisor/app/domain/asset_compute.py
++++ b/services/advisor/app/domain/asset_compute.py
+@@ -11,6 +11,7 @@
+ went stale. A portfolio rescore refreshes every held asset from source data.
+ """
+ 
++from agenttrade_sdk.dispatcher_monitoring import monitor_job, submit_context
+ from datetime import UTC, datetime
+ from collections.abc import Callable
+ from concurrent.futures import ThreadPoolExecutor, as_completed
+@@ -201,7 +202,7 @@
+     if independent:
+         workers = min(get_config().monitoring.analysis_parallel_workers, len(independent))
+         with ThreadPoolExecutor(max_workers=workers) as executor:
+-            futures = {executor.submit(compute, component): component for component in independent}
++            futures = {submit_context(executor, compute, component): component for component in independent}
+             for future in as_completed(futures):
+                 component, elapsed = future.result()
+                 computed.append(component)
+@@ -229,6 +230,7 @@
+     return payload
+ 
+ 
++@monitor_job("analyze_and_compute")
+ def analyze_and_compute(
+     organisation_id: str,
+     asset_id: str,
+@@ -313,6 +315,7 @@
+         pass
+ 
+ 
++@monitor_job("rescore_all")
+ def rescore_all(
+     organisation_id: str,
+     on_progress: Callable[[dict[str, Any]], None] | None = None,
+--- a/services/advisor/app/domain/slow_rescan.py
++++ b/services/advisor/app/domain/slow_rescan.py
+@@ -10,6 +10,7 @@
+ all-night run costs nothing but time.
+ """
+ 
++from agenttrade_sdk.dispatcher_monitoring import monitor_job
+ import time
+ from collections.abc import Callable
+ from datetime import UTC, datetime, timedelta
+@@ -158,6 +159,7 @@
+     return not [provider for provider in providers if not provider_available(provider)]
+ 
+ 
++@monitor_job("run_slow_rescan")
+ def run_slow_rescan(
+     organisation_id: str,
+     on_progress: Callable[[dict[str, Any]], None] | None = None,
+--- a/services/advisor/app/domain/research_panel.py
++++ b/services/advisor/app/domain/research_panel.py
+@@ -8,6 +8,7 @@
+ one concurrently and a single failure degrades to an error entry.
+ """
+ 
++from agenttrade_sdk.dispatcher_monitoring import monitor_job
+ import json
+ from decimal import Decimal
+ from typing import Any
+@@ -909,6 +910,7 @@
+     return "\n".join(lines)
+ 
+ 
++@monitor_job("answer_research_question")
+ def answer_research_question(
+     prompt: str,
+     messages: list[dict[str, Any]],
+--- a/services/advisor/app/ingestion/refresh.py
++++ b/services/advisor/app/ingestion/refresh.py
+@@ -3,6 +3,7 @@
+ (AI1538); every transaction row is deduplicated by content hash (AI1621-3).
+ """
+ 
++from agenttrade_sdk.dispatcher_monitoring import monitor_job
+ import hashlib
+ import json
+ from datetime import UTC, datetime
+@@ -1042,6 +1043,7 @@
+     }
+ 
+ 
++@monitor_job("run_refresh")
+ def run_refresh(job_id: str, organisation_id: str, connections: list[dict[str, Any]]) -> None:
+     """Execute a refresh job over the given connections; per-source isolation (AI1538)."""
+     log = get_logger().bind(job_id=job_id, organisation_id=organisation_id)
+--- a/services/advisor/app/adapters/llm_tool_loop.py
++++ b/services/advisor/app/adapters/llm_tool_loop.py
+@@ -9,6 +9,7 @@
+ NEVER raises, and one provider failing never breaks a panel.
+ """
+ 
++from agenttrade_sdk.dispatcher_monitoring import submit_context
+ import json
+ import re
+ import time
+@@ -696,16 +697,11 @@
+     if not providers:
+         return []
+     with ThreadPoolExecutor(max_workers=len(providers)) as pool:
+-        return list(
+-            pool.map(
+-                lambda provider: run_tool_loop(
+-                    provider,
+-                    system=system,
+-                    user_prompt=user_prompt,
+-                    context_json=context_json,
+-                    tools=tools,
+-                    max_rounds=max_rounds,
+-                ),
+-                providers,
++        futures = [
++            submit_context(
++                pool, run_tool_loop, provider, system=system, user_prompt=user_prompt,
++                context_json=context_json, tools=tools, max_rounds=max_rounds,
+             )
+-        )
++            for provider in providers
++        ]
++        return [future.result() for future in futures]
+--- a/services/advisor/app/domain/scheduler_tasks.py
++++ b/services/advisor/app/domain/scheduler_tasks.py
+@@ -10,6 +10,7 @@
+ are rows the admin edits in the Scheduler section.
+ """
+ 
++from agenttrade_sdk.dispatcher_monitoring import monitor_scope
+ import json
+ from datetime import UTC, datetime, time as dtime, timedelta
+ from decimal import Decimal
+@@ -426,7 +427,10 @@
+     try:
+         if runner is None:
+             raise ValueError(f"unknown task type {task['task_type']}")
+-        with automatic_refresh(), track_anthropic_usage() as usage, track_provider_calls() as calls:
++        with (
++            monitor_scope(task.get('organisation_id'), job_name=str(task['name'])),
++            automatic_refresh(), track_anthropic_usage() as usage, track_provider_calls() as calls,
++        ):
+             result = runner(
+                 dict(task.get("config") or {}),
+                 organisation_id=str(task["organisation_id"]) if task.get("organisation_id") else None,

@@ -15,6 +15,7 @@ from opentelemetry import trace
 _run = contextvars.ContextVar("dispatcher_run", default=None)
 _context = contextvars.ContextVar("dispatcher_context", default=None)
 _delegation = contextvars.ContextVar("dispatcher_user_delegation", default=None)
+_attempts = contextvars.ContextVar("dispatcher_attempts", default=())
 _CONTEXT_FIELDS = frozenset(
     {"project", "work_item", "session_id", "trace_id", "user_id", "config_version", "job_run_id"}
 )
@@ -80,6 +81,14 @@ class Monitor:
     ) -> str:
         """Record one physical attempt; retrying export preserves its original identifiers."""
         event_id = str(uuid4())
+        frames = [frame for frame in _attempts.get() if frame["monitor"] is self]
+        for frame in frames:
+            frame["observed"] = True
+        if frames:
+            inherited = {
+                key: value for key, value in frames[-1]["measurements"].items() if key != "status"
+            }
+            metadata = {**inherited, **metadata}
         span = trace.get_current_span().get_span_context()
         run = _run.get()
         payload = {
@@ -147,6 +156,12 @@ class Monitor:
     def operation(self, *, provider: str, operation: str, resource_kind: str = "api", **metadata):
         """Wrap one actual provider attempt; fill response units/status in the yielded mapping."""
         measurements = dict(metadata)
+        parents = [frame for frame in _attempts.get() if frame["monitor"] is self]
+        measurements.setdefault(
+            "operation_id", parents[-1]["measurements"]["operation_id"] if parents else str(uuid4())
+        )
+        frame = {"monitor": self, "observed": False, "measurements": measurements}
+        token = _attempts.set((*_attempts.get(), frame))
         started = time.monotonic()
         status = "success"
         try:
@@ -158,17 +173,20 @@ class Monitor:
             status = "error"
             raise
         finally:
+            _attempts.reset(token)
             reported_status = measurements.pop("status", status)
             if status == "success":
                 status = reported_status
-            self.record(
-                provider=provider,
-                operation=operation,
-                resource_kind=resource_kind,
-                status=status,
-                duration_ms=(time.monotonic() - started) * 1000,
-                **measurements,
-            )
+            # A client hook already recorded the physical attempts in this manual wrapper.
+            if not frame["observed"]:
+                self.record(
+                    provider=provider,
+                    operation=operation,
+                    resource_kind=resource_kind,
+                    status=status,
+                    duration_ms=(time.monotonic() - started) * 1000,
+                    **measurements,
+                )
 
     @contextmanager
     def job(self, name: str, *, schedule_id: str | None = None, scheduled_for: str | None = None):
