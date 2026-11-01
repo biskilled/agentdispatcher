@@ -90,7 +90,8 @@ def test_shared_subscription_quota_retries_late_events_and_fees(system):
         connection_id="two", units="1", occurred_at=(now - timedelta(seconds=30)).isoformat()
     )
     ingest(system, [late])
-    accounting.tick(system["owner"].tenant_id, now + timedelta(seconds=1))
+    # Keep this check in the same alert bucket even when CI runs at a minute boundary.
+    accounting.tick(system["owner"].tenant_id, now)
     assert len(client.get("/api/alerts").json()) == 2
     assert accounting.quotas(system["other"])[0:] == []
     assert accounting.charges(system["other"]) == []

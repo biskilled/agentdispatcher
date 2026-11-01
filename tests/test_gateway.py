@@ -38,6 +38,7 @@ def test_gateway_key_scope_revocation_and_cost_provenance(system):
     key = result.json()
     assert key["secret"] == upstream_key
     assert issued[0]["metadata"] == {"dispatcher_service_id": key["id"]}
+    assert issued[0]["key_alias"] == key["id"]
     assert upstream_key not in str(client.get("/api/gateway/keys").json())
     assert all(row["id"] != key["id"] for row in client.get("/api/keys").json())
     assert (

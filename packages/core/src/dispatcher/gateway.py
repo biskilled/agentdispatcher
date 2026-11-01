@@ -87,7 +87,7 @@ class Gateway:
                     json={
                         "key": requested_key,
                         "models": models,
-                        "key_alias": name,
+                        "key_alias": str(service_id),
                         "duration": f"{self.settings.key_seconds}s",
                         "metadata": {"dispatcher_service_id": str(service_id)},
                     },
