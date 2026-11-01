@@ -16,6 +16,8 @@ from pydantic import Field
 from starlette.concurrency import run_in_threadpool
 from starlette.middleware.sessions import SessionMiddleware
 
+from dispatcher.agentdesk import AgentDesk
+from dispatcher.agentdesk_api import routes as agentdesk_routes
 from dispatcher.auth import AuthService, require_admin
 from dispatcher.configuration import Configurations
 from dispatcher.configuration_api import routes as configuration_routes
@@ -29,6 +31,7 @@ from dispatcher.operations_api import routes as operations_routes
 from dispatcher.pricing import calculate_price
 from dispatcher.reconciliation import Adjustment, ProviderSnapshot, Reconciliation
 from dispatcher.reporting import Reporter, UsageFilter
+from dispatcher.session_context import SessionContext, SessionContexts
 from dispatcher.settings import Settings, get_settings
 
 SESSION_COOKIE = "dispatcher_session"
@@ -126,10 +129,12 @@ def create_app(settings: Settings | None = None, mailer=None, oauth_transport=No
     reconciliation = Reconciliation(db)
     gateway = Gateway(db)
     memberships = MembershipService(auth)
+    agentdesk = AgentDesk(auth)
     mailer = mailer or Mailer(settings)
     app = FastAPI(title="AgentDispatcher", version="0.1.0", docs_url=None, redoc_url=None)
     app.state.auth, app.state.ledger = auth, ledger
     app.state.gateway = gateway
+    app.state.agentdesk = agentdesk
     app.add_middleware(
         SessionMiddleware,
         secret_key=settings.session_secret.get_secret_value(),
@@ -373,6 +378,11 @@ def create_app(settings: Settings | None = None, mailer=None, oauth_transport=No
         ledger.job(principal, body)
         return {"accepted": True}
 
+    @app.post("/api/sessions/context", status_code=202)
+    def session_context(body: SessionContext, principal=Depends(service)):
+        """Append app-scoped context without retroactively changing accepted usage."""
+        return SessionContexts(db).add(principal, body)
+
     @app.get("/api/overview")
     def overview(filters: Annotated[UsageFilter, Query()], principal=Depends(human)):
         """Read authoritative totals, keeping currency and cost kinds separate."""
@@ -497,4 +507,7 @@ def create_app(settings: Settings | None = None, mailer=None, oauth_transport=No
 
     app.include_router(operations_routes(ledger.operations, human))
     app.include_router(configuration_routes(Configurations(db), human, service))
+    app.include_router(
+        agentdesk_routes(agentdesk, reporter, human, ledger_response, SESSION_COOKIE)
+    )
     return app

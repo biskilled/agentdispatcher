@@ -88,6 +88,16 @@ def require_admin(principal: Principal) -> None:
         raise HTTPException(403, "Tenant administrator access required")
 
 
+def validate_scope(principal: Principal, event) -> None:
+    """Prevent a key for one app/environment from submitting another app's records."""
+    if principal.role != "service":
+        raise HTTPException(403, "SDK key required")
+    if (event.app, event.environment) != (principal.app, principal.environment):
+        raise HTTPException(403, "Event is outside the SDK key scope")
+    if getattr(event, "tenant_id", None) not in (None, principal.tenant_id):
+        raise HTTPException(403, "Event tenant does not match SDK key")
+
+
 def require_usage_reader(principal: Principal) -> None:
     """Members read their verified usage; viewers need an explicit app grant."""
     if principal.role == "service" or (principal.role == "viewer" and not principal.visible_apps):

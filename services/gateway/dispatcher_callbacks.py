@@ -14,6 +14,7 @@ from litellm.integrations.custom_logger import CustomLogger
 _ATTRIBUTES = (
     "project",
     "work_item",
+    "pipeline_role",
     "session_id",
     "trace_id",
     "job_run_id",

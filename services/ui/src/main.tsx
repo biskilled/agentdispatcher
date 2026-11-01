@@ -28,6 +28,7 @@ import "./style.css";
 import { Credits } from "./Credits";
 import { CatalogView } from "./Accounting";
 import { AccessView, JoinWorkspace, LinkGoogle } from "./Access";
+import { AgentDeskView } from "./AgentDesk";
 import { UsageControls, UsageCharts, AttemptDetail } from "./UsageControls";
 import { OperationsView } from "./Operations";
 import { ConfigurationsView } from "./Configurations";
@@ -41,6 +42,7 @@ type Tab =
   | "LLM keys"
   | "Configuration"
   | "Access"
+  | "AgentDesk"
   | "Schedules"
   | "Budgets";
 const navigation = [
@@ -51,6 +53,7 @@ const navigation = [
   { label: "LLM keys", icon: KeyRound },
   { label: "Configuration", icon: Layers },
   { label: "Access", icon: Shield },
+  { label: "AgentDesk", icon: Workflow },
   { label: "Schedules", icon: Workflow },
   { label: "Budgets", icon: Database },
 ] as const;
@@ -700,7 +703,8 @@ function App() {
         <nav aria-label="Main navigation">
           {navigation
             .filter(
-              ({ label }) => admin || ["Overview", "Job runs"].includes(label),
+              ({ label }) =>
+                admin || ["Overview", "Job runs", "AgentDesk"].includes(label),
             )
             .map(({ label, icon: Icon }) => (
               <button
@@ -841,6 +845,13 @@ function App() {
               )}
               {tab === "Access" && admin && (
                 <AccessView
+                  tenant={tenant}
+                  role={current?.role || ""}
+                  report={setMessage}
+                />
+              )}
+              {tab === "AgentDesk" && (
+                <AgentDeskView
                   tenant={tenant}
                   role={current?.role || ""}
                   report={setMessage}

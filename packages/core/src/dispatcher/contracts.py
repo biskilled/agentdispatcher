@@ -35,6 +35,7 @@ class UsageEvent(Contract):
     user_id: str | None = Field(default=None, max_length=100)
     project: str | None = Field(default=None, max_length=100)
     work_item: str | None = Field(default=None, max_length=100)
+    pipeline_role: str | None = Field(default=None, max_length=100)
     session_id: str | None = Field(default=None, max_length=100)
     trace_id: str | None = Field(default=None, max_length=100)
     job_run_id: UUID | None = None

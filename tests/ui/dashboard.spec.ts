@@ -31,6 +31,15 @@ test("authenticated monitoring, catalog and scoped keys work at this viewport", 
   ).toBeTruthy();
   await page.getByRole("button", { name: "Job runs", exact: true }).click();
   await expect(page.getByText("Market scan")).toBeVisible();
+  await page.getByRole("button", { name: "AgentDesk", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Connect AgentDesk", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(
+      "An operator must configure the AgentDesk identity connection for this installation.",
+    ),
+  ).toBeVisible();
   await page.getByRole("button", { name: "API catalog", exact: true }).click();
   await expect(
     page.getByText("Synthetic market data", { exact: true }),

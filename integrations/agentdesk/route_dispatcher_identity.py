@@ -1,0 +1,57 @@
+"""AgentDesk-side live identity endpoint for explicitly linked Dispatcher accounts."""
+
+from datetime import datetime, timezone
+
+from core.auth import decode_access_token
+from core.config import settings
+from core.database import db
+from fastapi import APIRouter, Header, HTTPException
+
+_SQL_IDENTITY = """
+SELECT uuid_id,client_id,role,is_active,approval_status FROM mng_users
+WHERE id::text=%s OR uuid_id::text=%s
+"""
+_ADMIN_ROLES = {"admin", "super_admin"}
+_MEMBER_ROLES = {"editor", "paid", "member"}
+_VIEWER_ROLES = {"viewer", "free"}
+
+router = APIRouter()
+
+
+@router.get("/dispatcher-identity")
+def dispatcher_identity(authorization: str = Header(default="")):
+    """Validate a human JWT and current membership without development-mode fallbacks."""
+    if settings.dev_mode or not settings.require_auth or not db.is_available():
+        raise HTTPException(503, "Verified identity service unavailable")
+    scheme, _, token = authorization.partition(" ")
+    if scheme.lower() != "bearer" or not token or token.startswith("ad_"):
+        raise HTTPException(401, "Human access token required")
+    claims = decode_access_token(token)
+    subject, expiry = claims.get("sub"), claims.get("exp")
+    if (
+        not subject
+        or claims.get("integration_key_id")
+        or type(expiry) not in {int, float}
+        or expiry <= datetime.now(timezone.utc).timestamp()
+    ):
+        raise HTTPException(401, "Invalid or expired human access token")
+    try:
+        with db.conn() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(_SQL_IDENTITY, (str(subject), str(subject)))
+                row = cursor.fetchone()
+    except Exception as error:
+        # Do not return database diagnostics or credentials to the caller.
+        raise HTTPException(503, "Verified identity service unavailable") from error
+    if not row or not row[0] or not row[1] or not row[3] or row[4] != "approved":
+        raise HTTPException(403, "Active approved tenant membership required")
+    if row[2] not in _ADMIN_ROLES | _MEMBER_ROLES | _VIEWER_ROLES:
+        raise HTTPException(403, "Recognised tenant membership required")
+    role = "admin" if row[2] in _ADMIN_ROLES else "member" if row[2] in _MEMBER_ROLES else "viewer"
+    return {
+        "subject": str(row[0]),
+        "client_id": str(row[1]),
+        "role": role,
+        "active": True,
+        "expires_at": datetime.fromtimestamp(expiry, timezone.utc).isoformat(),
+    }

@@ -17,7 +17,16 @@ _context = contextvars.ContextVar("dispatcher_context", default=None)
 _delegation = contextvars.ContextVar("dispatcher_user_delegation", default=None)
 _attempts = contextvars.ContextVar("dispatcher_attempts", default=())
 _CONTEXT_FIELDS = frozenset(
-    {"project", "work_item", "session_id", "trace_id", "user_id", "config_version", "job_run_id"}
+    {
+        "project",
+        "work_item",
+        "pipeline_role",
+        "session_id",
+        "trace_id",
+        "user_id",
+        "config_version",
+        "job_run_id",
+    }
 )
 
 
@@ -141,6 +150,30 @@ class Monitor:
         if run := _run.get():
             attributes.update(job_run_id=run["run_id"], trace_id=run["trace_id"])
         return attributes
+
+    def session_context(
+        self,
+        session_id: str,
+        *,
+        effective_at: str | None = None,
+        project: str | None = None,
+        work_item: str | None = None,
+        pipeline_role: str | None = None,
+    ) -> bool:
+        """Queue a stable effective-time change; prefer context() for concurrent per-call tags."""
+        return self._enqueue(
+            "api/sessions/context",
+            {
+                "id": str(uuid4()),
+                "app": self.app,
+                "environment": self.environment,
+                "session_id": session_id,
+                "effective_at": effective_at or datetime.now(UTC).isoformat(),
+                "project": project,
+                "work_item": work_item,
+                "pipeline_role": pipeline_role,
+            },
+        )
 
     def configuration_activation(self, change_id: str, digest: str, success: bool) -> bool:
         """Report reload outcome; hash the actual loaded bytes, not a requested version."""

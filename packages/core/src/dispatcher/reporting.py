@@ -19,6 +19,7 @@ _FILTER_COLUMNS = {
     "session_id": "payload->>'session_id'",
     "project": "payload->>'project'",
     "work_item": "payload->>'work_item'",
+    "pipeline_role": "payload->>'pipeline_role'",
     "job_run_id": "job_run_id::text",
     "config_version": "payload->>'config_version'",
     "resource_kind": "resource_kind",
@@ -97,6 +98,7 @@ class UsageFilter(Contract):
     session_id: str | None = None
     project: str | None = None
     work_item: str | None = None
+    pipeline_role: str | None = None
     job_run_id: str | None = None
     config_version: str | None = None
     resource_kind: str | None = None
@@ -112,6 +114,7 @@ class UsageFilter(Contract):
         "session_id",
         "project",
         "work_item",
+        "pipeline_role",
         "job_run_id",
         "config_version",
         "resource_kind",

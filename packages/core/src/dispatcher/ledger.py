@@ -8,12 +8,13 @@ from fastapi import HTTPException
 from psycopg.types.json import Jsonb
 
 from dispatcher.accounting import Accounting, audit
-from dispatcher.auth import require_admin, require_usage_reader, usage_scope
+from dispatcher.auth import require_admin, require_usage_reader, usage_scope, validate_scope
 from dispatcher.contracts import ApiPlan, JobEvent, Principal, UsageEvent
 from dispatcher.db import Database
 from dispatcher.operations import Operations
 from dispatcher.pricing import calculate_price
 from dispatcher.reporting import Reporter, UsageFilter
+from dispatcher.session_context import attributes_at
 
 _SQL_PLAN_INSERT = """
 INSERT INTO mng_api_plans(tenant_id,id,api_id,effective_at,plan) VALUES (%s,%s,%s,%s,%s)
@@ -74,16 +75,6 @@ _SQL_TENANTS = "SELECT id FROM mng_tenants ORDER BY id"
 _SQL_INGEST_LOCK = "SELECT pg_advisory_xact_lock(hashtextextended(%s,0))"
 
 
-def validate_scope(principal: Principal, event) -> None:
-    """Prevent a key for one app/environment from submitting another app's records."""
-    if principal.role != "service":
-        raise HTTPException(403, "SDK key required")
-    if (event.app, event.environment) != (principal.app, principal.environment):
-        raise HTTPException(403, "Event is outside the SDK key scope")
-    if getattr(event, "tenant_id", None) not in (None, principal.tenant_id):
-        raise HTTPException(403, "Event tenant does not match SDK key")
-
-
 class Ledger:
     """Use one canonical event store and pricing implementation for all resource kinds."""
 
@@ -109,7 +100,10 @@ class Ledger:
         payload = canonical.model_dump(mode="json")
         # New optional evidence fields must not change hashes for pre-upgrade replays.
         omitted = {"reported_cost", "reported_currency"} if event.reported_cost is None else set()
+        if event.pipeline_role is None:
+            omitted.add("pipeline_role")
         digest = hashlib.sha256(canonical.model_dump_json(exclude=omitted).encode()).hexdigest()
+        payload.update(attributes_at(connection, principal, event))
         row = connection.execute(
             _SQL_PRICE, (principal.tenant_id, event.api_id, event.occurred_at)
         ).fetchone()

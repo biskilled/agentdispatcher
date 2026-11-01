@@ -2,6 +2,7 @@
 
 from functools import lru_cache
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -51,6 +52,8 @@ class Settings(BaseSettings):
     gateway_callback_secret: SecretStr = SecretStr("")
     config_sources: dict[str, ConfigSource] = Field(default_factory=dict)
     config_max_bytes: int = Field(default=65536, gt=0)
+    agentdesk_identity_url: str = ""
+    identity_max_bytes: int = Field(default=16384, ge=1024, le=65536)
 
     @model_validator(mode="after")
     def validate_security(self):
@@ -61,6 +64,21 @@ class Settings(BaseSettings):
             raise ValueError("public_url must be an absolute HTTP(S) URL")
         if self.secure_cookies and not self.public_url.startswith("https://"):
             raise ValueError("secure_cookies requires an HTTPS public_url")
+        if self.agentdesk_identity_url:
+            identity_url = urlsplit(self.agentdesk_identity_url)
+            if (
+                identity_url.scheme not in {"http", "https"}
+                or not identity_url.hostname
+                or identity_url.username
+                or identity_url.password
+                or identity_url.query
+                or identity_url.fragment
+            ):
+                raise ValueError(
+                    "agentdesk_identity_url must be an absolute URL without credentials"
+                )
+            if self.secure_cookies and identity_url.scheme != "https":
+                raise ValueError("AgentDesk identity verification requires HTTPS in production")
         for name in (
             "session_seconds",
             "login_seconds",
