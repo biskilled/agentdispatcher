@@ -61,16 +61,34 @@ _Born as a design-mode export; review and refine — this file is the project's 
 
 ## Open Items
 
-_No open items._
+- `US10000` **AgentDispatcher — open-source LLM gateway and API usage monitoring** (use_case · in-progress)
+- `FE10004` **Open-source quality, attribution, security and privacy** (feature · open)
+- `FE10003` **AgentDesk, AgentData and application SDK integration** (feature · open)
+- `FE10002` **Control & improvement: YAML configuration, policies and experiments** (feature · open)
+- `FE10001` **Monitoring: overview, jobs, sessions, users and budgets** (feature · open)
+- `FE10000` **Install & first-run setup** (feature · open)
+- `TA10002` **Shared API quota and pricing engine with mixed-workload fixtures** (task · in-progress)
+- `TA10001` **Admin API catalog and versioned provider plans** (task · in-progress)
+- `TA10000` **Background job health, coverage and billing reconciliation** (task · in-progress)
+- `TA10009` **YAML configuration connectors, version tracking and reversible updates** (task · open)
+- `TA10008` **MCP gateway and external CLI monitoring adapters** (task · open)
+- `TA10012` **Reusable LLM/API monitoring SDK and AgentTrade integration** (task · in-progress)
+- `TA10007` **License checks, privacy and minimal-release verification** (task · in-progress)
+- `TA10006` **Evidence-backed model policies and first A/B experiment** (task · open)
+- `TA10003` **Google/email authentication, tenant SDK keys and AgentDesk attribution** (task · in-progress)
+- `TA10005` **Tenant-scoped AgentData connector and usage semantic model** (task · open)
+- `TA10010` **Responsive React monitoring UI: overview, jobs, sessions and connections** (task · in-progress)
+- `TA10011` **Tenant-isolated PostgreSQL ledger, execution context and pricing** (task · in-progress)
+- `TA10004` **Scaffold minimal monorepo and independently deployable Compose services** (task · in-progress)
 
 ## Recent Work
 
-- [ui] Browser-first React monitoring: confirm web UI handles desktop/mobile use cases without Electron
-- [feature] General API monitoring SDK: extend usage tracking beyond LLM to any API (CoinGecko, Yahoo Finance, custom paid/free APIs) with tenant-scoped catalog and pricing
-- [feature] Auth validation: confirm AgentDesk tenant/user identity, Google OAuth, email support, and SDK dedicated hash keys per tenant work correctly
-- [feature] API catalog and pricing engine: CRUD endpoints for registering APIs, plans, quotas, costs and alert thresholds in React admin
-- [feature] PostgreSQL tenant isolation: ensure all durable data (tenants, apps, usage events, policies, API catalog) stored per-tenant
-- [feature] AgentDesk & AgentData integration: validate session attribution and semantic llm_usage model consumption
+- [feature] Responsive React monitoring UI: overview, jobs, sessions and connections (in-progress)
+- [feature] Tenant-isolated PostgreSQL ledger, execution context and pricing (in-progress)
+- [feature] Google/email authentication, tenant SDK keys and AgentDesk attribution (in-progress)
+- [feature] Shared API quota and pricing engine with mixed-workload fixtures (in-progress)
+- [feature] Admin API catalog and versioned provider plans (in-progress)
+- [feature] Reusable LLM/API monitoring SDK and AgentTrade integration (in-progress)
 
 ## Project Facts
 
@@ -81,9 +99,23 @@ _No open items._
 - **independent_services_single_monorepo**: Use one Git monorepo with real independently deployable services: responsive React/TypeScript UI, Python/FastAPI Dispatcher API, dedicated background worker/scheduler, LiteLLM gateway and OTel collect
 - **postgresql_tenant_data**: PostgreSQL is the authoritative store for all durable AgentDispatcher product data: tenant/app identities, usage/price records, jobs/runs/traces, policies, configuration snapshots, evaluations and aud
 
+### Constraint
+- **deployment_model**: Independently deployable services (React, backend, SDK, MCP gateway) in single Git repository for open-source promotion
+
 ### Convention
 - **open_source_easy_install_and_credits**: AgentDispatcher is intended for public Apache-2.0 open-source distribution. Keep dependencies and custom code minimal; reuse suitable open-source components while preserving attribution and license ob
 - **reusable_minimal_code**: Write once, reuse many: keep AgentDispatcher minimal with single-purpose classes, short well-named methods/functions and shared modules as the single source of each behaviour. Prefer composition and c
+- **auth_strategy**: React app: Google OAuth + email sign-in; SDK: hashed API keys scoped per tenant
 
 ### General
+- **implementation_status**: 2026-11-01: initial Python/FastAPI API, PostgreSQL forced-RLS ledger/separate auth role, email sessions/Google OIDC routes, scoped hashed SDK keys, basic versioned API pricing, independent worker, Pyt
+- **authentication_and_sdk_keys**: Authentication clarification (2026-11-01): Human access supports Google sign-in and verified email sign-in; passwordless email links are the initial design assumption. Resolve users, tenant membership
 - **general_api_monitoring**: General API monitoring extension (2026-11-01): Monitor free and paid non-LLM APIs through the same reusable SDK and tenant-isolated PostgreSQL ledger, including market-data requests in scheduled jobs
+
+### Stack
+- **project_stack_email**: SMTP via Python smtplib
+- **project_stack_scheduler**: Dedicated Python / FastAPI service
+- **project_stack_backend**: Python / FastAPI
+- **storage**: PostgreSQL per tenant for all durable data (usage ledger, API configs, quotas, user permissions)
+- **ui_framework**: React web app, responsive for desktop and mobile, with admin interface for API/quota/pricing configuration
+- **primary_gateway**: LiteLLM routes all LLM requests, tracks usage/costs, manages virtual keys and MCP gateway functionality

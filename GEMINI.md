@@ -47,17 +47,17 @@ _When one of these rules shapes an action or answer, SAY SO briefly — e.g. “
 - 🏢 **session start checks**: Always check that all hooks are running when you start a session, and make sure you are connected to AgentDesk.
 - 🏢 **node_modules folder**: Always store node_modules under /Users/user/Documents/node_modules folder (linked folder) and venv under /Users/user/Documents/venv
 
-<!-- Last updated: 2026-11-01 11:00 UTC -->
+<!-- Last updated: 2026-11-01 11:09 UTC -->
 # agentdispatcher
-_2026-11-01 11:00 UTC | Memory synced: 2026-11-01_
+_2026-11-01 11:09 UTC | Memory synced: 2026-11-01_
 
 ## Recent Work
-- [ui] Browser-first React monitoring: confirm web UI handles desktop/mobile use cases without Electron
-- [feature] General API monitoring SDK: extend usage tracking beyond LLM to any API (CoinGecko, Yahoo Finance, custom paid/free APIs) with tenant-scoped catalog and pricing
-- [feature] Auth validation: confirm AgentDesk tenant/user identity, Google OAuth, email support, and SDK dedicated hash keys per tenant work correctly
-- [feature] API catalog and pricing engine: CRUD endpoints for registering APIs, plans, quotas, costs and alert thresholds in React admin
-- [feature] PostgreSQL tenant isolation: ensure all durable data (tenants, apps, usage events, policies, API catalog) stored per-tenant
-- [feature] AgentDesk & AgentData integration: validate session attribution and semantic llm_usage model consumption
+- [feature] Responsive React monitoring UI: overview, jobs, sessions and connections (in-progress)
+- [feature] Tenant-isolated PostgreSQL ledger, execution context and pricing (in-progress)
+- [feature] Google/email authentication, tenant SDK keys and AgentDesk attribution (in-progress)
+- [feature] Shared API quota and pricing engine with mixed-workload fixtures (in-progress)
+- [feature] Admin API catalog and versioned provider plans (in-progress)
+- [feature] Reusable LLM/API monitoring SDK and AgentTrade integration (in-progress)
 
 ## Structure
 
@@ -80,7 +80,7 @@ _2026-11-01 11:00 UTC | Memory synced: 2026-11-01_
 - **database**: PostgreSQL
 - **backend_runtime**: Python with FastAPI
 - **ui_framework**: React + TypeScript + Vite
-- **auth_integration**: AgentDesk token (identity/session/membership), Google OAuth, email, SDK hash keys per tenant
+- **auth_integration**: AgentDesk token, Google OAuth, email, SDK hash keys per tenant
 - **deployment**: Docker Compose
 - **license**: Apache 2.0
 - **key_management**: Virtual keys per team/app with LiteLLM settings
@@ -111,8 +111,9 @@ _2026-11-01 11:00 UTC | Memory synced: 2026-11-01_
 
 ## Active Features
 
-- `US10000` `AgentDispatcher — open-source LLM gateway and API usage monitoring` [open] — AgentDispatcher is an Apache-2.0 open-source, self-installable app in the AgentDesk ecosystem. A res
+- `US10000` `AgentDispatcher — open-source LLM gateway and API usage monitoring` [in-progress] — AgentDispatcher is an Apache-2.0 open-source, self-installable app in the AgentDesk ecosystem. A res
   _AC: - On a clean checkout, documented Docker Compose setup starts the independent services; the offline demo shows synthetic jobs and usage without provid_
+  _Plan: 1. Define tenant identity, authenticated attribution, event contracts, PostgreSQL ownership/RLS, monetary semantics, deduplication and service boundaries; retain AI0001 and existin_
 - `FE10004` `Open-source quality, attribution, security and privacy` [open] — Apache-2.0 distribution with minimal dependencies and reusable single-purpose classes/methods/module
 - `FE10003` `AgentDesk, AgentData and application SDK integration` [open] — Integrate with AgentDesk identity, tenant membership, projects/work items and role attribution using
 

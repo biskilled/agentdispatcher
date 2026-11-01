@@ -10,7 +10,21 @@ _Explicit user instructions — always apply these. When a rule shapes your acti
 - **postgresql_tenant_data**: PostgreSQL is the authoritative store for all durable AgentDispatcher product data: tenant/app identities, usage/price records, jobs/runs/traces, policies, configuration snapshots, evaluations and audit/history. Every tenant-owned record, query, join, worker and export must preserve authenticated tenant scope; enforce RLS with non-bypass runtime roles and tenant-aware constraints. Minimal default is one PostgreSQL cluster with tenant-isolated shared application schema, not one database per tenant; physical per-tenant databases are an optional later deployment choice. Separate LiteLLM-owned storage/roles. App YAML remains its source; version snapshots/history live in PostgreSQL. Secrets stay in encrypted secret storage/env; SDK spools are bounded transient transport buffers. Test at least two tenants and pooled connections. Telemetry tags are attribution, never authentication.
 - **reusable_minimal_code**: Write once, reuse many: keep AgentDispatcher minimal with single-purpose classes, short well-named methods/functions and shared modules as the single source of each behaviour. Prefer composition and clear data flow; no duplicated pricing, attribution, validation or connector logic, speculative abstractions or silent failures. Add short public docstrings explaining purpose and non-obvious constraints; comments explain why. Match surrounding style, remove dead code, validate boundaries, configure URLs/ports/paths/limits through env/config and keep secrets out of source. SQL is named _SQL_* constants at file top with parameterised queries; migrations are appended and idempotent. Use focused tests for meaningful behaviour.
 
+## Constraint
+- **deployment_model**: Independently deployable services (React, backend, SDK, MCP gateway) in single Git repository for open-source promotion _(candidate)_
+
+## Convention
+- **auth_strategy**: React app: Google OAuth + email sign-in; SDK: hashed API keys scoped per tenant _(candidate)_
+
 ## General
 - **implementation_status**: 2026-11-01: initial Python/FastAPI API, PostgreSQL forced-RLS ledger/separate auth role, email sessions/Google OIDC routes, scoped hashed SDK keys, basic versio _(candidate)_
 - **authentication_and_sdk_keys**: Authentication clarification (2026-11-01): Human access supports Google sign-in and verified email sign-in; passwordless email links are the initial design assu _(candidate)_
 - **general_api_monitoring**: General API monitoring extension (2026-11-01): Monitor free and paid non-LLM APIs through the same reusable SDK and tenant-isolated PostgreSQL ledger, including _(candidate)_
+
+## Stack
+- **project_stack_email**: SMTP via Python smtplib
+- **project_stack_scheduler**: Dedicated Python / FastAPI service
+- **project_stack_backend**: Python / FastAPI
+- **storage**: PostgreSQL per tenant for all durable data (usage ledger, API configs, quotas, user permissions) _(candidate)_
+- **ui_framework**: React web app, responsive for desktop and mobile, with admin interface for API/quota/pricing configuration _(candidate)_
+- **primary_gateway**: LiteLLM routes all LLM requests, tracks usage/costs, manages virtual keys and MCP gateway functionality _(candidate)_

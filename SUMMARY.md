@@ -1,12 +1,12 @@
 # agentdispatcher — Summary
 
 ## Recent Work
-- [ui] Browser-first React monitoring: confirm web UI handles desktop/mobile use cases without Electron
-- [feature] General API monitoring SDK: extend usage tracking beyond LLM to any API (CoinGecko, Yahoo Finance, custom paid/free APIs) with tenant-scoped catalog and pricing
-- [feature] Auth validation: confirm AgentDesk tenant/user identity, Google OAuth, email support, and SDK dedicated hash keys per tenant work correctly
-- [feature] API catalog and pricing engine: CRUD endpoints for registering APIs, plans, quotas, costs and alert thresholds in React admin
-- [feature] PostgreSQL tenant isolation: ensure all durable data (tenants, apps, usage events, policies, API catalog) stored per-tenant
-- [feature] AgentDesk & AgentData integration: validate session attribution and semantic llm_usage model consumption
+- [feature] Responsive React monitoring UI: overview, jobs, sessions and connections (in-progress)
+- [feature] Tenant-isolated PostgreSQL ledger, execution context and pricing (in-progress)
+- [feature] Google/email authentication, tenant SDK keys and AgentDesk attribution (in-progress)
+- [feature] Shared API quota and pricing engine with mixed-workload fixtures (in-progress)
+- [feature] Admin API catalog and versioned provider plans (in-progress)
+- [feature] Reusable LLM/API monitoring SDK and AgentTrade integration (in-progress)
 
 ## Stack & Architecture
 
@@ -15,7 +15,7 @@
 - **database**: PostgreSQL
 - **backend_runtime**: Python with FastAPI
 - **ui_framework**: React + TypeScript + Vite
-- **auth_integration**: AgentDesk token (identity/session/membership), Google OAuth, email, SDK hash keys per tenant
+- **auth_integration**: AgentDesk token, Google OAuth, email, SDK hash keys per tenant
 - **deployment**: Docker Compose
 - **license**: Apache 2.0
 - **key_management**: Virtual keys per team/app with LiteLLM settings
