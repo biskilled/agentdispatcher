@@ -107,7 +107,9 @@ class Ledger:
     def _insert(self, connection, principal: Principal, event: UsageEvent) -> int:
         canonical = event.model_copy(update={"tenant_id": principal.tenant_id})
         payload = canonical.model_dump(mode="json")
-        digest = hashlib.sha256(canonical.model_dump_json().encode()).hexdigest()
+        # New optional evidence fields must not change hashes for pre-upgrade replays.
+        omitted = {"reported_cost", "reported_currency"} if event.reported_cost is None else set()
+        digest = hashlib.sha256(canonical.model_dump_json(exclude=omitted).encode()).hexdigest()
         row = connection.execute(
             _SQL_PRICE, (principal.tenant_id, event.api_id, event.occurred_at)
         ).fetchone()
@@ -118,6 +120,9 @@ class Ledger:
         else:
             price = calculate_price(None, event)
         cost, currency, kind = price
+        if event.reported_cost is not None:
+            cost, currency = event.reported_cost, event.reported_currency
+            kind = "gateway_calculated" if principal.purpose == "gateway" else "app_estimate"
         args = (
             principal.tenant_id,
             event.event_id,

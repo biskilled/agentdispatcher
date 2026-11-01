@@ -43,11 +43,12 @@ VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
 _SQL_KEY_AUTH = """
 UPDATE mng_sdk_keys SET last_used_at=now()
 WHERE token_hash=%s AND revoked_at IS NULL AND expires_at > now()
+AND purpose='ingest'
 RETURNING id,tenant_id,app,environment,expires_at
 """
 _SQL_KEY_LIST = """
 SELECT id,name,app,environment,created_at,expires_at,revoked_at,last_used_at
-FROM mng_sdk_keys WHERE tenant_id=%s ORDER BY created_at DESC
+FROM mng_sdk_keys WHERE tenant_id=%s AND purpose='ingest' ORDER BY created_at DESC
 """
 _SQL_KEY_REVOKE = """
 UPDATE mng_sdk_keys SET revoked_at=now() WHERE id=%s AND tenant_id=%s RETURNING id

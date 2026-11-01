@@ -39,7 +39,13 @@ jobs:
       - run: docker compose --profile demo run --rm demo > /tmp/demo.json
       - run: docker compose restart worker
       - run: curl --fail http://127.0.0.1:8088/health/ready
+      - name: Prepare synthetic LiteLLM profile
+        run: docker compose run --rm --no-deps --user 0 -v "$PWD:/workspace" api python scripts/gateway_smoke.py --prepare /workspace/gateway-fixture.yaml --source /workspace/services/gateway/config.yaml
+      - name: Start LiteLLM with synthetic provider responses
+        run: GATEWAY_CONFIG_PATH=./gateway-fixture.yaml docker compose --profile gateway up -d gateway
+      - name: Verify real LiteLLM image and callback boundary
+        run: docker compose exec -T api python scripts/gateway_smoke.py
       - if: always()
-        run: docker compose logs --tail 100 api worker migrate
+        run: docker compose logs --tail 100 api worker migrate gateway
       - if: always()
         run: docker compose down

@@ -47,6 +47,7 @@ services:
       DISPATCHER_MIGRATION_DATABASE_URL: ${DISPATCHER_MIGRATION_DATABASE_URL}
       DISPATCHER_APP_DB_PASSWORD: ${DISPATCHER_APP_DB_PASSWORD}
       DISPATCHER_AUTH_DB_PASSWORD: ${DISPATCHER_AUTH_DB_PASSWORD}
+      DISPATCHER_GATEWAY_DB_PASSWORD: ${DISPATCHER_GATEWAY_DB_PASSWORD:-}
     command: [python, scripts/migrate.py]
 
   api:
@@ -61,6 +62,9 @@ services:
       DISPATCHER_SMTP_STARTTLS: ${DISPATCHER_SMTP_STARTTLS:-true}
       DISPATCHER_GOOGLE_CLIENT_ID: ${DISPATCHER_GOOGLE_CLIENT_ID:-}
       DISPATCHER_GOOGLE_CLIENT_SECRET: ${DISPATCHER_GOOGLE_CLIENT_SECRET:-}
+      DISPATCHER_GATEWAY_URL: http://gateway:${LITELLM_PORT}
+      DISPATCHER_GATEWAY_MASTER_KEY: ${LITELLM_MASTER_KEY:-}
+      DISPATCHER_GATEWAY_CALLBACK_SECRET: ${DISPATCHER_GATEWAY_CALLBACK_SECRET:-}
     command:
       [
         uvicorn,
@@ -126,7 +130,14 @@ services:
       LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY}
       LLM_PROVIDER_MODEL: ${LLM_PROVIDER_MODEL}
       LLM_API_KEY: ${LLM_API_KEY}
-    volumes: ["./services/gateway/config.yaml:/app/config.yaml:ro"]
+      LITELLM_DATABASE_URL: ${LITELLM_DATABASE_URL:-}
+      DISPATCHER_CALLBACK_URL: http://api:${API_PORT}
+      DISPATCHER_GATEWAY_CALLBACK_SECRET: ${DISPATCHER_GATEWAY_CALLBACK_SECRET:-}
+    depends_on:
+      api: { condition: service_healthy }
+    volumes:
+      - ${GATEWAY_CONFIG_PATH:-./services/gateway/config.yaml}:/app/config.yaml:ro
+      - ./services/gateway/dispatcher_callbacks.py:/app/dispatcher_callbacks.py:ro
     command: [--config, /app/config.yaml, --port, "${LITELLM_PORT}"]
 
   collector:

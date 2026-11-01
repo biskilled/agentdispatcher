@@ -44,6 +44,9 @@ class Settings(BaseSettings):
     google_client_secret: SecretStr = SecretStr("")
     google_metadata_url: str = "https://accounts.google.com/.well-known/openid-configuration"
     http_timeout: float = 10
+    gateway_url: str = ""
+    gateway_master_key: SecretStr = SecretStr("")
+    gateway_callback_secret: SecretStr = SecretStr("")
 
     @model_validator(mode="after")
     def validate_security(self):

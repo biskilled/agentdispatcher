@@ -21,14 +21,19 @@ def main() -> None:
         "DISPATCHER_AUTH_DB_PASSWORD",
         "DISPATCHER_SESSION_SECRET",
         "LITELLM_MASTER_KEY",
+        "DISPATCHER_GATEWAY_DB_PASSWORD",
+        "DISPATCHER_GATEWAY_CALLBACK_SECRET",
     ):
         values[key] = secrets.token_urlsafe(48)
+    values["LITELLM_MASTER_KEY"] = "sk-" + values["LITELLM_MASTER_KEY"]
     for key, user, password in (
         ("DISPATCHER_DATABASE_URL", "dispatcher_app", "DISPATCHER_APP_DB_PASSWORD"),
         ("DISPATCHER_AUTH_DATABASE_URL", "dispatcher_auth", "DISPATCHER_AUTH_DB_PASSWORD"),
         ("DISPATCHER_MIGRATION_DATABASE_URL", values["POSTGRES_USER"], "POSTGRES_PASSWORD"),
+        ("LITELLM_DATABASE_URL", "dispatcher_gateway", "DISPATCHER_GATEWAY_DB_PASSWORD"),
     ):
         values[key] = f"postgresql://{user}:{values[password]}@db:5432/{values['POSTGRES_DB']}"
+    values["LITELLM_DATABASE_URL"] += "?schema=litellm"
     # Exclusive create and restrictive mode apply before any secret reaches disk.
     import os
 

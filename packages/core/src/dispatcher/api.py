@@ -19,6 +19,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from dispatcher.auth import AuthService, require_admin
 from dispatcher.contracts import ApiConnection, ApiPlan, Contract, EventBatch, JobEvent, UsageEvent
 from dispatcher.db import Database
+from dispatcher.gateway import Gateway
 from dispatcher.ledger import Ledger
 from dispatcher.mail import Mailer
 from dispatcher.membership import MembershipService
@@ -92,6 +93,28 @@ class PricePreview(Contract):
     previous_units: Decimal = Field(default=Decimal(0), ge=0, allow_inf_nan=False)
 
 
+class GatewayKeyRequest(KeyRequest):
+    """A virtual key explicitly permits a bounded set of model aliases."""
+
+    models: list[Annotated[str, Field(min_length=1, max_length=100)]] = Field(
+        min_length=1, max_length=100
+    )
+
+
+class GatewayAuthorization(Contract):
+    """Trusted proxy middleware supplies the registered key ID and requested alias."""
+
+    service_id: UUID
+    model: str = Field(min_length=1, max_length=100)
+
+
+class GatewayObservation(Contract):
+    """A proxy attempt is scoped by its registered key, never by client telemetry tags."""
+
+    service_id: UUID
+    event: UsageEvent
+
+
 def create_app(settings: Settings | None = None, mailer=None, oauth_transport=None) -> FastAPI:
     """Construct a service with explicit dependencies for production and integration tests."""
     settings = settings or get_settings()
@@ -99,10 +122,12 @@ def create_app(settings: Settings | None = None, mailer=None, oauth_transport=No
     auth, ledger = AuthService(db), Ledger(db)
     reporter = Reporter(db)
     reconciliation = Reconciliation(db)
+    gateway = Gateway(db)
     memberships = MembershipService(auth)
     mailer = mailer or Mailer(settings)
     app = FastAPI(title="AgentDispatcher", version="0.1.0", docs_url=None, redoc_url=None)
     app.state.auth, app.state.ledger = auth, ledger
+    app.state.gateway = gateway
     app.add_middleware(
         SessionMiddleware,
         secret_key=settings.session_secret.get_secret_value(),
@@ -151,6 +176,9 @@ def create_app(settings: Settings | None = None, mailer=None, oauth_transport=No
             raise HTTPException(401, "Bearer SDK key required")
         principal = auth.service(token)
         return auth.delegated(principal, delegation) if delegation else principal
+
+    def gateway_callback(secret: Annotated[str, Header(alias="X-Gateway-Secret")]):
+        gateway.verify_callback(secret)
 
     def set_session(response: Response, token: str):
         response.set_cookie(
@@ -434,6 +462,31 @@ def create_app(settings: Settings | None = None, mailer=None, oauth_transport=No
     def adjustment(body: Adjustment, principal=Depends(human)):
         """Append an audited correction to an existing tenant event."""
         return reconciliation.adjust(principal, body)
+
+    @app.get("/api/gateway/keys")
+    def gateway_keys(principal=Depends(human)):
+        """List distinct LLM virtual keys for this tenant."""
+        return gateway.keys(principal)
+
+    @app.post("/api/gateway/keys", status_code=201)
+    def gateway_key(body: GatewayKeyRequest, principal=Depends(human)):
+        """Issue a model-restricted LiteLLM key once; never expose the gateway master key."""
+        return gateway.issue(principal, body.name, body.app, body.environment, body.models)
+
+    @app.post("/internal/gateway/authorize", dependencies=[Depends(gateway_callback)])
+    def gateway_authorize(body: GatewayAuthorization):
+        """Deny upstream LLM execution for unknown, revoked or out-of-policy keys."""
+        principal = gateway.principal(body.service_id, body.model)
+        return {
+            "service_id": principal.subject_id,
+            "app": principal.app,
+            "environment": principal.environment,
+        }
+
+    @app.post("/internal/gateway/ingest", status_code=202, dependencies=[Depends(gateway_callback)])
+    def gateway_ingest(body: GatewayObservation):
+        """Store one proxy observation; its reported cost is gateway-calculated, not invoiced."""
+        return ledger.ingest(gateway.principal(body.service_id), [body.event])
 
     app.include_router(operations_routes(ledger.operations, human))
     return app

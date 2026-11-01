@@ -6,6 +6,7 @@ import psycopg
 
 from dispatcher.schema_access import SQL_ACCESS
 from dispatcher.schema_accounting import SQL_ACCOUNTING
+from dispatcher.schema_gateway import SQL_GATEWAY
 from dispatcher.schema_operations import SQL_OPERATIONS
 
 _SQL_LOCK = "SELECT pg_advisory_xact_lock(73190521)"
@@ -127,7 +128,13 @@ GRANT USAGE, SELECT ON SEQUENCE mng_auth_audit_id_seq TO dispatcher_auth;
 GRANT SELECT ON mng_migrations TO dispatcher_auth;
 """
 
-MIGRATIONS = ((1, _SQL_INITIAL), (2, SQL_ACCESS), (3, SQL_ACCOUNTING), (4, SQL_OPERATIONS))
+MIGRATIONS = (
+    (1, _SQL_INITIAL),
+    (2, SQL_ACCESS),
+    (3, SQL_ACCOUNTING),
+    (4, SQL_OPERATIONS),
+    (5, SQL_GATEWAY),
+)
 
 
 def migrate(dsn: str) -> None:

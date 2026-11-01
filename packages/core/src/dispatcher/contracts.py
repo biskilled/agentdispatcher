@@ -45,6 +45,15 @@ class UsageEvent(Contract):
     input_tokens: int | None = Field(default=None, ge=0)
     output_tokens: int | None = Field(default=None, ge=0)
     units: Decimal = Field(default=Decimal(1), ge=0, allow_inf_nan=False)
+    reported_cost: Decimal | None = Field(default=None, ge=0, allow_inf_nan=False)
+    reported_currency: str | None = Field(default=None, pattern=r"^[A-Z]{3}$")
+
+    @model_validator(mode="after")
+    def cost_pair(self):
+        """Reported amounts require a currency; trust is derived from the credential source."""
+        if (self.reported_cost is None) != (self.reported_currency is None):
+            raise ValueError("reported_cost and reported_currency must be supplied together")
+        return self
 
 
 class EventBatch(Contract):
@@ -228,3 +237,4 @@ class Principal(Contract):
     expires_at: datetime | None = None
     visible_apps: list[str] = Field(default_factory=list)
     verified_user_id: UUID | None = None
+    purpose: Literal["ingest", "gateway"] = "ingest"
