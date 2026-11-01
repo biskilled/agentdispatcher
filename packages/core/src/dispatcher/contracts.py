@@ -7,6 +7,7 @@ from uuid import UUID
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
 
+
 class Contract(BaseModel):
     """Reject unknown fields so callers cannot accidentally persist prompt bodies."""
 
