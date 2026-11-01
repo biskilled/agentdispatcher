@@ -71,6 +71,7 @@ class Gateway:
         if not self.settings.gateway_url or not self.settings.gateway_master_key.get_secret_value():
             raise HTTPException(503, "LiteLLM gateway is not configured")
         service_id = uuid4()
+        requested_key = "sk-" + secrets.token_urlsafe(32)
         expiry = datetime.now(UTC) + timedelta(seconds=self.settings.key_seconds)
         with httpx.Client(
             base_url=self.settings.gateway_url.rstrip("/") + "/",
@@ -84,6 +85,7 @@ class Gateway:
                 response = client.post(
                     "key/generate",
                     json={
+                        "key": requested_key,
                         "models": models,
                         "key_alias": name,
                         "duration": f"{self.settings.key_seconds}s",
@@ -92,7 +94,7 @@ class Gateway:
                 )
                 response.raise_for_status()
                 secret = response.json()["key"]
-                if not isinstance(secret, str) or len(secret) < 32:
+                if not isinstance(secret, str) or not secrets.compare_digest(secret, requested_key):
                     raise ValueError("Missing virtual key")
             except (httpx.HTTPError, ValueError, KeyError):
                 raise HTTPException(502, "LiteLLM could not create a virtual key") from None

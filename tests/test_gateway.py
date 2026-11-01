@@ -11,13 +11,15 @@ from test_integration import event, ingest
 def test_gateway_key_scope_revocation_and_cost_provenance(system):
     client = system["client"]
     gateway = client.app.state.gateway
-    upstream_key = "sk-" + secrets.token_urlsafe(32)
+    upstream_key = None
     callback_secret = secrets.token_urlsafe(32)
     issued = []
 
     def upstream(request):
+        nonlocal upstream_key
         assert request.url.path == "/key/generate"
         issued.append(json.loads(request.content))
+        upstream_key = issued[-1]["key"]
         return httpx.Response(200, json={"key": upstream_key})
 
     gateway.settings = gateway.settings.model_copy(
