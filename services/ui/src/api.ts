@@ -19,6 +19,9 @@ export type Overview = {
     provider: string;
     resource_kind: string;
   })[];
+  groups: (Cost & { label: string | null })[];
+  trend: (Cost & { day: string; unknown_cost: number })[];
+  chart_row_limit: number;
 };
 export type Usage = Cost & {
   event_id: string;
@@ -29,6 +32,9 @@ export type Usage = Cost & {
   status: string;
   resource_kind: string;
   user_attribution: string;
+  verified_user_id: string | null;
+  plan_id: string | null;
+  payload: Record<string, string | number | null>;
 };
 export type Job = {
   run_id: string;

@@ -28,9 +28,9 @@ Configure SMTP in `.env`, then provision the initial owner from the operator CLI
 docker compose exec api dispatcher create-tenant --name "My workspace" --email "owner@example.com"
 ```
 
-The email address alone is not proof of identity. The owner signs in using a single-use email link before receiving dashboard access. Public self-service tenant creation and invitation management are still pending.
+The email address alone is not proof of identity. The owner signs in using a single-use email link before receiving dashboard access. Use **Access** to invite members, assign roles/app views, and revoke invitations. The invited person signs in independently, then pastes the invitation token into **Join another workspace**. Concurrent membership changes cannot remove the last owner. Tenant creation remains operator-controlled.
 
-For Google sign-in, configure `DISPATCHER_GOOGLE_CLIENT_ID` and `DISPATCHER_GOOGLE_CLIENT_SECRET`. Register the exact `${DISPATCHER_PUBLIC_URL}/api/auth/google/callback` redirect URI in Google. Accounts use the OIDC issuer and subject; matching email addresses are **not** automatically linked. An authenticated client can explicitly initiate linking using `POST /api/auth/google/link`; the dedicated account-management UI is still pending. A newly created Google account has no workspace access until membership is provisioned.
+For Google sign-in, configure `DISPATCHER_GOOGLE_CLIENT_ID` and `DISPATCHER_GOOGLE_CLIENT_SECRET`. Register the exact `${DISPATCHER_PUBLIC_URL}/api/auth/google/callback` redirect URI in Google. Accounts use the OIDC issuer and subject; matching email addresses are **not** automatically linked. **Link a Google account** requires a recent sign-in (`DISPATCHER_REAUTH_SECONDS`) and an unchanged browser session throughout linking. OAuth state is single-use in PostgreSQL. A newly created Google account has no workspace access until membership is provisioned.
 
 For remote/mobile access, put the UI behind HTTPS, set `DISPATCHER_PUBLIC_URL` to that origin, enable `DISPATCHER_SECURE_COOKIES=true`, and configure the listen address/reverse proxy intentionally. The React application runs in desktop and mobile browsers; no desktop app is needed.
 
@@ -65,18 +65,18 @@ with monitor.job("scheduled-analysis"):
 flushed = monitor.close()
 ```
 
-Wrap each physical request attempt, including each retry/page. Reuse `operation_id` for a shared logical operation. Use `monitor.record(resource_kind="llm", ...)` for measured provider token counts. Use `heartbeat()` for long-running jobs. The SDK carries current OpenTelemetry trace IDs when available and separates concurrent job contexts. Queue/process propagation and gateway correlation adapters remain pending.
+Wrap each physical request attempt, including each retry/page. Reuse `operation_id` for a shared logical operation. Use `monitor.record(resource_kind="llm", ...)` for measured provider token counts. Use `heartbeat()` for long-running jobs. The SDK carries current OpenTelemetry trace IDs when available and separates concurrent job contexts. Use `monitor.context(project=..., work_item=..., config_version=...)` for attribution, and explicitly pass `monitor.export_context()` through queue messages into the receiving worker's context. Exported context excludes credentials. Gateway correlation remains pending.
 
-Export runs in a bounded background queue. Delivery retries retain event IDs; business requests are never retried by the monitoring SDK. `delivered`, `failed`, `dropped` and the result of `close()` expose loss. Abrupt process termination can lose queued telemetry. HTTP hooks and additional language SDKs are not yet provided.
+Export runs in a bounded background queue. Delivery retries retain event IDs; business requests are never retried by the monitoring SDK. `delivered`, `failed`, `dropped` and the result of `close()` expose loss. Abrupt process termination can lose queued telemetry. Optional `MonitoredTransport` and `AsyncMonitoredTransport` from `agentdispatcher_sdk.http` wrap HTTPX transports without inspecting bodies/URLs; supply an operation template and provider/API/connection IDs. They measure time to response headers, not streaming body duration. Additional language SDKs remain pending.
 
 ## Accounting and security boundaries
 
 - Runtime PostgreSQL roles cannot bypass RLS. Tenant context is transaction-local and comes from authenticated credentials. A separate narrowly granted auth connection owns identity, membership and credential lookups; no public route exposes those tables directly.
 - Human access and service ingestion are separate. SDK keys cannot read reports or administer tenants. Key verifiers are SHA-256 hashes of high-entropy random secrets; secrets are shown once. Expiry/revocation and membership changes are checked on each request.
-- Owner/admin can see tenant-wide usage. Member/viewer access is denied until explicit view grants are implemented; role names alone do not expose tenant data.
+- Owner/admin can see tenant-wide usage. Members see their own verified usage and explicit app grants; viewers see granted apps only. An empty viewer grant grants no usage access. A service may attach a short-lived token issued by `POST /api/auth/delegate` through `monitor.user(token)`. The token is bound to the user's current session, tenant and app; logout/removal invalidates it. SDK-reported user IDs never confer read permission.
 - Identical event replays are idempotent; altered evidence with the same event/attempt ID is rejected. Separate SDK/gateway representations need the forthcoming correlation adapter and must not be blindly submitted with different attempt IDs.
-- Only explicit unknown/free/per-unit pricing is implemented. Historic events keep their plan version. Monetary values are PostgreSQL decimals and JSON strings. SDK actor IDs are app-reported, not authenticated human identities.
-- Quota fields are stored but quota evaluation, thresholds, subscription/tier allocation and provider reconciliation are pending. Current monitoring is not hard quota enforcement.
+- Pricing supports explicit unknown/free, per-unit, per-token, subscription/overage, graduated and volume tiers. Historic events retain their plan and original cost. Fixed fees appear separately once per observed pool/billing period; unobserved subscription periods are not inferred. Cumulative marginal charges allocate in ingestion order within the event-time billing period, so late-arriving calls can consume the remaining allowance. Volume discounts can produce negative marginal charges. A revised plan does not silently re-rate history. Monetary values are PostgreSQL decimals and JSON strings.
+- Account/connection/API/operation pools support independent quota status rules, unit weights, unknown timeout consumption, rolling/fixed/daily/monthly windows, time zones and deduplicated worker alerts. Calendar resets use the first occurrence of ambiguous wall time; monthly reset days are 1–28. Remaining amounts are local estimates with explicit unknown counters, not provider guarantees or hard enforcement. **Budgets** accepts provider statements for comparison and signed refunds/corrections linked to original events. Importing a statement never adds its amount to the ledger; external refresh integrations remain pending.
 - No request/response body fields exist in the ingestion contract. Unknown fields are rejected. Applications must still avoid putting secrets in allowed labels. OIDC access logging is disabled in the provided server/proxy configuration.
 
 ## Services and optional integrations
@@ -84,7 +84,7 @@ Export runs in a bounded background queue. Delivery retries retain event IDs; bu
 | Component | Entrypoint | State |
 | --- | --- | --- |
 | API | `uvicorn dispatcher.api:create_app --factory` | Auth, catalog, intake and monitoring reads |
-| Worker | `dispatcher-worker` | Tenant-scoped stale-run detection and heartbeat |
+| Worker | `dispatcher-worker` | Tenant-scoped run health, expected schedules, leases, budget/quota alerts |
 | UI | `npm run dev` / static Vite build | Desktop/mobile monitoring and administration |
 | Migrations | `python scripts/migrate.py` | Sole schema owner, separate deployment credentials |
 | LiteLLM | Compose `gateway` profile | Main planned LLM gateway; adapter integration pending |

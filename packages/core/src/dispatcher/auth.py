@@ -27,7 +27,7 @@ WHERE token_hash=%s AND used_at IS NULL AND expires_at > now() RETURNING user_id
 """
 _SQL_SESSION_ADD = "INSERT INTO mng_sessions(token_hash,user_id,expires_at) VALUES (%s,%s,%s)"
 _SQL_SESSION = """
-SELECT s.user_id, u.email FROM mng_sessions s JOIN mng_users u ON u.id=s.user_id
+SELECT s.user_id, u.email, s.created_at FROM mng_sessions s JOIN mng_users u ON u.id=s.user_id
 WHERE s.token_hash=%s AND s.expires_at > now()
 """
 _SQL_LOGOUT = "DELETE FROM mng_sessions WHERE token_hash=%s"
@@ -58,6 +58,22 @@ INSERT INTO mng_auth_audit(tenant_id,actor_id,action,target_id) VALUES (%s,%s,%s
 _SQL_USER_ADD = "INSERT INTO mng_users(id,email) VALUES (%s,%s)"
 _SQL_IDENTITY_ADD = "INSERT INTO mng_identities(issuer,subject,user_id) VALUES (%s,%s,%s)"
 _SQL_IDENTITY_LOCK = "SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))"
+_SQL_GRANTS = "SELECT app FROM mng_view_grants WHERE tenant_id=%s AND user_id=%s"
+_SQL_DELEGATE = """
+INSERT INTO mng_delegations(token_hash,tenant_id,user_id,app,session_hash,expires_at)
+VALUES(%s,%s,%s,%s,%s,%s)
+"""
+_SQL_DELEGATION = """
+SELECT d.user_id FROM mng_delegations d JOIN mng_sessions s ON s.token_hash=d.session_hash
+JOIN mng_memberships m ON (m.tenant_id,m.user_id)=(d.tenant_id,d.user_id)
+WHERE d.token_hash=%s AND d.tenant_id=%s AND d.app=%s AND d.expires_at>now()
+AND s.expires_at>now()
+"""
+_SQL_OIDC_START = "INSERT INTO mng_oidc_flows(state_hash,expires_at) VALUES(%s,%s)"
+_SQL_OIDC_CONSUME = """
+UPDATE mng_oidc_flows SET used_at=now() WHERE state_hash=%s AND expires_at>now()
+AND used_at IS NULL RETURNING state_hash
+"""
 
 
 def verifier(secret: str) -> str:
@@ -72,8 +88,18 @@ def require_admin(principal: Principal) -> None:
 
 
 def require_usage_reader(principal: Principal) -> None:
-    """Only tenant admins can read tenant-wide usage until view grants are implemented."""
-    require_admin(principal)
+    """Members read their verified usage; viewers need an explicit app grant."""
+    if principal.role == "service" or (principal.role == "viewer" and not principal.visible_apps):
+        raise HTTPException(403, "Usage view permission required")
+
+
+def usage_scope(principal: Principal) -> tuple:
+    """Resolve broad, granted-app and own-user visibility from verified identity only."""
+    return (
+        principal.role in {"owner", "admin"} or "*" in principal.visible_apps,
+        principal.visible_apps,
+        principal.subject_id if principal.role == "member" else None,
+    )
 
 
 class AuthService:
@@ -135,9 +161,56 @@ class AuthService:
             membership = connection.execute(
                 _SQL_MEMBERSHIP, (user["user_id"], tenant_id)
             ).fetchone()
+            grants = connection.execute(_SQL_GRANTS, (tenant_id, user["user_id"])).fetchall()
         if membership is None:
             raise HTTPException(403, "Tenant membership required")
-        return Principal(tenant_id=tenant_id, subject_id=user["user_id"], role=membership["role"])
+        return Principal(
+            tenant_id=tenant_id,
+            subject_id=user["user_id"],
+            role=membership["role"],
+            visible_apps=[row["app"] for row in grants],
+        )
+
+    def recent_user(self, session: str) -> dict:
+        """Require recent sign-in before binding an additional identity."""
+        user = self.user(session)
+        if (datetime.now(UTC) - user["created_at"]).total_seconds() > self.settings.reauth_seconds:
+            raise HTTPException(401, "Sign in again before linking an account")
+        return user
+
+    def start_oidc(self, state: str) -> None:
+        """Persist a single-use state verifier independently of the signed browser cookie."""
+        expiry = datetime.now(UTC) + timedelta(seconds=self.settings.login_seconds)
+        with self.db.auth() as connection:
+            connection.execute(_SQL_OIDC_START, (verifier(state), expiry))
+
+    def consume_oidc(self, state: str) -> None:
+        """Reject replays even when an old signed OAuth cookie is restored."""
+        with self.db.auth() as connection:
+            if not connection.execute(_SQL_OIDC_CONSUME, (verifier(state),)).fetchone():
+                raise HTTPException(401, "Invalid or replayed sign-in state")
+
+    def delegate(self, session: str, tenant_id: UUID, app: str) -> dict:
+        """Issue short-lived consent for a service to attribute requests to this user."""
+        principal = self.human(session, tenant_id)
+        secret = self.new_secret()
+        expiry = datetime.now(UTC) + timedelta(seconds=self.settings.delegation_seconds)
+        with self.db.auth() as connection:
+            connection.execute(
+                _SQL_DELEGATE,
+                (verifier(secret), tenant_id, principal.subject_id, app, verifier(session), expiry),
+            )
+        return {"token": secret, "expires_at": expiry, "app": app}
+
+    def delegated(self, principal: Principal, token: str) -> Principal:
+        """Bind a service request to a still-valid user session, tenant, and app."""
+        with self.db.auth() as connection:
+            row = connection.execute(
+                _SQL_DELEGATION, (verifier(token), principal.tenant_id, principal.app)
+            ).fetchone()
+        if not row:
+            raise HTTPException(401, "Invalid or expired user delegation")
+        return principal.model_copy(update={"verified_user_id": row["user_id"]})
 
     def service(self, token: str) -> Principal:
         """Authenticate ingest-only credentials without caching revocation state."""

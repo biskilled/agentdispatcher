@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     session_seconds: int = 43200
     login_seconds: int = 600
     key_seconds: int = 7776000
+    invite_seconds: int = Field(default=172800, gt=0)
+    reauth_seconds: int = Field(default=600, gt=0)
+    delegation_seconds: int = Field(default=300, gt=0)
     secret_bytes: int = Field(default=32, ge=32)
     request_limit: int = 1000
     page_size: int = 100
@@ -26,6 +29,9 @@ class Settings(BaseSettings):
     worker_health_file: Path = Path("/tmp/dispatcher-worker-health")
     worker_health_ttl_seconds: float = 120
     heartbeat_grace_seconds: int = 300
+    worker_lease_seconds: int = Field(default=120, gt=0)
+    schedule_catchup_limit: int = Field(default=100, gt=0)
+    snapshot_stale_seconds: int = Field(default=86400, gt=0)
     login_requests_per_window: int = 5
     login_window_seconds: int = 900
     smtp_host: str = ""

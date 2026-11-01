@@ -2,6 +2,16 @@
 
 First implementation slice, 2026-11-01. Approval promoted the original AI IDs to US10000, FE10000–FE10004 and TA10000–TA10012. Requirements in agentdispatcher-specification.md remain the full target; this file describes actual implementation coverage.
 
+## Current implementation update (2026-11-01)
+
+- Added tenant invitations, membership administration, concurrent last-owner protection, app view grants, verified-user delegation and recent-login Google linking. OAuth state is single-use in PostgreSQL. Eight full callback tests exercise locally signed identity tokens and invalid issuer/audience/signature/expiry/nonce/state/missing-token cases. Live Google and SMTP still require deployment configuration.
+- Added API/account/connection/operation pools, subscriptions and included-unit overage, graduated/volume/token pricing, explicit quota outcome rules, rolling/calendar windows, time zones and deduplicated threshold alerts. Admin forms provide connection revisions and synthetic pricing previews. Original event prices remain immutable; cumulative tier allocation uses arrival order within the event-time billing period.
+- Added common filtered reporting for app/environment/provider/model/source/user/session/project/work item/job/config/API and time ranges, daily trends, dimension breakdowns, pagination and original-attempt evidence.
+- Added HTTPX sync/async monitoring transports, request-scoped metadata, credential-free queue context propagation and short-lived user delegation headers.
+- Added persisted external schedules, expected occurrences, late-run reconciliation, worker leases and budget configuration. Fixed fees, explicit refunds and imported provider statement comparisons remain separate from original request totals. Provider statements never become new charges.
+- Verification: 36 PostgreSQL/SDK/OIDC tests passed; React TypeScript/production build passed. Desktop and mobile Playwright flows passed including synthetic pricing preview/publication and scoped key lifecycle. New schedule/budget screens build successfully; their browser interaction checks are still pending. Independent worker startup/health/shutdown passed before the latest schedule additions.
+- All remaining integrations, release work and full-item acceptance still need completion. This update is not a claim that the entire use case is finished.
+
 ## Implemented in the first slice
 
 - Shared Python package, FastAPI service, standalone worker, React/Vite UI, separately installable Python SDK, Compose definitions and a sole migration job.
@@ -28,16 +38,16 @@ First implementation slice, 2026-11-01. Approval promoted the original AI IDs to
 | Item | Remaining work |
 | --- | --- |
 | TA10004 / FE10000 | Database persistence/restore and optional integration-profile checks, guided setup and live connection verification |
-| TA10003 | Invitations/membership administration, owner invariants, granular view grants, secure account-link reauthentication UX, AgentDesk adapter, full OIDC tests and live providers |
+| TA10003 | AgentDesk identity/membership adapter and live provider verification; existing standalone identity/access flows now tested |
 | TA10011 | Gateway/provider correlation, exports/retention/deletion/restore, full durable entities and broader isolation coverage |
-| TA10012 | Instrument the real AgentTrade shared client/scheduler, HTTP hooks, cross-process propagation and coverage diagnostics |
-| TA10010 / FE10001 | Period/dimension filtering, session/request drilldown, trends, budgets, view grants and full connection coverage |
-| TA10001 / TA10002 | Connection/account pools, quota evaluation, thresholds, tiers/subscriptions/included units, full plan audit and preview |
-| TA10000 | Schedule registry, missed runs, task leases, budget/retention/config jobs and billing reconciliation |
+| TA10012 | Instrument the real AgentTrade shared client/scheduler and coverage diagnostics; HTTP hooks and explicit queue context now implemented |
+| TA10010 / FE10001 | Browser checks for new budget/schedule screens and full integration connection coverage |
+| TA10001 / TA10002 | Full end-to-end mixed AgentTrade/LiteLLM workload and final catalog acceptance review |
+| TA10000 | Retention/config polling jobs, live provider refresh integrations, and final worker acceptance review |
 | TA10008 / FE10003 | LiteLLM virtual-key/billing adapter, MCP and CLI adapters, authenticated OTel intake |
 | TA10005 | AgentData tenant-scoped connector and semantic model |
 | TA10009 / FE10002 | YAML inventory/connectors/versioning, reviewed writes, activation checks and rollback |
 | TA10006 | Evaluation-backed model alternatives, routing policies and experiments |
 | TA10007 / FE10004 | Container/dev-tool notices, full dependency/license/security checks, release audit and end-to-end installation validation |
 
-No work item is claimed complete merely because the initial slice exists. LiteLLM is the planned main LLM gateway; its optional Compose service is not yet connected to accounting. The OTel collector is diagnostic only. Quota fields are persisted, not enforced or evaluated. All such boundaries are disclosed in the README and relevant UI.
+No work item is claimed complete merely because a slice exists. LiteLLM is the planned main LLM gateway; its optional Compose service is not yet connected to accounting. The OTel collector is diagnostic only. Quotas are evaluated for monitoring and alerts, without hard distributed enforcement.

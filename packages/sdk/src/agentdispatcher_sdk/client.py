@@ -13,6 +13,11 @@ import httpx
 from opentelemetry import trace
 
 _run = contextvars.ContextVar("dispatcher_run", default=None)
+_context = contextvars.ContextVar("dispatcher_context", default=None)
+_delegation = contextvars.ContextVar("dispatcher_user_delegation", default=None)
+_CONTEXT_FIELDS = frozenset(
+    {"project", "work_item", "session_id", "trace_id", "user_id", "config_version", "job_run_id"}
+)
 
 
 class Monitor:
@@ -56,7 +61,7 @@ class Monitor:
                 self.dropped += 1
                 return False
             try:
-                self._queue.put_nowait((path, payload))
+                self._queue.put_nowait((path, payload, _delegation.get()))
                 return True
             except queue.Full:
                 self.dropped += 1
@@ -90,6 +95,7 @@ class Monitor:
             "operation": operation,
             "status": status,
             "duration_ms": str(duration_ms),
+            **(_context.get() or {}),
             **metadata,
         }
         if run:
@@ -99,6 +105,33 @@ class Monitor:
             payload["trace_id"] = format(span.trace_id, "032x")
         self._enqueue("api/ingest", {"events": [payload]})
         return event_id
+
+    @contextmanager
+    def context(self, **attributes):
+        """Scope metadata to a request/task; reported IDs never become authenticated identity."""
+        if attributes.keys() - _CONTEXT_FIELDS:
+            raise ValueError("Unsupported attribution attribute")
+        context = _context.set({**(_context.get() or {}), **attributes})
+        try:
+            yield
+        finally:
+            _context.reset(context)
+
+    @contextmanager
+    def user(self, delegation: str):
+        """Attach short-lived consent from /auth/delegate without putting it into event metadata."""
+        context = _delegation.set(delegation)
+        try:
+            yield
+        finally:
+            _delegation.reset(context)
+
+    def export_context(self) -> dict:
+        """Copy metadata for an explicit queue message; credentials are always excluded."""
+        attributes = dict(_context.get() or {})
+        if run := _run.get():
+            attributes.update(job_run_id=run["run_id"], trace_id=run["trace_id"])
+        return attributes
 
     @contextmanager
     def operation(self, *, provider: str, operation: str, resource_kind: str = "api", **metadata):
@@ -128,7 +161,7 @@ class Monitor:
             )
 
     @contextmanager
-    def job(self, name: str):
+    def job(self, name: str, *, schedule_id: str | None = None, scheduled_for: str | None = None):
         """Attach concurrent-safe run context to calls; propagate explicitly across queues."""
         run = {
             "run_id": str(uuid4()),
@@ -137,6 +170,10 @@ class Monitor:
             "app": self.app,
             "environment": self.environment,
         }
+        if (schedule_id is None) != (scheduled_for is None):
+            raise ValueError("schedule_id and scheduled_for must be provided together")
+        if schedule_id:
+            run.update(schedule_id=schedule_id, scheduled_for=scheduled_for)
         context = _run.set(run)
         state = "completed"
         self._job_event(run, "running")
@@ -159,10 +196,11 @@ class Monitor:
             "api/jobs/events", {**run, "state": state, "occurred_at": datetime.now(UTC).isoformat()}
         )
 
-    def _deliver(self, path: str, payload: dict) -> bool:
+    def _deliver(self, path: str, payload: dict, delegation: str | None) -> bool:
         for attempt in range(self.attempts):
             try:
-                response = self._client.post(path, json=payload)
+                headers = {"X-User-Delegation": delegation} if delegation else None
+                response = self._client.post(path, json=payload, headers=headers)
                 if response.is_success:
                     return True
                 if response.status_code < 500 and response.status_code != 429:
@@ -178,11 +216,11 @@ class Monitor:
         try:
             while not self._stop.is_set() or not self._queue.empty():
                 try:
-                    path, payload = self._queue.get(timeout=0.1)
+                    path, payload, delegation = self._queue.get(timeout=0.1)
                 except queue.Empty:
                     continue
                 try:
-                    if self._deliver(path, payload):
+                    if self._deliver(path, payload, delegation):
                         self.delivered += 1
                     else:
                         self.failed += 1

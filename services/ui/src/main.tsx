@@ -26,14 +26,28 @@ import {
 } from "./api";
 import "./style.css";
 import { Credits } from "./Credits";
+import { CatalogView } from "./Accounting";
+import { AccessView, JoinWorkspace, LinkGoogle } from "./Access";
+import { UsageControls, UsageCharts, AttemptDetail } from "./UsageControls";
+import { OperationsView } from "./Operations";
 import { repository as sourceUrl } from "../../../package.json";
 
-type Tab = "Overview" | "Job runs" | "API catalog" | "SDK keys";
+type Tab =
+  | "Overview"
+  | "Job runs"
+  | "API catalog"
+  | "SDK keys"
+  | "Access"
+  | "Schedules"
+  | "Budgets";
 const navigation = [
   { label: "Overview", icon: Activity },
   { label: "Job runs", icon: Workflow },
   { label: "API catalog", icon: Database },
   { label: "SDK keys", icon: KeyRound },
+  { label: "Access", icon: Shield },
+  { label: "Schedules", icon: Workflow },
+  { label: "Budgets", icon: Database },
 ] as const;
 
 function Login({ onLogin }: { onLogin: () => void }) {
@@ -185,9 +199,11 @@ function Empty({ children }: { children: React.ReactNode }) {
 function OverviewView({
   overview,
   events,
+  tenant,
 }: {
   overview: Overview | null;
   events: Usage[];
+  tenant: string;
 }) {
   if (!overview) return <p className="muted">Loading usage…</p>;
   const { counts, totals, breakdown } = overview;
@@ -286,7 +302,7 @@ function OverviewView({
           </div>
           <div className="coverage-detail">
             <span>User attribution</span>
-            <strong>App-reported or service</strong>
+            <strong>Verified, app-reported or service</strong>
           </div>
           <div className="coverage-detail">
             <span>Last event received</span>
@@ -298,6 +314,7 @@ function OverviewView({
           </div>
         </aside>
       </div>
+      <UsageCharts overview={overview} />
       <section className="panel">
         <div className="section-heading">
           <div>
@@ -316,6 +333,7 @@ function OverviewView({
                   <th>Result</th>
                   <th>Cost</th>
                   <th>Time</th>
+                  <th>Evidence</th>
                 </tr>
               </thead>
               <tbody>
@@ -337,6 +355,9 @@ function OverviewView({
                       <small>{event.cost_kind.replaceAll("_", " ")}</small>
                     </td>
                     <td>{new Date(event.occurred_at).toLocaleTimeString()}</td>
+                    <td>
+                      <AttemptDetail tenant={tenant} eventId={event.event_id} />
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -535,158 +556,6 @@ function KeyView({
   );
 }
 
-function CatalogView({
-  tenant,
-  plans,
-  refresh,
-  report,
-}: {
-  tenant: string;
-  plans: Plan[];
-  refresh: () => void;
-  report: (s: string) => void;
-}) {
-  const [pricing, setPricing] = useState("unknown");
-  async function save(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const data = Object.fromEntries(new FormData(form));
-    const body = {
-      ...data,
-      effective_at: new Date(String(data.effective_at)).toISOString(),
-      unit_price: pricing === "per_unit" ? data.unit_price : null,
-      quota_limit: data.quota_limit || null,
-      quota_window_seconds: data.quota_window_seconds
-        ? Number(data.quota_window_seconds)
-        : null,
-    };
-    try {
-      await api("/plans", tenant, {
-        method: "POST",
-        body: JSON.stringify(body),
-      });
-      refresh();
-      report("Pricing version saved. Existing event costs are unchanged.");
-    } catch (error) {
-      report((error as Error).message);
-    }
-  }
-  return (
-    <>
-      <section className="panel form-panel">
-        <h2>Register an API or add a pricing version</h2>
-        <p>
-          Use the API ID in your SDK calls. Prices are configured estimates, not
-          verified bills.
-        </p>
-        <form className="catalog-form" onSubmit={save}>
-          <label>
-            API ID
-            <input
-              name="api_id"
-              required
-              pattern="[a-zA-Z0-9_-]+"
-              placeholder="market-data"
-            />
-          </label>
-          <label>
-            Name
-            <input name="name" required placeholder="Market data API" />
-          </label>
-          <label>
-            Effective from
-            <input name="effective_at" type="datetime-local" required />
-          </label>
-          <label>
-            Pricing
-            <select
-              name="pricing"
-              value={pricing}
-              onChange={(e) => setPricing(e.target.value)}
-            >
-              <option value="unknown">Unknown</option>
-              <option value="free">Explicitly free</option>
-              <option value="per_unit">Per unit</option>
-            </select>
-          </label>
-          <label>
-            Price per unit
-            <input
-              name="unit_price"
-              type="number"
-              step="any"
-              min="0"
-              disabled={pricing !== "per_unit"}
-              required={pricing === "per_unit"}
-            />
-          </label>
-          <label>
-            Currency
-            <input
-              name="currency"
-              defaultValue="USD"
-              pattern="[A-Z]{3}"
-              required
-            />
-          </label>
-          <label>
-            Quota units
-            <input name="quota_limit" type="number" step="any" min="0.000001" />
-          </label>
-          <label>
-            Window (seconds)
-            <input name="quota_window_seconds" type="number" min="1" />
-          </label>
-          <button className="primary">Save pricing version</button>
-        </form>
-        <p className="muted">
-          This first release stores quota settings; quota evaluation and alerts
-          are still being built.
-        </p>
-      </section>
-      <section className="panel">
-        <div className="section-heading">
-          <h2>API catalog</h2>
-          <Database size={18} />
-        </div>
-        {plans.length ? (
-          <div className="table-scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th>API</th>
-                  <th>Pricing</th>
-                  <th>Unit price</th>
-                  <th>Effective from</th>
-                </tr>
-              </thead>
-              <tbody>
-                {plans.map((item) => (
-                  <tr key={item.id}>
-                    <td>
-                      <strong>{item.plan.name}</strong>
-                      <small>{item.api_id}</small>
-                    </td>
-                    <td>{item.plan.pricing.replaceAll("_", " ")}</td>
-                    <td>
-                      {item.plan.pricing === "free"
-                        ? money("0", item.plan.currency)
-                        : money(item.plan.unit_price, item.plan.currency)}
-                    </td>
-                    <td>{new Date(item.effective_at).toLocaleString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <Empty>Add an API to configure how its usage is priced.</Empty>
-        )}
-      </section>
-    </>
-  );
-}
-
 function App() {
   const [user, setUser] = useState<User | null>(null);
   const [checking, setChecking] = useState(true);
@@ -700,6 +569,10 @@ function App() {
   const [message, setMessage] = useState("");
   const [revision, setRevision] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [filters, setFilters] = useState("");
+  const [offset, setOffset] = useState(0);
+  const current = user?.tenants.find((t) => t.tenant_id === tenant);
+  const admin = ["owner", "admin"].includes(current?.role || "");
   async function loadUser() {
     try {
       const next = await api<User>("/auth/me");
@@ -720,16 +593,15 @@ function App() {
     setJobs([]);
     setKeys([]);
     setPlans([]);
-    setMessage("");
     if (!tenant) return;
     let cancelled = false;
     setLoading(true);
     Promise.all([
-      api<Overview>("/overview", tenant),
-      api<Usage[]>("/events", tenant),
+      api<Overview>(`/overview?${filters}`, tenant),
+      api<Usage[]>(`/events?${filters}&offset=${offset}`, tenant),
       api<Job[]>("/jobs", tenant),
-      api<Key[]>("/keys", tenant),
-      api<Plan[]>("/plans", tenant),
+      admin ? api<Key[]>("/keys", tenant) : Promise.resolve([]),
+      admin ? api<Plan[]>("/plans", tenant) : Promise.resolve([]),
     ])
       .then(([o, e, j, k, p]) => {
         if (!cancelled) {
@@ -749,11 +621,18 @@ function App() {
     return () => {
       cancelled = true;
     };
-  }, [tenant, revision]);
+  }, [tenant, revision, admin, filters, offset]);
+  useEffect(() => {
+    setMessage("");
+    setOffset(0);
+    setFilters("");
+  }, [tenant]);
+  useEffect(() => {
+    if (!admin) setTab("Overview");
+  }, [admin]);
   if (checking)
     return <div className="loading">Connecting to your workspace…</div>;
   if (!user) return <Login onLogin={loadUser} />;
-  const current = user.tenants.find((t) => t.tenant_id === tenant);
   const refresh = () => setRevision((r) => r + 1);
   async function logout() {
     try {
@@ -781,17 +660,21 @@ function App() {
           ))}
         </select>
         <nav aria-label="Main navigation">
-          {navigation.map(({ label, icon: Icon }) => (
-            <button
-              key={label}
-              className={tab === label ? "selected" : ""}
-              onClick={() => setTab(label)}
-            >
-              <Icon size={19} />
-              {label}
-              {tab === label && <span className="nav-indicator" />}
-            </button>
-          ))}
+          {navigation
+            .filter(
+              ({ label }) => admin || ["Overview", "Job runs"].includes(label),
+            )
+            .map(({ label, icon: Icon }) => (
+              <button
+                key={label}
+                className={tab === label ? "selected" : ""}
+                onClick={() => setTab(label)}
+              >
+                <Icon size={19} />
+                {label}
+                {tab === label && <span className="nav-indicator" />}
+              </button>
+            ))}
         </nav>
         <div className="sidebar-note">
           <div>
@@ -855,6 +738,8 @@ function App() {
               {message}
             </div>
           )}
+          <JoinWorkspace joined={loadUser} report={setMessage} />
+          <LinkGoogle report={setMessage} />
           {!tenant ? (
             <Empty>
               Your account is signed in but has no workspace membership. Ask an
@@ -863,10 +748,67 @@ function App() {
           ) : (
             <div key={tenant}>
               {tab === "Overview" && (
-                <OverviewView overview={overview} events={events} />
+                <>
+                  <UsageControls
+                    apply={(query) => {
+                      setFilters(query);
+                      setOffset(0);
+                    }}
+                  />
+                  <OverviewView
+                    overview={overview}
+                    events={events}
+                    tenant={tenant}
+                  />
+                  <div className="inline-form">
+                    <button
+                      className="secondary"
+                      disabled={offset === 0 || loading}
+                      onClick={() =>
+                        setOffset(
+                          Math.max(
+                            0,
+                            offset - (overview?.chart_row_limit || 100),
+                          ),
+                        )
+                      }
+                    >
+                      Previous attempts
+                    </button>
+                    <span>
+                      Showing {offset + (events.length ? 1 : 0)}–
+                      {offset + events.length}
+                    </span>
+                    <button
+                      className="secondary"
+                      disabled={
+                        loading ||
+                        !overview ||
+                        offset + events.length >= overview.counts.attempts
+                      }
+                      onClick={() => setOffset(offset + events.length)}
+                    >
+                      Next attempts
+                    </button>
+                  </div>
+                </>
               )}{" "}
               {tab === "Job runs" && <JobsView jobs={jobs} />}{" "}
-              {tab === "API catalog" && (
+              {admin && (tab === "Schedules" || tab === "Budgets") && (
+                <OperationsView
+                  tenant={tenant}
+                  section={tab}
+                  report={setMessage}
+                />
+              )}
+              {tab === "Access" && admin && (
+                <AccessView
+                  tenant={tenant}
+                  role={current?.role || ""}
+                  report={setMessage}
+                />
+              )}
+              {tab === "API catalog" && admin && (
                 <CatalogView
                   tenant={tenant}
                   plans={plans}
@@ -874,7 +816,7 @@ function App() {
                   report={setMessage}
                 />
               )}{" "}
-              {tab === "SDK keys" && (
+              {tab === "SDK keys" && admin && (
                 <KeyView
                   tenant={tenant}
                   keys={keys}

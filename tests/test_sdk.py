@@ -79,3 +79,44 @@ def test_reported_success_cannot_hide_business_failure():
             raise ValueError("failed after receiving response")
     assert monitor.close()
     assert received[0]["events"][0]["status"] == "error"
+
+
+def test_http_attempts_context_and_delegation_never_persist_credentials():
+    from agentdispatcher_sdk.http import MonitoredTransport
+
+    received = []
+
+    def receive(request):
+        received.append((dict(request.headers), json.loads(request.content)))
+        return httpx.Response(202)
+
+    monitor = Monitor(
+        "http://testserver", "fixture-key", "trader", "test", transport=httpx.MockTransport(receive)
+    )
+    transport = MonitoredTransport(
+        monitor,
+        httpx.MockTransport(lambda _: httpx.Response(429)),
+        provider="market",
+        api_id="market",
+        operation="prices/{asset}",
+    )
+    with monitor.context(project="trade", work_item="TA1"):
+        with monitor.user("short-lived-consent"):
+            with httpx.Client(transport=transport) as client:
+                assert (
+                    client.get("https://fixture.test/prices/secret?api_key=private").status_code
+                    == 429
+                )
+            assert monitor.export_context() == {"project": "trade", "work_item": "TA1"}
+    monitor.record(
+        provider="market", operation="later", resource_kind="api", status="success", duration_ms=0
+    )
+    assert monitor.close()
+    headers, data = received[0]
+    assert headers["x-user-delegation"] == "short-lived-consent"
+    assert "short-lived-consent" not in str(data)
+    assert "private" not in str(data) and "secret" not in str(data)
+    assert data["events"][0]["status"] == "error"
+    assert data["events"][0]["work_item"] == "TA1"
+    assert "x-user-delegation" not in received[1][0]
+    assert "work_item" not in received[1][1]["events"][0]

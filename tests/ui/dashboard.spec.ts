@@ -35,8 +35,42 @@ test("authenticated monitoring, catalog and scoped keys work at this viewport", 
   await expect(
     page.getByText("Synthetic market data", { exact: true }),
   ).toBeVisible();
+  const pricingForm = page
+    .locator("form")
+    .filter({
+      has: page.getByRole("button", { name: "Preview price", exact: true }),
+    });
+  await pricingForm
+    .getByLabel("API ID", { exact: true })
+    .fill(`browser-${test.info().project.name}-${Date.now()}`);
+  await pricingForm
+    .getByLabel("Name", { exact: true })
+    .fill("Browser synthetic tariff");
+  await pricingForm
+    .getByLabel("Effective from", { exact: true })
+    .fill("2026-01-01T00:00");
+  await pricingForm
+    .getByRole("combobox", { name: "Pricing", exact: true })
+    .selectOption("per_unit");
+  await pricingForm
+    .getByLabel("Price per unit / overage", { exact: true })
+    .fill("0.25");
+  await pricingForm
+    .getByRole("button", { name: "Preview price", exact: true })
+    .click();
+  await expect(
+    page.getByText(/Synthetic successful request:.*0.25/),
+  ).toBeVisible();
+  await pricingForm
+    .getByRole("button", { name: "Save pricing version", exact: true })
+    .click();
+  await expect(
+    page.getByText(
+      "Pricing version saved. Existing costs retain their original calculation.",
+    ),
+  ).toBeVisible();
   await page.getByRole("button", { name: "SDK keys", exact: true }).click();
-  const keyName = `Browser fixture ${test.info().project.name}`;
+  const keyName = `Browser fixture ${test.info().project.name} ${Date.now()}`;
   await page.getByLabel("Key name", { exact: true }).fill(keyName);
   await page.getByLabel("Application", { exact: true }).fill("browser-fixture");
   await page.getByLabel("Environment", { exact: true }).fill("test");

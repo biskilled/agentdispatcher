@@ -972,3 +972,22 @@ footer a {
     scroll-behavior: auto !important;
   }
 }
+/* Keep evidence and long account IDs readable within narrow monitoring tables. */
+.attempt-detail {
+  max-width: 26rem;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.attempt-detail dt {
+  font-weight: 600;
+  margin-top: 0.65rem;
+}
+.attempt-detail dd {
+  margin: 0.2rem 0;
+}
+textarea {
+  min-height: 6rem;
+  max-width: 100%;
+  font: inherit;
+  padding: 0.65rem;
+}
