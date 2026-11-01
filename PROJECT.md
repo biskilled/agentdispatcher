@@ -1,5 +1,5 @@
 # agentdispatcher
-_Last updated: 2026-10-29_
+_Last updated: 2026-11-01_
 
 Self-installable, open-source (Apache 2.0) LLM gateway + usage ledger. Captures every LLM request and tool call across Claude Code, Codex, web chat and own apps (AgentData, AgentDesk) via two collectors — LiteLLM proxy for traffic we can route (metered) and an OpenTelemetry collector for CLI subscription logins (reported) — plus an optional browser extension (estimated). Normalises everything into one usage_event ledger in Postgres. Goal 1: monitoring per user/session/project/model/provider/tool. Goal 2: improvement via model policies, routing/fallbacks, A/B experiments with a quality signal, and savings suggestions. Ships with a local desktop UI (AgentDesk theme), an MCP server, AgentDesk work-item attribution, and an AgentData connector + semantic model. Full source attribution for all reused open-source components. Full stories: docs/USER_STORIES.md (DSP-01..DSP-50). Mockups: mockups/agentdispatcher-mockups.html.
 
@@ -53,11 +53,11 @@ _Born as a design-mode export; review and refine — this file is the project's 
 - Multi-tenant support: isolated usage ledgers per tenant with team-level key management and budget policies
 - Mobile-first monitoring: React web app usable on desktop and mobile, shared design tokens with AgentDesk
 - Agent instrumentation: small agents (e.g., AgentTrade) integrate via OTEL_RESOURCE_ATTRIBUTES to tag scheduled/hard-to-monitor LLM jobs
+- API monitoring: general-purpose SDK for tracking any API usage (LLM, CoinGecko, Yahoo Finance, paid/free) with tenant-scoped catalog and pricing configuration
+- Authentication: AgentDesk token (identity/session/membership), Google OAuth, user email, SDK dedicated hash keys per tenant
 - A/B experiments: routing policies support weighted model variants for experimentation
 - Deployment: single docker-compose stack with LiteLLM, OTel collector, Postgres, Dispatcher core, and optional UI components
-- Security hardening: pip-licenses/license-checker CI step, OTEL attribute validation, read-only AgentData role
-- First-run UX: guided setup flow for docker-compose deployment, connection verification, and license attestation
-- Extensibility: OTEL semantic conventions allow future sources (tools, frameworks) to emit usage without SDK changes
+- Security hardening: pip-licenses/license-checker CI step, OTEL attribute validation, read-only AgentData role, least-privilege tenant isolation
 
 ## Open Items
 
@@ -65,12 +65,12 @@ _No open items._
 
 ## Recent Work
 
-- [ui] Browser-first React monitoring: clarify why Electron desktop is not needed; confirm web UI handles desktop/mobile use cases
-- [arch] Agent instrumentation pattern: finalize OTEL_RESOURCE_ATTRIBUTES for scheduled jobs (AgentTrade) vs. in-app SDK wrapper
-- [feature] PostgreSQL tenant isolation: ensure all durable data (tenants, apps, usage events, policies) stored per-tenant
-- [feature] Code practices: implement reusable classes, methods, and clear comments for maintainability across services
+- [ui] Browser-first React monitoring: confirm web UI handles desktop/mobile use cases without Electron
+- [feature] General API monitoring SDK: extend usage tracking beyond LLM to any API (CoinGecko, Yahoo Finance, custom paid/free APIs) with tenant-scoped catalog and pricing
+- [feature] Auth validation: confirm AgentDesk tenant/user identity, Google OAuth, email support, and SDK dedicated hash keys per tenant work correctly
+- [feature] API catalog and pricing engine: CRUD endpoints for registering APIs, plans, quotas, costs and alert thresholds in React admin
+- [feature] PostgreSQL tenant isolation: ensure all durable data (tenants, apps, usage events, policies, API catalog) stored per-tenant
 - [feature] AgentDesk & AgentData integration: validate session attribution and semantic llm_usage model consumption
-- [feature] Install & first-run setup: docker-compose scaffold with guided connection verification and license flow
 
 ## Project Facts
 
@@ -84,3 +84,6 @@ _No open items._
 ### Convention
 - **open_source_easy_install_and_credits**: AgentDispatcher is intended for public Apache-2.0 open-source distribution. Keep dependencies and custom code minimal; reuse suitable open-source components while preserving attribution and license ob
 - **reusable_minimal_code**: Write once, reuse many: keep AgentDispatcher minimal with single-purpose classes, short well-named methods/functions and shared modules as the single source of each behaviour. Prefer composition and c
+
+### General
+- **general_api_monitoring**: General API monitoring extension (2026-11-01): Monitor free and paid non-LLM APIs through the same reusable SDK and tenant-isolated PostgreSQL ledger, including market-data requests in scheduled jobs

@@ -24,6 +24,8 @@ The SDK identifies an API/connection by stable ID and propagates tenant, user/se
 
 Free usage still has volume, quota and reliability metrics; zero cost requires an explicitly free plan. Unknown rates/limits stay unknown. Threshold alerts are observational by default and cannot guarantee provider-wide quota availability when calls bypass instrumentation. Shared account/key pools, concurrent apps, late/replayed events and plan changes must not double count or silently rewrite history. Rate windows, billing periods, resets and status-dependent charging are independently configurable. User-entered/provider-imported pricing is not automatically a verified invoice. Fixed subscription expense is counted once; per-call allocation is a separately labelled analytic view.
 
+Authentication clarification (2026-11-01): Human access supports Google sign-in and verified email sign-in; passwordless email links are the initial design assumption. Resolve users, tenant memberships and roles server-side, including AgentDesk identity integration. SDKs use dedicated tenant-scoped service API keys, preferably separate per app/environment, with only a cryptographic verifier/hash stored in PostgreSQL. The SDK transmits the original random secret over TLS; a stored hash is never a client credential. Keys identify services, not human users. Tenant and permissions come from validated credentials, never telemetry tags.
+
 ## General API monitoring and admin catalog
 
 Added 2026-11-01. AgentDispatcher monitors arbitrary instrumented API operations as well as LLM requests. The primary user experience remains the React browser dashboard on desktop/mobile; no desktop installation is needed for backend schedulers or user-query flows.
@@ -116,6 +118,54 @@ CoinGecko distinguishes successful-request monthly credit consumption from all-a
 One Git monorepo contains all services and focused shared packages. Each service has its own process/container, configuration, health/readiness checks and restart lifecycle; separate directories alone do not satisfy this requirement. Communicate through versioned contracts; avoid imports into another service's internals. Share attribution, event validation, pricing and connector interfaces once. One migration owner applies application schema changes. API and worker are separately deployed consumers of shared application code.
 
 Docker Compose is the default install; no mandatory Kubernetes, Redis, extra message broker, observability SaaS or commercial gateway feature. PostgreSQL task leasing is sufficient for the initial worker. The worker monitors AgentTrade's own scheduler rather than replacing its business scheduling. A local app connector is optional when remote access is insufficient; SDKs are libraries installed in the app, not a compulsory additional central service.
+
+## Authentication, tenant membership and SDK credentials
+
+Status: required design, not implemented or runtime-verified. Google sign-in and email sign-in are required; passwordless email links are the initial assumption for email (password login is not implied).
+
+### Human sign-in and access
+
+Use one shared authentication/authorisation boundary with adapters for AgentDesk and standalone Google/email login. Validate Google ID tokens server-side (signature, issuer, audience and expiry), bind the login response to the originating flow (state/nonce and PKCE where applicable), and identify accounts by issuer plus subject. Require verified email for email-dependent onboarding. Google's stable subject must be used instead of treating an email address as a permanent identifier. [Google OpenID Connect](https://developers.google.com/identity/openid-connect/openid-connect).
+
+Email login verifies mailbox control using single-use expiring links, with only token verifiers stored. Configure delivery, public URL, callback allowlist, token lifetime and throttling centrally; use generic responses to limit account enumeration. Do not consume login tokens on email-scanner prefetch; require a deliberate completion step. Keep tokens out of logs and referrers. Linking Google/email/AgentDesk identities requires an authenticated account-linking flow, never an automatic merge on matching email. [OWASP account linking](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html#secure-federated-account-linking).
+
+Use secure HttpOnly session cookies with suitable SameSite/CSRF protection, session rotation, configurable expiry and server-side logout/revocation. Persist durable identity/session state in PostgreSQL. Reuse maintained authentication libraries and the same permission checks across API, MCP, UI-facing operations and workers.
+
+A user can belong to multiple tenants. Login proves identity; tenant membership and role determine access. Tenant selection is checked on each request. Existing-tenant access requires an accepted invitation or validated authorised AgentDesk membership sync; a verified email/domain alone grants no membership. Initial tenant/owner creation is explicit and controlled. Revocation or membership removal must affect subsequent authorisation without trusting stale browser state.
+
+| Role/principal | Default access |
+| --- | --- |
+| Owner | Tenant administration and ownership/membership lifecycle |
+| Admin | Tenant usage, API plans, configuration and SDK key management |
+| Member | Own usage and explicitly assigned app/project views; no tenant administration |
+| Viewer | Read-only access to explicitly granted views; no mutations |
+| SDK service | Ingestion for its assigned tenant/app/environment; no human/admin access |
+
+Centralise the permission matrix; sensitive reports/exports, configuration writes and API catalog edits require the same checks as UI actions. Tenant-wide analytics is an explicit grant. Protect the last-owner invariant and audit role/key changes.
+
+### Dedicated tenant SDK keys
+
+Issue a cryptographically random opaque secret, shown once to an authorised tenant admin. Each key belongs to exactly one tenant and service principal; allow multiple keys per tenant so apps/environments can rotate independently. Prefer a separate key per app/environment instead of a single shared tenant master key.
+
+The SDK sends the original secret over TLS in an authentication header. PostgreSQL stores only a cryptographic verifier/hash plus a public lookup ID, tenant/principal, scopes, app/environment restrictions, creation/expiry/revocation/last-used metadata. Never derive a key from a tenant ID, email or password, and never accept the stored verifier as a bearer credential. Use reviewed secret-generation/verifier primitives with constant-time comparison.
+
+Admin controls issue, rotate (with explicit bounded overlap), revoke and inspect metadata. Revocation must invalidate any auth cache and deny subsequent requests. Application secret storage holds the original key; React/browser/mobile bundles and logs must never contain it. Browser clients submit through their authenticated app backend. Keep Dispatcher ingestion keys, LiteLLM virtual keys and provider credentials distinct.
+
+Derive tenant/service/app scope from validated credentials. Reject conflicting tenant/app/environment values in events and batch items. An SDK key does not prove a human user: store the authenticated service principal separately from an app-reported actor ID, namespaced to tenant/app and labelled as reported. Verified user attribution requires a validated delegated identity and membership mapping; neither reported nor verified attribution grants extra privileges. Schedulers normally run as services with optional initiating-user attribution.
+
+Authenticate every SDK/OTel ingress route; keep internal collector/gateway endpoints private or equivalently authenticated so clients cannot bypass tenant checks. Workers carry server-established tenant context. Unknown/revoked credentials fail visibly without exposing secrets; exporter failures follow bounded buffering/drop reporting and do not silently change identity.
+
+### Required verification before claiming auth works
+
+- Google and email sign-in work on desktop/mobile; invalid issuer/audience/signature, expired tokens, mismatched state/nonce and replayed email links are rejected. Email sign-in and delivery configuration are documented.
+- Verified login alone grants no existing tenant membership. Invite acceptance, tenant selection, owner/admin/member/viewer permissions and removal are tested with two tenants and multiple users. Matching email/domain cannot silently merge accounts or grant membership.
+- Tenant SDK key issuance shows the secret once; storage and logs contain no recoverable key. Tenant/app/environment scopes, expiry, rotation and revocation are enforced on every ingestion path.
+- An SDK key cannot access human/admin routes or claim another tenant/app. User attribution is labelled verified or app-reported; unverified actor metadata cannot grant access or impersonate a user.
+- Logout, revoked sessions, removed memberships and revoked SDK keys cease authorising subsequent requests; asynchronous workers and PostgreSQL pooled connections preserve the verified tenant boundary.
+
+Add account-linking takeover attempts, invite expiry/replay, role escalation, forged batch ownership, direct collector bypass and concurrent pooled-connection tests. Verify no plaintext keys/email-link tokens enter PostgreSQL, ordinary telemetry, exports or logs. Use real configured Google/email delivery for a documented live smoke test in addition to deterministic automated tests. Authentication is part of the first monitoring slice, not deferred until after usage ingestion.
+
+Work ownership remains AI0011 (identity/authorisation), AI0008 (persistence/isolation), AI0009 (UI) and AI0014 (SDK); no duplicate use case or separate identity service is required.
 
 ## PostgreSQL and tenant isolation
 
@@ -236,6 +286,19 @@ Maintain one tenant-scoped ledger with stable source/event/request IDs and paren
 - Apache-2.0 project licensing, dependency notices/license texts as required, README credits, in-app licenses and CI dependency/license checks exist. No LiteLLM enterprise code or prohibited dependency is required for the default install.
 - Tenant-scoped AgentDesk and AgentData integrations demonstrate cost per work item/role and natural-language usage queries without unrestricted cross-tenant database access. Secrets remain in env/encrypted secret storage, outside Git and ordinary telemetry.
 
+- A tenant admin registers a previously unknown API, connection and free/paid plan through React, and a wrapped or manually recorded call appears under its API ID without adding provider-specific Dispatcher code.
+- A scheduled AgentTrade fixture includes one non-LLM API operation and one LLM request in the same trace; the dashboard shows distinct and combined costs without double counting.
+- Two independent quota rules can count all attempts for a rate window while counting only configured successful statuses for billing credits; retries, pagination, batches, cache hits, 429s and ambiguous timeouts follow documented rules.
+- Deterministic fixtures verify free, per-request, custom-unit, subscription-with-included-units, tiered/overage and unknown pricing; historical events retain the effective plan version and fixed fees are counted once.
+- Per-connection quota windows, budgets, threshold alerts, stale/missing coverage and observed-vs-provider remaining values are visible. Distributed hard enforcement is outside passive monitoring and must not be claimed.
+- Cross-tenant API catalogs, telemetry, pricing, exports and plan edits are access-controlled; sensitive bodies, credentials and raw query strings are absent from default telemetry.
+
+- Google and email sign-in work on desktop/mobile; invalid issuer/audience/signature, expired tokens, mismatched state/nonce and replayed email links are rejected. Email sign-in and delivery configuration are documented.
+- Verified login alone grants no existing tenant membership. Invite acceptance, tenant selection, owner/admin/member/viewer permissions and removal are tested with two tenants and multiple users. Matching email/domain cannot silently merge accounts or grant membership.
+- Tenant SDK key issuance shows the secret once; storage and logs contain no recoverable key. Tenant/app/environment scopes, expiry, rotation and revocation are enforced on every ingestion path.
+- An SDK key cannot access human/admin routes or claim another tenant/app. User attribution is labelled verified or app-reported; unverified actor metadata cannot grant access or impersonate a user.
+- Logout, revoked sessions, removed memberships and revoked SDK keys cease authorising subsequent requests; asynchronous workers and PostgreSQL pooled connections preserve the verified tenant boundary.
+
 ## Delivery sequence
 
 1. Define tenant identity, authenticated attribution, event contracts, PostgreSQL ownership/RLS, monetary semantics, deduplication and service boundaries; retain AI0001 and existing child relationships.
@@ -293,6 +356,8 @@ Store all durable product data in PostgreSQL: tenants/memberships/apps, connecti
 
 Extend the common event/ledger model with resource_kind (llm/api/tool), api_id, connection/account and quota-pool identity, operation/route template, logical operation/attempt IDs, HTTP outcome, observed quota units and billable units. Persist tenant-owned catalog, immutable effective-dated plan/rate versions, quota windows/snapshots, subscription charges, pricing evidence and cost allocations. Keep one pricing/deduplication implementation shared with LLM accounting; do not require model/token fields on general API events. Retain raw measurement evidence separately from derived cost. Scope shared credential pools explicitly and preserve tenant access; never persist raw keys as pool IDs.
 
+Authentication persistence: PostgreSQL stores stable users, provider identity links, tenant memberships/roles, invitations, session/token verifiers, tenant/app/environment service principals, API key verifiers and lifecycle metadata, and auth audit events. Restrict identity tables and credential lookups to the auth boundary; tenant RLS must not rely on unvalidated payload context. Store only hashes of high-entropy SDK and email-link secrets, with public lookup IDs, expiry/revocation and last-used metadata. Keep provider credentials in the separate encrypted/env secret mechanism.
+
 **Verification:** Integration tests with two tenants prove API, DB, workers, exports and joins cannot cross tenant boundaries, including pooled connections and malicious attribution tags. Fixture ingestion covers duplicate/reordered events, concurrent runs, retries/fallbacks, cached usage, missing prices and subscription equivalents. Parent totals sum unique billable attempts. Idempotent migrations and a restore smoke test preserve data and ownership.
 
 - A tenant admin registers a previously unknown API, connection and free/paid plan through React, and a wrapped or manually recorded call appears under its API ID without adding provider-specific Dispatcher code.
@@ -302,15 +367,21 @@ Extend the common event/ledger model with resource_kind (llm/api/tool), api_id, 
 - Per-connection quota windows, budgets, threshold alerts, stale/missing coverage and observed-vs-provider remaining values are visible. Distributed hard enforcement is outside passive monitoring and must not be claimed.
 - Cross-tenant API catalogs, telemetry, pricing, exports and plan edits are access-controlled; sensitive bodies, credentials and raw query strings are absent from default telemetry.
 
+Auth persistence tests cover duplicate provider identity links, tenant-aware membership constraints, key verifier storage without plaintext, revocation, session expiry and cross-tenant lookup/export isolation.
+
 ### AI0009 — Responsive React monitoring UI: overview, jobs, sessions and connections
 
 React/TypeScript/Vite web UI primarily for user monitoring on desktop and mobile, using shared AgentDesk/AgentData design tokens. Build Overview, Jobs/Runs, Sessions/Traces, Connections/Coverage, Budgets, Configuration and Licenses views. Support authenticated tenant selection, accessible charts/tables and request-level drilldowns. Config changes call backend connectors; a browser cannot silently edit remote/local YAML or CLI files. Retain optional desktop packaging for later; original mockups are visual reference, not a desktop requirement.
 
 Add API Catalog/Plans admin screens to create and update a new API ID, connection, endpoint/operation matching, quota windows, currency/unit prices, free allowances, tiers/overage, fixed fees and alert thresholds. Show validation and a synthetic pricing preview before publishing an effective-dated revision, with permission checks and audit history. Monitoring filters LLM/API/tool and displays request/quota/billed units, costs, errors, latency and coverage. Link SDK integration instructions to the saved stable ID. No desktop companion is required.
 
+Add Google/email sign-in, logout, explicit authorised tenant switcher, invite/membership management and role-gated SDK key lifecycle screens. Email uses passwordless links as the initial assumption. Only authorised tenant admins may issue/revoke keys; display each new secret once with copy guidance for server-side env/secret storage. Never embed SDK service keys in the React bundle or browser storage.
+
 **Verification:** Production web build passes. Browser checks at mobile/desktop widths cover overview -> job -> request, tenant access, stale/unknown data states and connection onboarding. Totals match tenant-scoped ledger fixtures. Configuration write controls reflect permissions. No provider secrets are sent to the frontend; licenses are reachable.
 
 A newly configured API becomes visible in job/query drilldowns without provider-specific frontend code. Admin-only plan changes are versioned and previewed; unknown and explicitly free prices differ. Mobile/desktop UI validates quota scopes and charging rules and never asks to paste provider credentials into telemetry.
+
+Desktop/mobile auth flows and tenant switching preserve API-enforced permissions; inaccessible tenants/admin actions stay inaccessible through direct API requests. SDK secrets appear only at creation and cannot be retrieved later.
 
 ### AI0010 — Tenant-scoped AgentData connector and usage semantic model
 
@@ -318,11 +389,23 @@ Provide least-privilege read-only PostgreSQL access with tenant identity bound t
 
 **Verification:** At least three usage questions match authorised SQL and UI totals. A second tenant's rows cannot be read even if a query omits or alters its tenant filter. Token/cost categories and rollups avoid double counting. AgentData's own requests appear with tenant, feature and config version.
 
-### AI0011 — AgentDesk identity, session and work-item attribution
+### AI0011 — Google/email authentication, tenant SDK keys and AgentDesk attribution
 
-Validate AgentDesk identity/session credentials and membership server-side; map tenant/user/service to Dispatcher permissions. OTEL_RESOURCE_ATTRIBUTES supplies stable service/project defaults, while changing work-item/role context travels per request/job. Sync caller-session mappings with effective times so mid-session switches do not rewrite prior attribution. Provide tenant-authorised get_usage/get_session/list_experiments and permission-controlled set_policy tools; show work-item and pipeline-role costs in AgentDesk. Define optional standalone identity adapter without inventing a separate broad identity platform.
+Validate AgentDesk identity/session credentials and membership server-side; map tenant/user/service to Dispatcher permissions. OTEL_RESOURCE_ATTRIBUTES supplies stable service/project defaults, while changing work-item/role context travels per request/job. Sync caller-session mappings with effective times so mid-session switches do not rewrite prior attribution. Provide tenant-authorised get_usage/get_session/list_experiments and permission-controlled set_policy tools; show work-item and pipeline-role costs in AgentDesk. Provide a minimal standalone identity adapter for the required Google/email sign-in flows.
+
+Authentication clarification (2026-11-01): Human access supports Google sign-in and verified email sign-in; passwordless email links are the initial design assumption. Resolve users, tenant memberships and roles server-side, including AgentDesk identity integration. SDKs use dedicated tenant-scoped service API keys, preferably separate per app/environment, with only a cryptographic verifier/hash stored in PostgreSQL. The SDK transmits the original random secret over TLS; a stored hash is never a client credential. Keys identify services, not human users. Tenant and permissions come from validated credentials, never telemetry tags.
+
+Use maintained OIDC/session primitives through one identity adapter and shared authorisation module; preserve AgentDesk support. Validate Google tokens server-side and bind identities by issuer+subject. Verify email ownership with single-use expiring links, generic responses and throttling. Explicit authenticated account linking only. Use secure HttpOnly sessions with CSRF protection, configurable lifetime, logout/revocation and role checks. Tenant creation/initial owner provisioning is an explicit controlled flow; joining an existing tenant needs an invitation or authorised membership sync. Define owner/admin/member/viewer capabilities centrally. SDK keys are scoped service principals: ingest-only by default, no dashboard/admin privileges, optional app/environment restrictions, configurable expiration, rotation and immediate revocation. Separate SDK credentials from LiteLLM virtual keys and provider secrets. Keep authenticated principal separate from app-reported user attribution.
 
 **Verification:** An AgentDesk-originated test session and scheduled role run show matching Dispatcher/work-item totals. Mid-session work-item switch splits costs correctly. Spoofed tenant tags or invalid membership fail authorisation; MCP access cannot cross tenants. Credentials never enter logs or prompt content.
+
+- Google and email sign-in work on desktop/mobile; invalid issuer/audience/signature, expired tokens, mismatched state/nonce and replayed email links are rejected. Email sign-in and delivery configuration are documented.
+- Verified login alone grants no existing tenant membership. Invite acceptance, tenant selection, owner/admin/member/viewer permissions and removal are tested with two tenants and multiple users. Matching email/domain cannot silently merge accounts or grant membership.
+- Tenant SDK key issuance shows the secret once; storage and logs contain no recoverable key. Tenant/app/environment scopes, expiry, rotation and revocation are enforced on every ingestion path.
+- An SDK key cannot access human/admin routes or claim another tenant/app. User attribution is labelled verified or app-reported; unverified actor metadata cannot grant access or impersonate a user.
+- Logout, revoked sessions, removed memberships and revoked SDK keys cease authorising subsequent requests; asynchronous workers and PostgreSQL pooled connections preserve the verified tenant boundary.
+
+**Implementation:** Implement the common principal/membership/permission contract first, with AgentDesk and Google/email adapters. Add PostgreSQL session and token-verifier storage, invitation lifecycle and SDK key management. Bind every API/MCP/OTel intake path and worker to validated tenant context; protect or keep internal-only any collector/gateway endpoint that could bypass intake. Integrate React and SDK flows, then run isolation and credential-lifecycle tests before live auth confirmation.
 
 ### AI0012 — Evidence-backed model policies and first A/B experiment
 
@@ -345,7 +428,11 @@ Dependencies: AI0007 and AI0008. Do not modify a separate AgentTrade repository 
 
 Generalise the SDK boundary to arbitrary API operations: supported HTTP-client instrumentation plus explicit context/wrapper and record-usage interfaces for vendor libraries or custom units. Reuse the same job/trace/export contract for LLM and non-LLM calls. Record attempt-level events with stable API/connection/operation IDs and supplied units, preserve responses and exceptions, avoid implicit retries and duplicated auto/manual spans, and never collect credentials or raw request/response content by default. Admin config owns plan rules; SDK configuration binds local calls to catalog IDs. First fixture combines market-data retrieval and LLM analysis in a scheduled job and also covers a user-query path.
 
+SDK authentication uses a dedicated random tenant service key loaded from the host app's env/secret store; the server stores only a verifier/hash. Prefer one key per app/environment. Do not expose long-lived keys in browser/mobile client code; those clients call an authenticated backend. Reject tenant/app/environment scope mismatches at intake. Distinguish authenticated service principal from app-reported end-user IDs (namespace by tenant/app) and separately verified delegated identity; metadata never grants membership or permissions. Keep SDK keys separate from LiteLLM virtual keys/provider credentials. Document rotation, revocation and redacted export failures.
+
 **Verification:** Replay and automatic/manual overlap do not duplicate calls. A successful, failed, timed-out, retried, paginated, batched and cached operation has explicit semantics. Instrumentation preserves application behaviour during exporter failure. Uninstrumented/out-of-process retries remain documented coverage gaps. New generic APIs need configuration plus SDK binding, not core provider code.
+
+Two-tenant SDK fixtures reject wrong tenant/app, missing/expired/revoked keys and admin-route use; normal telemetry retry/replay handling remains idempotent. A scheduled run authenticates as a service without an invented human user. User-query traces label verified versus app-reported actor identity.
 
 ### AI0015 — MCP gateway and external CLI monitoring adapters
 
@@ -383,7 +470,7 @@ Extend shared accounting behind LLM/API adapters to distinguish logical operatio
 ## Implementation decisions to verify
 
 - Inspect AgentTrade's actual runtime, common LLM client and scheduler before choosing SDK hooks; do not assume a framework or promise zero code changes.
-- Verify AgentDesk's identity/membership contract and define a minimal standalone identity adapter.
+- Verify AgentDesk's identity/membership contract and select maintained Google OIDC/email/session libraries for the required standalone adapter; configure Google callbacks and email delivery before live smoke tests.
 - Validate open-source availability of required gateway features on the selected release; no hidden dependency on enterprise tag reporting or permissions.
 - Confirm application YAML schemas, access methods and activation mechanisms for the first connector.
 - Select supported pinned package/image versions and review their actual license/notice requirements during implementation.
