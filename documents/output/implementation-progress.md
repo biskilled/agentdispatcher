@@ -20,14 +20,14 @@ First implementation slice, 2026-11-01. Approval promoted the original AI IDs to
 - React production build and TypeScript checking passed.
 - Playwright end-to-end checks passed at desktop 1440×1000 and mobile 390×844, including actual tenant dashboard data and issuing/revoking SDK keys. Screenshots visually reviewed.
 - Runtime dependency notices include 32 Python/JavaScript packages with original license texts. Frontend dependency audit reported no vulnerabilities at install time; this is not a comprehensive release security audit.
-- Docker is unavailable on this machine: Compose image builds, restart/persistence checks and optional gateway/collector profiles have not been executed. CI smoke definitions are supplied but not yet reported as passing.
+- [GitHub CI run 41299724331](https://github.com/biskilled/agentdispatcher/actions/runs/41299724331) passed the application job and Compose build/startup, synthetic SDK demo, worker restart and API readiness checks for runtime commit 7233ae6. Docker remains unavailable locally. Optional gateway/collector profiles and database restart/backup/restore checks remain unverified.
 - No live Google or SMTP credentials were supplied. Auth routes and local email-token/session flows exist; real Google login, actual email delivery and the full OIDC negative-case matrix remain unverified. Upstream Authlib/Starlette emit HTTPX deprecation notices; migration to their newer HTTP client integration should be assessed before release.
 
 ## Remaining approved scope
 
 | Item | Remaining work |
 | --- | --- |
-| TA10004 / FE10000 | Compose verification, guided setup and live connection verification |
+| TA10004 / FE10000 | Database persistence/restore and optional integration-profile checks, guided setup and live connection verification |
 | TA10003 | Invitations/membership administration, owner invariants, granular view grants, secure account-link reauthentication UX, AgentDesk adapter, full OIDC tests and live providers |
 | TA10011 | Gateway/provider correlation, exports/retention/deletion/restore, full durable entities and broader isolation coverage |
 | TA10012 | Instrument the real AgentTrade shared client/scheduler, HTTP hooks, cross-process propagation and coverage diagnostics |

@@ -18,7 +18,7 @@ Open the short-lived `sign_in` link printed by the demo command and click **Cont
 
 The UI binds to `127.0.0.1:8088` by default. Change `UI_PORT` and `DISPATCHER_PUBLIC_URL` together in `.env`. PostgreSQL, API, gateway and collector have no published management ports. Data survives service/container restarts in the `database` volume. Do not remove that volume if you need the data.
 
-**Verification note:** local PostgreSQL/API/SDK/browser tests have run; Docker/Compose startup is still unverified on the development machine because Docker is unavailable. CI includes a Compose smoke job.
+**Verification note:** local PostgreSQL/API/SDK/browser tests passed. [GitHub CI](https://github.com/biskilled/agentdispatcher/actions/runs/41299724331) also passed the application checks, Compose build/startup, synthetic demo, worker restart and API readiness check. Docker is unavailable on the local development machine; container verification ran on the CI runner. Optional gateway/collector profiles and database backup/restore remain unverified.
 
 ## Create a real workspace
 
