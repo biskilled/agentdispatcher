@@ -45,6 +45,13 @@
   cursor: pointer;
   font-size: 14px;
 }
+.form-panel pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.form-panel fieldset {
+  min-width: 0;
+}
 .credits-body pre {
   white-space: pre-wrap;
   overflow-wrap: anywhere;

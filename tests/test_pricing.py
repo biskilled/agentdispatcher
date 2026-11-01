@@ -7,6 +7,7 @@ from decimal import Decimal
 import pytest
 from dispatcher.contracts import ApiPlan, UsageEvent, Window
 from dispatcher.pricing import cumulative_cost, window_bounds
+from test_access import invite_user
 from test_integration import event, ingest
 
 
@@ -165,3 +166,53 @@ def test_concurrent_pool_ingestion_charges_subscription_once(system):
         list(executor.map(lambda row: ledger.ingest(principal, [row]), events))
     assert sum(Decimal(row["cost"]) for row in client.get("/api/events").json()) == Decimal("1.75")
     assert len(client.get("/api/charges").json()) == 1
+
+
+def test_custom_catalog_audit_and_role_boundaries(system):
+    client = system["client"]
+    tariff = plan(
+        api_id="custom-units",
+        name="Custom API",
+        pricing="per_unit",
+        fixed_fee="0",
+        included_units="0",
+        unit_name="data row",
+        billing_window=None,
+        pool_scope="api",
+    )
+    assert client.post("/api/plans", json=tariff).status_code == 201
+    sample = event(api_id="custom-units", units="3")
+    assert (
+        client.post("/api/plans/preview", json={"plan": tariff, "event": sample}).json()["cost"]
+        == "0.75"
+    )
+    assert ingest(system, [sample]).status_code == 202
+    assert client.get("/api/events").json()[0]["cost"] == "0.75"
+    audit = client.get("/api/catalog/history").json()
+    assert audit[0]["after_value"]["unit_name"] == "data row"
+    assert audit[0]["actor_id"] == str(system["owner"].subject_id)
+    routes = ["/api/plans", "/api/connections", "/api/catalog/history"]
+    for route in routes:
+        assert (
+            client.get(route, headers={"X-Tenant-ID": str(system["other"].tenant_id)}).status_code
+            == 403
+        )
+    for role in ("member", "viewer"):
+        session, _, _ = invite_user(system, role)
+        client.cookies.clear()
+        client.cookies.set("dispatcher_session", session)
+        for route in routes:
+            assert client.get(route).status_code == 403
+        assert client.post("/api/plans", json=tariff).status_code == 403
+        assert (
+            client.post("/api/plans/preview", json={"plan": tariff, "event": sample}).status_code
+            == 403
+        )
+    client.cookies.clear()
+    for route in routes:
+        assert (
+            client.get(
+                route, headers={"Authorization": "Bearer " + system["key"]["secret"]}
+            ).status_code
+            == 401
+        )

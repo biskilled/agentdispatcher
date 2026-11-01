@@ -403,7 +403,7 @@ def create_app(settings: Settings | None = None, mailer=None, oauth_transport=No
 
     @app.post("/api/plans", status_code=201)
     def plan(body: ApiPlan, principal=Depends(human)):
-        """Publish an explicit free, unknown or per-unit pricing version."""
+        """Publish an immutable version using a supported declarative pricing formula."""
         return ledger.add_plan(principal, body)
 
     @app.post("/api/plans/preview")
@@ -429,6 +429,11 @@ def create_app(settings: Settings | None = None, mailer=None, oauth_transport=No
     def connection(body: ConnectionRequest, principal=Depends(human)):
         """Create or revise one connection under optimistic concurrency."""
         return ledger.accounting.put_connection(principal, body.config, body.revision)
+
+    @app.get("/api/catalog/history")
+    def catalog_history(principal=Depends(human)):
+        """Read tenant-scoped audit changes with actor and before/after evidence."""
+        return ledger.accounting.history(principal)
 
     @app.get("/api/quotas")
     def quotas(principal=Depends(human)):

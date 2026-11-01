@@ -41,6 +41,94 @@ type Alert = {
   created_at: string;
   evidence: { pool: string; threshold: number };
 };
+type Audit = {
+  id: string;
+  resource: string;
+  action: string;
+  actor_id: string;
+  created_at: string;
+  before_value: unknown;
+  after_value: unknown;
+};
+
+function QuotaFields({ index }: { index: number }) {
+  const prefix = `quota${index}`;
+  return (
+    <fieldset
+      className="catalog-form"
+      data-quota={prefix}
+      style={{ gridColumn: "1 / -1" }}
+    >
+      <legend>Quota rule {index + 1}</legend>
+      <label>
+        Rule name
+        <input
+          name={`${prefix}_name`}
+          defaultValue={`quota${index + 1}`}
+          required
+        />
+      </label>
+      <label>
+        Quota limit
+        <input
+          name={`${prefix}_limit`}
+          type="number"
+          step="any"
+          min="0.000001"
+        />
+      </label>
+      <label>
+        Quota window
+        <select name={`${prefix}_kind`}>
+          <option value="rolling">Rolling seconds</option>
+          <option value="daily">Daily</option>
+          <option value="monthly">Monthly</option>
+        </select>
+      </label>
+      <label>
+        Rolling window seconds
+        <input
+          name={`${prefix}_seconds`}
+          type="number"
+          min="1"
+          defaultValue="60"
+        />
+      </label>
+      <label>
+        Counted HTTP status codes
+        <input name={`${prefix}_statuses`} defaultValue="200,429" />
+      </label>
+      <label>
+        Quota units per reported unit
+        <input
+          name={`${prefix}_weight`}
+          type="number"
+          step="any"
+          min="0"
+          defaultValue="1"
+        />
+      </label>
+      <label>
+        Timeout quota units
+        <input
+          name={`${prefix}_timeout`}
+          type="number"
+          step="any"
+          min="0"
+          placeholder="Unknown"
+        />
+      </label>
+      <label>
+        Count cached responses
+        <input name={`${prefix}_cached`} type="checkbox" />
+      </label>
+      <label>
+        Alert thresholds (%)
+        <input name={`${prefix}_thresholds`} defaultValue="80,100" />
+      </label>
+    </fieldset>
+  );
+}
 
 /** Convert a form to declarative pricing; the server remains the authoritative validator. */
 function planFromForm(form: HTMLFormElement) {
@@ -49,7 +137,7 @@ function planFromForm(form: HTMLFormElement) {
     kind: data[`${prefix}_kind`],
     timezone: data.timezone,
     ...(data[`${prefix}_kind`] === "rolling"
-      ? { seconds: Number(data.quota_seconds) }
+      ? { seconds: Number(data[`${prefix}_seconds`]) }
       : {}),
     reset_day: Number(data.reset_day || 1),
     reset_hour: Number(data.reset_hour || 0),
@@ -57,6 +145,7 @@ function planFromForm(form: HTMLFormElement) {
   return {
     api_id: data.api_id,
     name: data.name,
+    unit_name: data.unit_name,
     pricing: data.pricing,
     effective_at: new Date(data.effective_at).toISOString(),
     currency: data.currency,
@@ -85,19 +174,21 @@ function planFromForm(form: HTMLFormElement) {
     output_token_price:
       data.pricing === "per_token" ? data.output_token_price : null,
     charge_statuses: data.charge_statuses.split(",").map(Number),
-    quota_rules: data.quota_limit
-      ? [
-          {
-            name: "default",
-            limit: data.quota_limit,
-            window: window("quota"),
-            statuses: data.quota_statuses.split(",").map(Number),
-            unit_weight: data.quota_weight || "1",
-            timeout_units: data.timeout_units || null,
-            thresholds: data.thresholds.split(",").map(Number),
-          },
-        ]
-      : [],
+    quota_rules: Array.from(
+      form.querySelectorAll<HTMLFieldSetElement>("fieldset[data-quota]"),
+    )
+      .map((element) => element.dataset.quota!)
+      .filter((prefix) => data[`${prefix}_limit`])
+      .map((prefix) => ({
+        name: data[`${prefix}_name`],
+        limit: data[`${prefix}_limit`],
+        window: window(prefix),
+        statuses: data[`${prefix}_statuses`].split(",").map(Number),
+        unit_weight: data[`${prefix}_weight`] || "1",
+        timeout_units: data[`${prefix}_timeout`] || null,
+        count_cached: data[`${prefix}_cached`] === "on",
+        thresholds: data[`${prefix}_thresholds`].split(",").map(Number),
+      })),
   };
 }
 
@@ -110,6 +201,8 @@ export function CatalogView({ tenant, plans, refresh, report }: Props) {
   const [quotas, setQuotas] = useState<Quota[]>([]);
   const [fees, setFees] = useState<Fee[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [history, setHistory] = useState<Audit[]>([]);
+  const [quotaCount, setQuotaCount] = useState(1);
   const [revision, setRevision] = useState(0);
   useEffect(() => {
     let active = true;
@@ -118,13 +211,15 @@ export function CatalogView({ tenant, plans, refresh, report }: Props) {
       api<Quota[]>("/quotas", tenant),
       api<Fee[]>("/charges", tenant),
       api<Alert[]>("/alerts", tenant),
+      api<Audit[]>("/catalog/history", tenant),
     ])
-      .then(([c, q, f, a]) => {
+      .then(([c, q, f, a, h]) => {
         if (active) {
           setConnections(c);
           setQuotas(q);
           setFees(f);
           setAlerts(a);
+          setHistory(h);
         }
       })
       .catch((error) => {
@@ -364,6 +459,15 @@ export function CatalogView({ tenant, plans, refresh, report }: Props) {
             />
           </label>
           <label>
+            Unit definition
+            <input
+              name="unit_name"
+              defaultValue="request"
+              required
+              maxLength={50}
+            />
+          </label>
+          <label>
             Pool scope
             <select name="pool_scope">
               <option value="api">All API calls</option>
@@ -470,55 +574,25 @@ export function CatalogView({ tenant, plans, refresh, report }: Props) {
               defaultValue="0"
             />
           </label>
-          <label>
-            Quota limit
-            <input name="quota_limit" type="number" step="any" min="0.000001" />
-          </label>
-          <label>
-            Quota window
-            <select name="quota_kind">
-              <option value="rolling">Rolling seconds</option>
-              <option value="daily">Daily</option>
-              <option value="monthly">Monthly</option>
-            </select>
-          </label>
-          <label>
-            Rolling window seconds
-            <input
-              name="quota_seconds"
-              type="number"
-              min="1"
-              defaultValue="60"
-            />
-          </label>
-          <label>
-            Counted HTTP status codes
-            <input name="quota_statuses" defaultValue="200,429" />
-          </label>
-          <label>
-            Quota units per reported unit
-            <input
-              name="quota_weight"
-              type="number"
-              step="any"
-              min="0"
-              defaultValue="1"
-            />
-          </label>
-          <label>
-            Timeout quota units
-            <input
-              name="timeout_units"
-              type="number"
-              step="any"
-              min="0"
-              placeholder="Unknown"
-            />
-          </label>
-          <label>
-            Alert thresholds (%)
-            <input name="thresholds" defaultValue="80,100" />
-          </label>
+          {Array.from({ length: quotaCount }, (_, index) => (
+            <QuotaFields key={index} index={index} />
+          ))}
+          <button
+            type="button"
+            className="secondary"
+            onClick={() => setQuotaCount(quotaCount + 1)}
+          >
+            Add quota rule
+          </button>
+          {quotaCount > 0 && (
+            <button
+              type="button"
+              className="secondary"
+              onClick={() => setQuotaCount(quotaCount - 1)}
+            >
+              Remove last quota rule
+            </button>
+          )}
           <label>
             Pricing source
             <input
@@ -663,6 +737,25 @@ export function CatalogView({ tenant, plans, refresh, report }: Props) {
             </tbody>
           </table>
         </div>
+      </section>
+      <section className="panel form-panel">
+        <h2>Configuration audit</h2>
+        {history.map((entry) => (
+          <details key={entry.id}>
+            <summary>
+              {entry.resource} · {entry.action} ·{" "}
+              {new Date(entry.created_at).toLocaleString()}
+            </summary>
+            <p>Changed by {entry.actor_id}</p>
+            <pre>
+              {JSON.stringify(
+                { before: entry.before_value, after: entry.after_value },
+                null,
+                2,
+              )}
+            </pre>
+          </details>
+        ))}
       </section>
     </>
   );

@@ -65,6 +65,10 @@ _SQL_ALERTS = """
 SELECT id,kind,evidence,created_at FROM mem_alerts WHERE tenant_id=%s
 ORDER BY created_at DESC LIMIT %s
 """
+_SQL_HISTORY = """
+SELECT id,actor_id,resource,action,before_value,after_value,created_at
+FROM mem_config_audit WHERE tenant_id=%s ORDER BY created_at DESC LIMIT %s
+"""
 
 
 def audit(connection, principal: Principal, resource: str, action: str, before, after):
@@ -108,6 +112,14 @@ class Accounting:
         require_admin(principal)
         with self.db.tenant(principal.tenant_id) as connection:
             return connection.execute(_SQL_CONNECTIONS, (principal.tenant_id,)).fetchall()
+
+    def history(self, principal):
+        """Expose authorised configuration audit evidence without modifying historical versions."""
+        require_admin(principal)
+        with self.db.tenant(principal.tenant_id) as connection:
+            return connection.execute(
+                _SQL_HISTORY, (principal.tenant_id, self.db.settings.page_size)
+            ).fetchall()
 
     def put_connection(self, principal, config: ApiConnection, revision: int):
         """Create with revision zero or update an exact revision; stale forms cannot overwrite."""

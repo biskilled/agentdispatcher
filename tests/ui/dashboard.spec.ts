@@ -54,6 +54,24 @@ test("authenticated monitoring, catalog and scoped keys work at this viewport", 
     .getByLabel("Price per unit / overage", { exact: true })
     .fill("0.25");
   await pricingForm
+    .getByLabel("Unit definition", { exact: true })
+    .fill("data row");
+  await pricingForm
+    .getByRole("group", { name: "Quota rule 1", exact: true })
+    .getByLabel("Quota limit", { exact: true })
+    .fill("10");
+  await pricingForm
+    .getByRole("button", { name: "Add quota rule", exact: true })
+    .click();
+  const monthly = pricingForm.getByRole("group", {
+    name: "Quota rule 2",
+    exact: true,
+  });
+  await monthly.getByLabel("Quota limit", { exact: true }).fill("1000");
+  await monthly
+    .getByRole("combobox", { name: "Quota window", exact: true })
+    .selectOption("monthly");
+  await pricingForm
     .getByRole("button", { name: "Preview price", exact: true })
     .click();
   await expect(
@@ -66,6 +84,9 @@ test("authenticated monitoring, catalog and scoped keys work at this viewport", 
     page.getByText(
       "Pricing version saved. Existing costs retain their original calculation.",
     ),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Configuration audit", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "SDK keys", exact: true }).click();
   const keyName = `Browser fixture ${test.info().project.name} ${Date.now()}`;
