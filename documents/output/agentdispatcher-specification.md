@@ -1,8 +1,8 @@
 # AgentDispatcher — current product specification
 
-Use case: **AI0001**  
+Use case: **US10000**
 Revision: **2026-11-01**
-Status: **Planning; implementation has not started.**
+Status: **Approved; implementation in progress.** See [verified implementation coverage](implementation-progress.md).
 
 This revision incorporates the user's monitoring, embedded-agent, tenant storage, deployment and open-source requirements. It supersedes conflicting details in the 2026-10-19 design export, especially desktop-first delivery and the unvalidated 2–3 week estimate. The original export remains intact in AgentDesk.
 
@@ -91,8 +91,8 @@ An AgentTrade scheduled fixture fetches market data through the generic API SDK,
 
 ### New tasks
 
-- **AI0018 — Admin API catalog and versioned provider plans**: Create tenant-scoped catalog/connection and plan CRUD endpoints with React admin forms. Users register stable IDs for custom APIs, operation/endpoint templates, quota scope/account-key pools, rate/billing windows, reset policy, unit definitions, status-dependent counting, free allowances, subscription fees, per-unit/tiered/overage pricing, currency and thresholds. Persist effective-dated revisions, source/last-verified date, audit and role permissions in PostgreSQL. Validate rules declaratively; no arbitrary scripts, automatic endpoint probes or plaintext keys. Preview synthetic usage charges before publishing. SDK binds calls to IDs; config-only changes cover generic request/unit pricing. Unknown provider terms or counters remain unknown. CoinGecko/Yahoo Finance are example connection names, not guarantees of fixed free tiers or official supported APIs. Dependencies: AI0008, AI0009. Acceptance: a new custom API can be created and metered without code changes; version changes preserve history; pricing preview and cross-tenant/admin-only tests pass.
-- **AI0019 — Shared API quota and pricing engine with mixed-workload fixtures**: Extend shared accounting behind LLM/API adapters to distinguish logical operations, physical attempts, quota consumption and charged units. Implement decimal pricing for explicit free, request/custom-unit, fixed subscription with included units, graduated versus volume tiers and overage plans; unsupported formulas fail explicitly. Quota rules independently specify counted outcomes, unit weights, connection/account/endpoint pool and rolling/fixed/billing windows with reset time zone. Handle refunds/adjustments as evidence-backed entries; aggregate invoices and allocated fixed fees must not double count. Deduplicate retries versus exports, apply effective plan at event time, expose price/coverage uncertainty and provider-reported snapshots separately. Emit threshold alerts with deduplication; monitoring does not guarantee hard quota enforcement across processes. Reuse PostgreSQL worker and SDK, no new service. Dependencies: AI0008, AI0014, AI0017 and API catalog. Acceptance: deterministic fixtures exercise success/error/429/timeout, retry/pagination/batch/cache, overlapping worker runs, late arrivals, plan changes and two tenants. AgentTrade demo combines a custom market-data call and LiteLLM analysis, with per-provider and total run cost matching unique billable events. Synthetic fixture limits/prices are explicitly labelled and do not assert current vendor terms.
+- **TA10001 — Admin API catalog and versioned provider plans**: Create tenant-scoped catalog/connection and plan CRUD endpoints with React admin forms. Users register stable IDs for custom APIs, operation/endpoint templates, quota scope/account-key pools, rate/billing windows, reset policy, unit definitions, status-dependent counting, free allowances, subscription fees, per-unit/tiered/overage pricing, currency and thresholds. Persist effective-dated revisions, source/last-verified date, audit and role permissions in PostgreSQL. Validate rules declaratively; no arbitrary scripts, automatic endpoint probes or plaintext keys. Preview synthetic usage charges before publishing. SDK binds calls to IDs; config-only changes cover generic request/unit pricing. Unknown provider terms or counters remain unknown. CoinGecko/Yahoo Finance are example connection names, not guarantees of fixed free tiers or official supported APIs. Dependencies: TA10011, TA10010. Acceptance: a new custom API can be created and metered without code changes; version changes preserve history; pricing preview and cross-tenant/admin-only tests pass.
+- **TA10002 — Shared API quota and pricing engine with mixed-workload fixtures**: Extend shared accounting behind LLM/API adapters to distinguish logical operations, physical attempts, quota consumption and charged units. Implement decimal pricing for explicit free, request/custom-unit, fixed subscription with included units, graduated versus volume tiers and overage plans; unsupported formulas fail explicitly. Quota rules independently specify counted outcomes, unit weights, connection/account/endpoint pool and rolling/fixed/billing windows with reset time zone. Handle refunds/adjustments as evidence-backed entries; aggregate invoices and allocated fixed fees must not double count. Deduplicate retries versus exports, apply effective plan at event time, expose price/coverage uncertainty and provider-reported snapshots separately. Emit threshold alerts with deduplication; monitoring does not guarantee hard quota enforcement across processes. Reuse PostgreSQL worker and SDK, no new service. Dependencies: TA10011, TA10012, TA10000 and API catalog. Acceptance: deterministic fixtures exercise success/error/429/timeout, retry/pagination/batch/cache, overlapping worker runs, late arrivals, plan changes and two tenants. AgentTrade demo combines a custom market-data call and LiteLLM analysis, with per-provider and total run cost matching unique billable events. Synthetic fixture limits/prices are explicitly labelled and do not assert current vendor terms.
 
 ### Source checked for the design
 
@@ -121,7 +121,7 @@ Docker Compose is the default install; no mandatory Kubernetes, Redis, extra mes
 
 ## Authentication, tenant membership and SDK credentials
 
-Status: required design, not implemented or runtime-verified. Google sign-in and email sign-in are required; passwordless email links are the initial assumption for email (password login is not implied).
+Status: approved target design; initial implementation and verification coverage are tracked in [implementation progress](implementation-progress.md). Google sign-in and email sign-in are required; passwordless email links are the initial assumption for email (password login is not implied).
 
 ### Human sign-in and access
 
@@ -165,7 +165,7 @@ Authenticate every SDK/OTel ingress route; keep internal collector/gateway endpo
 
 Add account-linking takeover attempts, invite expiry/replay, role escalation, forged batch ownership, direct collector bypass and concurrent pooled-connection tests. Verify no plaintext keys/email-link tokens enter PostgreSQL, ordinary telemetry, exports or logs. Use real configured Google/email delivery for a documented live smoke test in addition to deterministic automated tests. Authentication is part of the first monitoring slice, not deferred until after usage ingestion.
 
-Work ownership remains AI0011 (identity/authorisation), AI0008 (persistence/isolation), AI0009 (UI) and AI0014 (SDK); no duplicate use case or separate identity service is required.
+Work ownership remains TA10003 (identity/authorisation), TA10011 (persistence/isolation), TA10010 (UI) and TA10012 (SDK); no duplicate use case or separate identity service is required.
 
 ## PostgreSQL and tenant isolation
 
@@ -301,7 +301,7 @@ Maintain one tenant-scoped ledger with stable source/event/request IDs and paren
 
 ## Delivery sequence
 
-1. Define tenant identity, authenticated attribution, event contracts, PostgreSQL ownership/RLS, monetary semantics, deduplication and service boundaries; retain AI0001 and existing child relationships.
+1. Define tenant identity, authenticated attribution, event contracts, PostgreSQL ownership/RLS, monetary semantics, deduplication and service boundaries; retain US10000 and existing child relationships.
 2. Scaffold the minimal monorepo/Compose stack, migration ownership, offline demo, licenses and documented environment setup.
 3. Implement tenant-isolated ledger, intake and gateway correlation, followed by the lightweight SDK and AgentTrade scheduled-job vertical slice.
 4. Deliver responsive React monitoring, job health/coverage, AgentDesk/AgentData connectors and supported CLI/MCP integrations.
@@ -312,45 +312,45 @@ The first demonstrable slice is independent services + tenant ledger + SDK + one
 
 ## Tracked work
 
-The existing use case and all 12 original child IDs are retained; six tasks are added, without approving or completing implementation.
+The existing use case and all 12 original child IDs are retained; six tasks are added, now approved for implementation; completion remains subject to verification.
 
-### AI0002 — Install & first-run setup
+### FE10000 — Install & first-run setup
 
 Minimal standalone Docker Compose install from one monorepo: independently deployable React web UI, Dispatcher API, background worker, LiteLLM, OTel collector and PostgreSQL. Provide setup wizard, encrypted/env-backed provider credentials, per-app/environment virtual keys, tenant membership and SDK/CLI connection checks. Localhost/private defaults; document authenticated HTTPS access for mobile. Offline synthetic demo requires no provider key. Desktop shell is optional later.
 
 **Verification:** Clean checkout boots using documented configuration; demo shows a job and its usage without external AI calls. A live SDK/gateway and supported CLI telemetry connection each show first-event status. Restarting the worker does not restart the API/UI; gateway/admin/database endpoints are private by default.
 
-### AI0003 — Monitoring: overview, jobs, sessions, users and budgets
+### FE10001 — Monitoring: overview, jobs, sessions, users and budgets
 
 Responsive React monitoring is the primary UI. Show tenant-scoped spend/tokens/requests and trends with drilldown by user/service, app/environment, project/work item, scheduler/job/run/step, session, MCP server/tool, provider/model, source and prompt/config version. Show retries, failures, latency, registered schedules, missed/stuck jobs, heartbeats, disconnected sources, budgets/alerts and coverage. Keep billed/reported, calculated, subscription and estimated equivalent values separate. Parent job/tool costs roll up unique child billing events.
 
 **Verification:** Dashboard totals match distinct ledger attempts for the selected tenant/period; duplicate exports and nested MCP rollups do not inflate spend. Concurrent jobs remain separate. Unknown cost and stale coverage are visible. Budget thresholds are configurable; mobile and desktop show usable drilldowns. Job failures and missed-run fixtures appear correctly.
 
-### AI0004 — Control & improvement: YAML configuration, policies and experiments
+### FE10002 — Control & improvement: YAML configuration, policies and experiments
 
 Add authorised repository/app API/local connectors for each app's YAML prompt/model configuration. Inventory versions and connect them to runtime usage. Detect drift, evaluate cheaper compatible models using permitted or synthetic samples, display cost/quality/latency evidence and proposed diffs, then support permission-controlled application, activation verification and rollback. Keep model allow-lists, routing, fallbacks, budgets, caching, A/B feedback and promote-winner. Gateway controls only routed traffic; OpenRouter is optional. YAML remains authoritative for app configuration; snapshots/audit/eval results live in tenant-scoped PostgreSQL.
 
 **Verification:** Disallowed models are blocked and changes audited. Eval fixtures reject incompatible replacements and show evaluation costs separately. YAML changes validate, preserve unrelated fields/comments where supported, reject stale versions and verify runtime activation. Failed activation supports rollback. Seeded routing verification checks configured weights without a flaky live statistical threshold. Telemetry-only sources disclose control limits.
 
-### AI0005 — AgentDesk, AgentData and application SDK integration
+### FE10003 — AgentDesk, AgentData and application SDK integration
 
 Integrate with AgentDesk identity, tenant membership, projects/work items and role attribution using validated credentials plus per-request context. Provide a small OpenTelemetry-based SDK for app LLM clients and scheduled jobs/workers, starting with AgentTrade. Forward trace context through queues/services/MCP and correlate with gateway records. Provide tenant-authorised Dispatcher MCP tools, AgentData read-only tenant-scoped PostgreSQL connector and llm_usage.yaml semantic model. Keep demo bundle and usage-query examples.
 
 **Verification:** AgentTrade scheduled-job cost matches its distinct request attempts and remains attributable across a worker/MCP boundary. AgentDesk work-item totals match Dispatcher, including mid-session switches. AgentData questions match tenant-scoped SQL totals; another tenant's data is inaccessible. MCP read/write permissions and delegated tenant context are validated.
 
-### AI0006 — Open-source quality, attribution, security and privacy
+### FE10004 — Open-source quality, attribution, security and privacy
 
 Apache-2.0 distribution with minimal dependencies and reusable single-purpose classes/methods/modules. Public docstrings and comments explain intent/constraints; explicit errors, config-driven values and named parameterised SQL follow org standards. Include LICENSE, THIRD_PARTY_NOTICES, required upstream license texts, README Built on, in-app licenses and dependency inventory/checks. Use audited supported pinned releases, private admin endpoints, least-privilege tenant isolation, retention and metadata-only default capture. No mandatory LiteLLM enterprise/commercial or prohibited AGPL dependencies. Assess current release advisories at implementation instead of relying on a stale version floor.
 
 **Verification:** CI detects prohibited dependencies/enterprise paths; notices cover every shipped component with version, source and license. Default telemetry stores no prompt/response content or secrets. Two-tenant isolation and retention/export/deletion tests pass. Quickstart and offline demo work without a paid service; dependency pins are checked against current supported/security requirements.
 
-### AI0007 — Scaffold minimal monorepo and independently deployable Compose services
+### TA10004 — Scaffold minimal monorepo and independently deployable Compose services
 
 Scaffold UI (React/TypeScript/Vite), Python/FastAPI API, dedicated background worker, LiteLLM gateway, OTel collector and PostgreSQL in one Git repository. Give each service its own entrypoint/container, config, health check and lifecycle. Share contracts/domain code through packages rather than copying or importing another service's internals. One migration owner; separate gateway-owned persistence. Supply Apache-2.0 LICENSE, README, notices, env example, deterministic offline fixtures and demo profile. Use supported pinned images and configurable endpoints/ports; PostgreSQL-backed background coordination avoids a mandatory extra broker.
 
 **Verification:** Clean-checkout Compose/demo smoke test succeeds without provider keys. Each app service starts/restarts independently. API and worker use shared contracts; a single migration job owns application schema upgrades. Data survives container restart. Optional real-provider test records a request; management ports are private by default.
 
-### AI0008 — Tenant-isolated PostgreSQL ledger, execution context and pricing
+### TA10011 — Tenant-isolated PostgreSQL ledger, execution context and pricing
 
 Store all durable product data in PostgreSQL: tenants/memberships/apps, connections, schedule/job/run/step state, sessions/traces/tool calls, normalised billable attempts, price snapshots, subscriptions, config snapshots/diffs, policies/evals/experiments, audit history and coverage. Use mandatory tenant ownership and tenant-aware constraints/indexes, authenticated API/worker scope and enforced RLS with non-bypass runtime roles. One cluster/shared application schema is the minimal default; dedicated tenant databases are optional future deployment isolation. Separate LiteLLM persistence and access. Preserve app YAML as source, secrets in encrypted/env stores. Correlate SDK/proxy/OTel/provider events using stable IDs and unique tenant/source event keys. Distinguish retries from repeated exports; use decimal money, currency and pricing provenance; unknown costs stay unknown.
 
@@ -369,7 +369,7 @@ Authentication persistence: PostgreSQL stores stable users, provider identity li
 
 Auth persistence tests cover duplicate provider identity links, tenant-aware membership constraints, key verifier storage without plaintext, revocation, session expiry and cross-tenant lookup/export isolation.
 
-### AI0009 — Responsive React monitoring UI: overview, jobs, sessions and connections
+### TA10010 — Responsive React monitoring UI: overview, jobs, sessions and connections
 
 React/TypeScript/Vite web UI primarily for user monitoring on desktop and mobile, using shared AgentDesk/AgentData design tokens. Build Overview, Jobs/Runs, Sessions/Traces, Connections/Coverage, Budgets, Configuration and Licenses views. Support authenticated tenant selection, accessible charts/tables and request-level drilldowns. Config changes call backend connectors; a browser cannot silently edit remote/local YAML or CLI files. Retain optional desktop packaging for later; original mockups are visual reference, not a desktop requirement.
 
@@ -383,13 +383,13 @@ A newly configured API becomes visible in job/query drilldowns without provider-
 
 Desktop/mobile auth flows and tenant switching preserve API-enforced permissions; inaccessible tenants/admin actions stay inaccessible through direct API requests. SDK secrets appear only at creation and cannot be retrieved later.
 
-### AI0010 — Tenant-scoped AgentData connector and usage semantic model
+### TA10005 — Tenant-scoped AgentData connector and usage semantic model
 
 Provide least-privilege read-only PostgreSQL access with tenant identity bound to the connector credential/role and enforced views/RLS; never expose an unrestricted shared agentdata_ro credential across tenants. Ship llm_usage.yaml with cost kinds, tokens, calls/attempts, latency, dimensions for tenant/user/service/app/environment/job/run/project/model/provider/tool/source/config version/experiment. Route AgentData LLM work via gateway and SDK context. Keep demo questions and report examples.
 
 **Verification:** At least three usage questions match authorised SQL and UI totals. A second tenant's rows cannot be read even if a query omits or alters its tenant filter. Token/cost categories and rollups avoid double counting. AgentData's own requests appear with tenant, feature and config version.
 
-### AI0011 — Google/email authentication, tenant SDK keys and AgentDesk attribution
+### TA10003 — Google/email authentication, tenant SDK keys and AgentDesk attribution
 
 Validate AgentDesk identity/session credentials and membership server-side; map tenant/user/service to Dispatcher permissions. OTEL_RESOURCE_ATTRIBUTES supplies stable service/project defaults, while changing work-item/role context travels per request/job. Sync caller-session mappings with effective times so mid-session switches do not rewrite prior attribution. Provide tenant-authorised get_usage/get_session/list_experiments and permission-controlled set_policy tools; show work-item and pipeline-role costs in AgentDesk. Provide a minimal standalone identity adapter for the required Google/email sign-in flows.
 
@@ -407,24 +407,24 @@ Use maintained OIDC/session primitives through one identity adapter and shared a
 
 **Implementation:** Implement the common principal/membership/permission contract first, with AgentDesk and Google/email adapters. Add PostgreSQL session and token-verifier storage, invitation lifecycle and SDK key management. Bind every API/MCP/OTel intake path and worker to validated tenant context; protect or keep internal-only any collector/gateway endpoint that could bypass intake. Integrate React and SDK flows, then run isolation and credential-lifecycle tests before live auth confirmation.
 
-### AI0012 — Evidence-backed model policies and first A/B experiment
+### TA10006 — Evidence-backed model policies and first A/B experiment
 
 Configure allowed models and fallback/routing policies through reusable gateway adapters. Use configurable candidates, task tags, seeded assignment and app-provided/eval/AgentData quality feedback rather than fixed model names. Record requested and served model/provider, config version, cost/latency/errors/quality per variant. Compare successful task cost including retries, fees where applicable and evaluation spend. Promote a compatible winner through audited routing or a reviewed YAML change with activation/rollback. OpenRouter is an optional provider route.
 
 **Verification:** Restricted model requests fail clearly; deterministic fixture tests verify variant assignment and fallback attribution. Results include quality and full task cost; incompatible or insufficiently evaluated candidates cannot be labelled proven savings. Promotion is audited and reversible and changes the effective runtime configuration.
 
-### AI0013 — License checks, privacy and minimal-release verification
+### TA10007 — License checks, privacy and minimal-release verification
 
 Add dependency/license inventory and CI checks covering application code, SDKs, containers and bundled assets; reject prohibited licenses and LiteLLM enterprise code. Keep credits, notices and required upstream licenses in sync. Check pinned supported dependency versions against advisories at release; do not treat the old LiteLLM 1.84 floor as sufficient. Private admin routes, encrypted/env secrets, configured egress for authorised providers/MCP/connectors, least-privilege PostgreSQL/RLS and metadata-only defaults. Include clean-checkout/offline demo verification, service health and concise install/test/contributing documentation.
 
 **Verification:** CI catches a prohibited fixture dependency or enterprise path; notices include every shipped third-party component. Default sample traffic leaks no secrets or prompt/response content. Two-tenant and connector-permission checks pass. The documented offline demo and independent service restarts succeed with only the documented prerequisites.
 
-### AI0014 — Reusable LLM/API monitoring SDK and AgentTrade integration
+### TA10012 — Reusable LLM/API monitoring SDK and AgentTrade integration
 
 Build a minimal OpenTelemetry-based monitoring SDK, initially for AgentTrade's runtime; add other language SDKs only when a consuming app needs them. Instrument the shared LLM client once and wrap scheduler/job entrypoints. Carry authenticated tenant/app/environment identity plus user/service, job definition/run/attempt/step, trace/request IDs and prompt/config version across asynchronous tasks, queued workers, HTTP and MCP. Export start/finish/failure events, token/latency data and gateway correlation; record actual provider usage when available. Monitoring does not use an LLM. Bounded buffering, configurable retries/backoff, graceful flush, idempotency and observable drop counters must not block business jobs. Optional local spool is encrypted/redacted, bounded, transient and not an authoritative datastore.
 
 Acceptance: One AgentTrade scheduled-job fixture, including a worker boundary, MCP step, concurrent run and charged retry, is visible end-to-end. Totals equal distinct billing attempts. Replayed SDK/gateway events do not inflate cost. Timeout, exporter outage and abrupt termination produce visible coverage gaps without stopping trading jobs. Document minimal integration at the shared client and job boundary; direct bypass calls are identified as uncovered.
-Dependencies: AI0007 and AI0008. Do not modify a separate AgentTrade repository until implementation scope/access is established. Detailed spec: documents/output/agentdispatcher-specification.md.
+Dependencies: TA10004 and TA10011. Do not modify a separate AgentTrade repository until implementation scope/access is established. Detailed spec: documents/output/agentdispatcher-specification.md.
 
 Generalise the SDK boundary to arbitrary API operations: supported HTTP-client instrumentation plus explicit context/wrapper and record-usage interfaces for vendor libraries or custom units. Reuse the same job/trace/export contract for LLM and non-LLM calls. Record attempt-level events with stable API/connection/operation IDs and supplied units, preserve responses and exceptions, avoid implicit retries and duplicated auto/manual spans, and never collect credentials or raw request/response content by default. Admin config owns plan rules; SDK configuration binds local calls to catalog IDs. First fixture combines market-data retrieval and LLM analysis in a scheduled job and also covers a user-query path.
 
@@ -434,38 +434,38 @@ SDK authentication uses a dedicated random tenant service key loaded from the ho
 
 Two-tenant SDK fixtures reject wrong tenant/app, missing/expired/revoked keys and admin-route use; normal telemetry retry/replay handling remains idempotent. A scheduled run authenticates as a service without an invented human user. User-query traces label verified versus app-reported actor identity.
 
-### AI0015 — MCP gateway and external CLI monitoring adapters
+### TA10008 — MCP gateway and external CLI monitoring adapters
 
 Register authorised MCP servers through the gateway, preserve upstream credentials separately, and capture tool/server/caller, failures, latency and trace correlation. Instrument owned MCP services' nested LLM requests; do not infer hidden provider cost from tool invocation count. Provide version/capability-aware Claude Code/Codex onboarding for gateway or telemetry mode and coverage diagnostics. Per-source adapters normalise into shared contracts. A remote collector cannot automatically discover local stdio MCP servers; use an authorised local connector where needed. Optional browser estimation remains later scope.
 
 Acceptance: A fixture client calls an MCP tool that makes multiple LLM calls and displays one correct total with distinct tool charges where supplied. Gateway/SDK duplicates are merged; tenant/upstream credential boundaries hold. Supported CLI fixtures ingest correctly with source and cost confidence; unsupported fields and disconnected sources appear as gaps. Gateway-only controls are not offered for telemetry-only clients.
-Dependencies: AI0008, AI0011 and monitoring SDK. Detailed spec: documents/output/agentdispatcher-specification.md.
+Dependencies: TA10011, TA10003 and monitoring SDK. Detailed spec: documents/output/agentdispatcher-specification.md.
 
-### AI0016 — YAML configuration connectors, version tracking and reversible updates
+### TA10009 — YAML configuration connectors, version tracking and reversible updates
 
 Provide a reusable connector interface for authorised Git repositories, app configuration APIs and local files via a connector. Keep existing YAML authoritative; record redacted tenant-scoped snapshots/hashes, prompt/model/parameter inventory, source revision and audit history in PostgreSQL. Associate requests with effective config version. Monitor changes and runtime drift. Validate schema and model capabilities; show exact diffs, enforce least-privilege write grants, use optimistic concurrency, preserve unrelated fields/comments where supported, apply atomically and support rollback. Git-backed changes use a reviewable branch/PR when configured. Verify reload/redeploy activation explicitly; editing a file is not proof of deployment. Never execute YAML as code or persist plaintext secrets.
 
 Acceptance: Fixtures for repository/API/file connectors demonstrate discovery, version attribution, external edit detection, stale-write rejection, restricted writes, valid model changes and failed-activation rollback. Unsupported YAML structures fail clearly rather than being rewritten destructively. Synthetic/permitted evaluations compare quality, latency, successful-task cost and evaluation spend; lower price alone cannot prove equivalence.
-Dependencies: AI0008, AI0009 and monitoring SDK; integrates with AI0012. Detailed spec: documents/output/agentdispatcher-specification.md.
+Dependencies: TA10011, TA10010 and monitoring SDK; integrates with TA10006. Detailed spec: documents/output/agentdispatcher-specification.md.
 
-### AI0017 — Background job health, coverage and billing reconciliation
+### TA10000 — Background job health, coverage and billing reconciliation
 
 Implement the independent Dispatcher worker using shared application contracts and PostgreSQL-backed durable task state/leases. Monitor external app schedules rather than taking ownership of their business schedulers. Store schedule/time zone, expected runs, grace periods, run state, heartbeats, source health and late events. Distinguish missed, stuck, failed, cancelled and completed runs; late telemetry can reconcile earlier provisional states. Run configurable budget alerts, retention, config polling and provider usage reconciliation where credentials/APIs allow. Keep provider charges, rate-derived cost, subscriptions, estimates, fees and unknown values separate; preserve reconciliation evidence and price versions. Worker restart must not duplicate tasks/alerts or cross tenant context.
 
 Acceptance: Deterministic clock/fixture checks cover missed/stuck runs, DST/time zones, overlapping runs, late completion, worker restart and stale connection indicators. Two tenants cannot read or modify each other's jobs or exports. Reconciliation fixtures surface drift without adding aggregate invoices to already-counted request costs. Provider-API unavailability appears as stale/incomplete data. Decimal money and explicit currencies are preserved.
-Dependencies: AI0007, AI0008 and monitoring SDK. Detailed spec: documents/output/agentdispatcher-specification.md.
+Dependencies: TA10004, TA10011 and monitoring SDK. Detailed spec: documents/output/agentdispatcher-specification.md.
 
 Extend background aggregation/reconciliation to API quota pools and effective-dated plans. Maintain distinct short rate windows and billing-cycle allowances, configurable threshold crossing notifications with deduplication, time-zone/reset handling and late-event corrections. Show provider snapshots versus locally observed remaining allowance with freshness and scope; imports/reconciliation never add already-counted charges twice. Monitoring calls made by Dispatcher itself must also be attributed. No automatic provider probing, retry of business requests or distributed quota enforcement is introduced by passive monitoring.
 
 **Verification:** Fixtures cover multiple apps sharing a credential pool, reset boundaries, duplicate/late events, provider snapshot drift and threshold notification deduplication. Changing prices preserves original historical calculations; any re-rating is explicit/audited. Fixed fees are recorded once and allocated views do not add to actual total.
 
-### AI0018 — Admin API catalog and versioned provider plans
+### TA10001 — Admin API catalog and versioned provider plans
 
-Create tenant-scoped catalog/connection and plan CRUD endpoints with React admin forms. Users register stable IDs for custom APIs, operation/endpoint templates, quota scope/account-key pools, rate/billing windows, reset policy, unit definitions, status-dependent counting, free allowances, subscription fees, per-unit/tiered/overage pricing, currency and thresholds. Persist effective-dated revisions, source/last-verified date, audit and role permissions in PostgreSQL. Validate rules declaratively; no arbitrary scripts, automatic endpoint probes or plaintext keys. Preview synthetic usage charges before publishing. SDK binds calls to IDs; config-only changes cover generic request/unit pricing. Unknown provider terms or counters remain unknown. CoinGecko/Yahoo Finance are example connection names, not guarantees of fixed free tiers or official supported APIs. Dependencies: AI0008, AI0009. Acceptance: a new custom API can be created and metered without code changes; version changes preserve history; pricing preview and cross-tenant/admin-only tests pass.
+Create tenant-scoped catalog/connection and plan CRUD endpoints with React admin forms. Users register stable IDs for custom APIs, operation/endpoint templates, quota scope/account-key pools, rate/billing windows, reset policy, unit definitions, status-dependent counting, free allowances, subscription fees, per-unit/tiered/overage pricing, currency and thresholds. Persist effective-dated revisions, source/last-verified date, audit and role permissions in PostgreSQL. Validate rules declaratively; no arbitrary scripts, automatic endpoint probes or plaintext keys. Preview synthetic usage charges before publishing. SDK binds calls to IDs; config-only changes cover generic request/unit pricing. Unknown provider terms or counters remain unknown. CoinGecko/Yahoo Finance are example connection names, not guarantees of fixed free tiers or official supported APIs. Dependencies: TA10011, TA10010. Acceptance: a new custom API can be created and metered without code changes; version changes preserve history; pricing preview and cross-tenant/admin-only tests pass.
 
-### AI0019 — Shared API quota and pricing engine with mixed-workload fixtures
+### TA10002 — Shared API quota and pricing engine with mixed-workload fixtures
 
-Extend shared accounting behind LLM/API adapters to distinguish logical operations, physical attempts, quota consumption and charged units. Implement decimal pricing for explicit free, request/custom-unit, fixed subscription with included units, graduated versus volume tiers and overage plans; unsupported formulas fail explicitly. Quota rules independently specify counted outcomes, unit weights, connection/account/endpoint pool and rolling/fixed/billing windows with reset time zone. Handle refunds/adjustments as evidence-backed entries; aggregate invoices and allocated fixed fees must not double count. Deduplicate retries versus exports, apply effective plan at event time, expose price/coverage uncertainty and provider-reported snapshots separately. Emit threshold alerts with deduplication; monitoring does not guarantee hard quota enforcement across processes. Reuse PostgreSQL worker and SDK, no new service. Dependencies: AI0008, AI0014, AI0017 and API catalog. Acceptance: deterministic fixtures exercise success/error/429/timeout, retry/pagination/batch/cache, overlapping worker runs, late arrivals, plan changes and two tenants. AgentTrade demo combines a custom market-data call and LiteLLM analysis, with per-provider and total run cost matching unique billable events. Synthetic fixture limits/prices are explicitly labelled and do not assert current vendor terms.
+Extend shared accounting behind LLM/API adapters to distinguish logical operations, physical attempts, quota consumption and charged units. Implement decimal pricing for explicit free, request/custom-unit, fixed subscription with included units, graduated versus volume tiers and overage plans; unsupported formulas fail explicitly. Quota rules independently specify counted outcomes, unit weights, connection/account/endpoint pool and rolling/fixed/billing windows with reset time zone. Handle refunds/adjustments as evidence-backed entries; aggregate invoices and allocated fixed fees must not double count. Deduplicate retries versus exports, apply effective plan at event time, expose price/coverage uncertainty and provider-reported snapshots separately. Emit threshold alerts with deduplication; monitoring does not guarantee hard quota enforcement across processes. Reuse PostgreSQL worker and SDK, no new service. Dependencies: TA10011, TA10012, TA10000 and API catalog. Acceptance: deterministic fixtures exercise success/error/429/timeout, retry/pagination/batch/cache, overlapping worker runs, late arrivals, plan changes and two tenants. AgentTrade demo combines a custom market-data call and LiteLLM analysis, with per-provider and total run cost matching unique billable events. Synthetic fixture limits/prices are explicitly labelled and do not assert current vendor terms.
 
 ## Implementation decisions to verify
 
@@ -479,7 +479,7 @@ Extend shared accounting behind LLM/API adapters to distinguish logical operatio
 
 ## References and provenance
 
-- Existing AI0001 and design-export user stories (2026-10-19), retained in AgentDesk.
+- Existing US10000 and design-export user stories (2026-10-19), retained in AgentDesk.
 - User clarifications and requested durable engineering rules in this session (2026-10-26).
 - [LiteLLM gateway](https://docs.litellm.ai/docs/simple_proxy), [MCP gateway](https://docs.litellm.ai/docs/mcp/), [spend tracking](https://docs.litellm.ai/docs/proxy/cost_tracking).
 - [OpenTelemetry context propagation](https://opentelemetry.io/docs/concepts/context-propagation/).

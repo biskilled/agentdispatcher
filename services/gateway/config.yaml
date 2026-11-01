@@ -1,0 +1,11 @@
+# Optional gateway; provider billing correlation and tenant virtual-key provisioning are pending.
+model_list:
+  - model_name: configured-model
+    litellm_params:
+      model: os.environ/LLM_PROVIDER_MODEL
+      api_key: os.environ/LLM_API_KEY
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+litellm_settings:
+  set_verbose: false
+  turn_off_message_logging: true

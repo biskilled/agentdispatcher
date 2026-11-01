@@ -1,0 +1,143 @@
+name: agentdispatcher
+
+x-runtime: &runtime
+  DISPATCHER_DATABASE_URL: ${DISPATCHER_DATABASE_URL:?Run scripts/configure.py}
+  DISPATCHER_AUTH_DATABASE_URL: ${DISPATCHER_AUTH_DATABASE_URL:?Run scripts/configure.py}
+  DISPATCHER_PUBLIC_URL: ${DISPATCHER_PUBLIC_URL}
+  DISPATCHER_SESSION_SECRET: ${DISPATCHER_SESSION_SECRET:?Run scripts/configure.py}
+  DISPATCHER_SECURE_COOKIES: ${DISPATCHER_SECURE_COOKIES:-true}
+  DISPATCHER_WORKER_INTERVAL: ${DISPATCHER_WORKER_INTERVAL:-30}
+  DISPATCHER_HEARTBEAT_GRACE_SECONDS: ${DISPATCHER_HEARTBEAT_GRACE_SECONDS:-300}
+
+x-app: &app
+  build:
+    context: .
+    dockerfile: services/api/Dockerfile
+    args:
+      PYTHON_IMAGE: ${PYTHON_IMAGE}
+  image: agentdispatcher-core:local
+  init: true
+  restart: unless-stopped
+  environment: *runtime
+  depends_on:
+    migrate:
+      condition: service_completed_successfully
+
+services:
+  db:
+    image: ${POSTGRES_IMAGE}
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run scripts/configure.py}
+    volumes: [database:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    <<: *app
+    restart: "no"
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      DISPATCHER_MIGRATION_DATABASE_URL: ${DISPATCHER_MIGRATION_DATABASE_URL}
+      DISPATCHER_APP_DB_PASSWORD: ${DISPATCHER_APP_DB_PASSWORD}
+      DISPATCHER_AUTH_DB_PASSWORD: ${DISPATCHER_AUTH_DB_PASSWORD}
+    command: [python, scripts/migrate.py]
+
+  api:
+    <<: *app
+    environment:
+      <<: *runtime
+      DISPATCHER_SMTP_HOST: ${DISPATCHER_SMTP_HOST:-}
+      DISPATCHER_SMTP_PORT: ${DISPATCHER_SMTP_PORT:-587}
+      DISPATCHER_SMTP_SENDER: ${DISPATCHER_SMTP_SENDER:-}
+      DISPATCHER_SMTP_USER: ${DISPATCHER_SMTP_USER:-}
+      DISPATCHER_SMTP_PASSWORD: ${DISPATCHER_SMTP_PASSWORD:-}
+      DISPATCHER_SMTP_STARTTLS: ${DISPATCHER_SMTP_STARTTLS:-true}
+      DISPATCHER_GOOGLE_CLIENT_ID: ${DISPATCHER_GOOGLE_CLIENT_ID:-}
+      DISPATCHER_GOOGLE_CLIENT_SECRET: ${DISPATCHER_GOOGLE_CLIENT_SECRET:-}
+    command:
+      [
+        uvicorn,
+        "dispatcher.api:create_app",
+        --factory,
+        --host,
+        "${API_HOST}",
+        --port,
+        "${API_PORT}",
+        --no-access-log,
+      ]
+    healthcheck:
+      test:
+        [
+          CMD,
+          python,
+          -c,
+          'import urllib.request; urllib.request.urlopen("http://127.0.0.1:${API_PORT}/health/ready")',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  worker:
+    <<: *app
+    command: [dispatcher-worker]
+    healthcheck:
+      test: [CMD, dispatcher-worker, --health]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  ui:
+    build:
+      context: .
+      dockerfile: services/ui/Dockerfile
+      args:
+        NODE_IMAGE: ${NODE_IMAGE}
+        NGINX_IMAGE: ${NGINX_IMAGE}
+    restart: unless-stopped
+    environment:
+      BACKEND_URL: http://api:${API_PORT}
+    ports: ["${PUBLIC_HOST}:${UI_PORT}:80"]
+    depends_on:
+      api: { condition: service_healthy }
+
+  demo:
+    <<: *app
+    restart: "no"
+    profiles: [demo]
+    command: [python, scripts/demo.py]
+    environment:
+      <<: *runtime
+      DISPATCHER_DEMO_ENDPOINT: http://api:${API_PORT}
+    depends_on:
+      api: { condition: service_healthy }
+
+  gateway:
+    image: ${LITELLM_IMAGE}
+    profiles: [gateway]
+    restart: unless-stopped
+    environment:
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY}
+      LLM_PROVIDER_MODEL: ${LLM_PROVIDER_MODEL}
+      LLM_API_KEY: ${LLM_API_KEY}
+    volumes: ["./services/gateway/config.yaml:/app/config.yaml:ro"]
+    command: [--config, /app/config.yaml, --port, "${LITELLM_PORT}"]
+
+  collector:
+    image: ${OTEL_IMAGE}
+    profiles: [telemetry]
+    restart: unless-stopped
+    environment:
+      OTEL_HTTP_ENDPOINT: ${OTEL_HTTP_ENDPOINT}
+      OTEL_HEALTH_ENDPOINT: ${OTEL_HEALTH_ENDPOINT}
+    volumes:
+      ["./services/collector/config.yaml:/etc/otelcol-contrib/config.yaml:ro"]
+
+volumes:
+  database:

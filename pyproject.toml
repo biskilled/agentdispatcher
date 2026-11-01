@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agentdispatcher"
+version = "0.1.0"
+description = "Tenant-scoped LLM and API usage monitoring"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+dependencies = [
+  "fastapi==0.162.0", "uvicorn==0.54.0", "psycopg[binary]==3.3.6",
+  "pydantic-settings==2.16.2", "httpx==0.28.1", "authlib==1.9.1",
+  "itsdangerous==2.2.0", "PyYAML==6.0.3",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.11", "pip-licenses>=5"]
+
+[project.scripts]
+dispatcher = "dispatcher.cli:main"
+dispatcher-worker = "dispatcher.worker:main"
+
+[tool.setuptools.packages.find]
+where = ["packages/core/src", "packages/sdk/src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["packages/core/src", "packages/sdk/src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B"]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends"]

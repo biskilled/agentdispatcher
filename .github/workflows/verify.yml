@@ -1,0 +1,45 @@
+name: Verify
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  application:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17.6-alpine
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports: [5432:5432]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql://postgres@127.0.0.1:5432/postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: actions/setup-node@v4
+        with: { node-version: "24" }
+      - run: pip install -r requirements.lock
+      - run: pip install -e '.[dev]'
+      - run: npm ci
+      - run: ruff check packages scripts tests
+      - run: pytest -q
+      - run: npm run build
+      - run: python scripts/notices.py
+
+  compose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/configure.py
+      - run: docker compose up --build -d --wait
+      - run: docker compose --profile demo run --rm demo > /tmp/demo.json
+      - run: docker compose restart worker
+      - run: curl --fail http://127.0.0.1:8088/health/ready
+      - if: always()
+        run: docker compose logs --tail 100 api worker migrate
+      - if: always()
+        run: docker compose down

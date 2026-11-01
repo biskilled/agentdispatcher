@@ -1,0 +1,14 @@
+.git
+.env*
+.venv
+**/node_modules
+**/__pycache__
+.pytest_cache
+.ruff_cache
+dist
+documents
+.agentdesk
+.agents
+.codex
+test-results
+playwright-report

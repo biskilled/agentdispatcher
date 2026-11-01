@@ -1,0 +1,17 @@
+server {
+    listen 80;
+    server_name _;
+    root /usr/share/nginx/html;
+    client_max_body_size 2m;
+    add_header X-Content-Type-Options nosniff always;
+    add_header Referrer-Policy no-referrer always;
+    location /api/ {
+        # OAuth callback query strings contain short-lived codes; keep them out of access logs.
+        access_log off;
+        proxy_pass ${BACKEND_URL};
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    location /health/ { proxy_pass ${BACKEND_URL}; }
+    location / { try_files $uri $uri/ /index.html; }
+}

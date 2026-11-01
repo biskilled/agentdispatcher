@@ -1,0 +1,22 @@
+# Diagnostic-only internal collector. It does not yet export usage to the ledger.
+# Do not expose this receiver publicly or send prompt bodies/secrets to it.
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: ${env:OTEL_HTTP_ENDPOINT}
+processors:
+  batch: {}
+exporters:
+  debug:
+    verbosity: basic
+extensions:
+  health_check:
+    endpoint: ${env:OTEL_HEALTH_ENDPOINT}
+service:
+  extensions: [health_check]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]
