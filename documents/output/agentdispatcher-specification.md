@@ -1,7 +1,7 @@
 # AgentDispatcher — current product specification
 
 Use case: **AI0001**  
-Revision: **2026-10-26**  
+Revision: **2026-11-01**
 Status: **Planning; implementation has not started.**
 
 This revision incorporates the user's monitoring, embedded-agent, tenant storage, deployment and open-source requirements. It supersedes conflicting details in the 2026-10-19 design export, especially desktop-first delivery and the unvalidated 2–3 week estimate. The original export remains intact in AgentDesk.
@@ -17,6 +17,84 @@ The configuration section connects to authorised app YAML through a repository, 
 Ship independently deployable UI, Dispatcher API, background worker, LiteLLM gateway and OTel collector from one monorepo, with shared domain/contracts and one migration owner. Keep the default install minimal: Docker Compose, PostgreSQL, documented environment configuration and an offline demo with no provider key. No mandatory Kubernetes, Redis, broker or commercial service. AgentTrade's shared LLM client plus one scheduled job is the first end-to-end integration. OpenRouter is an optional upstream through LiteLLM, not a required dependency.
 
 Reuse single-purpose classes/methods/modules; favour composition, short functions, explicit errors, clear public docstrings and comments explaining why. Configuration and SQL follow org standards. Credit every shipped open-source component through LICENSE, THIRD_PARTY_NOTICES, README Built on, an in-app licenses view and dependency/license checks. Preserve AgentDesk work-item/role attribution, tenant-scoped AgentData access, model policies, experiments, caching and optional later browser coverage. Current detailed specification: documents/output/agentdispatcher-specification.md. This revision supersedes the desktop-first design and the earlier unvalidated 2–3 week delivery estimate.
+
+General API monitoring extension (2026-11-01): Monitor free and paid non-LLM APIs through the same reusable SDK and tenant-isolated PostgreSQL ledger, including market-data requests in scheduled jobs and user-query flows. LiteLLM remains the main LLM gateway; general API calls can go directly to their provider with SDK instrumentation and do not require a new universal proxy or desktop application. React admin provides a tenant-owned API catalog: stable API ID, connection/account reference, environment, operation/endpoint patterns, plan, independent rate limits/allowances, billing units, prices/currency, included units, subscription fee, overage/tier rules, effective dates, reset policy and alert thresholds. Store source/verification date and distinguish configured, observed and provider-reported limits. Credentials remain in the app or encrypted secret store.
+
+The SDK identifies an API/connection by stable ID and propagates tenant, user/service, app, feature, job/run and trace context. Provide supported HTTP-client hooks plus manual record/custom-unit interfaces. Record physical attempts, logical operations, status, latency, timeouts, retry/pagination/batch/cache semantics and response-reported units without capturing sensitive bodies or raw URL query values. Count requests, quota units and billed units separately. Rules are declarative and versioned; backend pricing is authoritative. Unsupported protocols/units require explicit instrumentation or an adapter, not automatic discovery claims.
+
+Free usage still has volume, quota and reliability metrics; zero cost requires an explicitly free plan. Unknown rates/limits stay unknown. Threshold alerts are observational by default and cannot guarantee provider-wide quota availability when calls bypass instrumentation. Shared account/key pools, concurrent apps, late/replayed events and plan changes must not double count or silently rewrite history. Rate windows, billing periods, resets and status-dependent charging are independently configurable. User-entered/provider-imported pricing is not automatically a verified invoice. Fixed subscription expense is counted once; per-call allocation is a separately labelled analytic view.
+
+## General API monitoring and admin catalog
+
+Added 2026-11-01. AgentDispatcher monitors arbitrary instrumented API operations as well as LLM requests. The primary user experience remains the React browser dashboard on desktop/mobile; no desktop installation is needed for backend schedulers or user-query flows.
+
+### Collection paths and boundaries
+
+- LLM calls continue through **LiteLLM**, the main LLM gateway, with SDK context.
+- Non-LLM APIs may be called directly by the app and observed through the same SDK. No universal HTTP proxy is required.
+- Support reusable hooks for supported HTTP clients plus explicit operation wrappers/manual usage recording for vendor libraries and custom units. HTTP REST is the initial automatic scope; other protocols/streaming need explicit measurements or adapters.
+- Users register a provider/API and connection in React admin and bind the SDK to its stable ID. New request/unit-priced APIs need configuration and a binding, not a provider-specific code release.
+- Automatic instrumentation only sees calls through supported hooks. Out-of-process calls or hidden retries require instrumentation and are declared as coverage gaps.
+- Monitoring itself never retries the business request, consumes a paid API to test connection, or changes application responses/exceptions. Export is bounded and independent of business execution.
+- SDK observations and gateway/provider records correlate to one attempt rather than duplicating spend. Use one shared event contract, pricing implementation and quota evaluator.
+- Browser-generated telemetry is untrusted client reporting; authoritative billing attribution should come from authenticated server-side SDK/provider evidence.
+
+### React/admin configuration
+
+| Setting | Purpose |
+| --- | --- |
+| API ID, display name, category | Reference LLM, market-data or other services consistently |
+| Tenant connection/account alias and environment | Associate calls with a plan and credential pool without recording the key |
+| Operation names and route templates | Attribute endpoints without collecting raw query strings or private path IDs |
+| Quota scope | Key/account, connection, endpoint or declared shared pool; distinguish from per-user analytic allocations |
+| Rate windows and billing cycles | Requests/credits per rolling or fixed window; cycle start, reset time zone and grace rules |
+| Independent count rules | Specify which outcomes and units consume each rate/allowance counter |
+| Unit and price | Requests, credits, records, bytes, duration or explicitly supplied units; decimal amount and currency |
+| Plan model | Explicit free, per-unit, fixed subscription, included allowance, graduated/volume tiers and overage |
+| Thresholds | Configurable usage percentages, remaining units, currency budgets and error/latency alerts |
+| Evidence and version | Source link/admin entry, last verification time, effective dates and audit history |
+
+Provide declarative validated rules, a synthetic pricing preview and permission-controlled publishing. No arbitrary scripts or automatic remote URL probing. Users may supply current contracted terms, or optional adapters may import provider-reported account limits. Display configured, observed and provider-reported values separately with timestamps; do not claim automatic discovery of current commercial terms.
+
+CoinGecko and Yahoo Finance are example catalog entries. No undocumented endpoint is promised as a supported official API, and no unverified Yahoo quota or perpetual free tier is assumed. Explicitly free plans display zero charge; unknown pricing remains unknown. User-entered operational thresholds can be tracked even when provider limits are unpublished.
+
+### SDK measurements
+
+Record resource kind (LLM/API/tool), API/connection/operation IDs, tenant, user or service identity, app/environment, feature, job/run/step and trace context. Include logical operation ID and physical attempt ID, timing, HTTP outcome/exception category, measured units, declared cache state, retry/pagination/batch information and provider request ID where available.
+
+Count attempts separately from logical calls. Pagination makes multiple upstream requests; a batch can be one request with many billable units. Cache hits that do not reach a provider are distinguishable from actual calls. Failure, 429 and timeout do not imply a universal zero or nonzero charge; each counter uses its configured charging rule, with uncertainty when the provider outcome is unknown. Capture only allowlisted quota headers/fields and aggregate units; redact credentials, cookies, URL queries and private identifiers. Request/response bodies remain off by default.
+
+Instrumentation cannot infer unseen transport retries. Explicitly prevent overlap when both automatic and manual instrumentation observe the same attempt. Billing-relevant events are not sampled away. Missing/stale events must be visible rather than silently presenting complete totals.
+
+### Pricing, quotas and PostgreSQL
+
+Extend the existing tenant-isolated PostgreSQL ledger with API catalogs, connections, quota pools, effective-dated plans/rate rules, snapshots, counters and subscription charges. Global provider templates may be shared read-only; tenant connections, contracts and usage remain private. Preserve source measurements separately from derived costs and use event-time plan versions. Retroactive re-rating is explicit and audited.
+
+Request count, quota consumption, billed units and monetary expense are independent metrics. Count subscription fees once per account/cycle; label optional per-user/job allocations separately and never add them again to actual spend. Preserve refunds/adjustments as evidence-backed entries. Distinguish graduated tiers from volume pricing. Unsupported formulas remain unsupported rather than producing invented charges.
+
+Aggregate configured shared account/key limits across observed apps in the permitted pool. Another tenant's usage must not be exposed; cross-tenant account sharing needs an explicit authorised model. Local observations cannot prove global remaining quota when uninstrumented consumers use the same account. Show provider snapshots alongside observed usage and reconciliation drift.
+
+Monitoring and alerting are the default. Distributed hard quota enforcement would require atomic shared reservations, consistent failure/timeout policy and no bypassing clients; it is separate scope. Do not market passive SDK counters as guaranteed provider limit enforcement.
+
+### First demonstration and acceptance
+
+An AgentTrade scheduled fixture fetches market data through the generic API SDK, calls an LLM through LiteLLM and shows both beneath one run. Also demonstrate a user-query flow using the same integration. Use synthetic, clearly labelled plan values in demos; live vendor terms must be configured/verified separately.
+
+- A tenant admin registers a previously unknown API, connection and free/paid plan through React, and a wrapped or manually recorded call appears under its API ID without adding provider-specific Dispatcher code.
+- A scheduled AgentTrade fixture includes one non-LLM API operation and one LLM request in the same trace; the dashboard shows distinct and combined costs without double counting.
+- Two independent quota rules can count all attempts for a rate window while counting only configured successful statuses for billing credits; retries, pagination, batches, cache hits, 429s and ambiguous timeouts follow documented rules.
+- Deterministic fixtures verify free, per-request, custom-unit, subscription-with-included-units, tiered/overage and unknown pricing; historical events retain the effective plan version and fixed fees are counted once.
+- Per-connection quota windows, budgets, threshold alerts, stale/missing coverage and observed-vs-provider remaining values are visible. Distributed hard enforcement is outside passive monitoring and must not be claimed.
+- Cross-tenant API catalogs, telemetry, pricing, exports and plan edits are access-controlled; sensitive bodies, credentials and raw query strings are absent from default telemetry.
+
+### New tasks
+
+- **AI0018 — Admin API catalog and versioned provider plans**: Create tenant-scoped catalog/connection and plan CRUD endpoints with React admin forms. Users register stable IDs for custom APIs, operation/endpoint templates, quota scope/account-key pools, rate/billing windows, reset policy, unit definitions, status-dependent counting, free allowances, subscription fees, per-unit/tiered/overage pricing, currency and thresholds. Persist effective-dated revisions, source/last-verified date, audit and role permissions in PostgreSQL. Validate rules declaratively; no arbitrary scripts, automatic endpoint probes or plaintext keys. Preview synthetic usage charges before publishing. SDK binds calls to IDs; config-only changes cover generic request/unit pricing. Unknown provider terms or counters remain unknown. CoinGecko/Yahoo Finance are example connection names, not guarantees of fixed free tiers or official supported APIs. Dependencies: AI0008, AI0009. Acceptance: a new custom API can be created and metered without code changes; version changes preserve history; pricing preview and cross-tenant/admin-only tests pass.
+- **AI0019 — Shared API quota and pricing engine with mixed-workload fixtures**: Extend shared accounting behind LLM/API adapters to distinguish logical operations, physical attempts, quota consumption and charged units. Implement decimal pricing for explicit free, request/custom-unit, fixed subscription with included units, graduated versus volume tiers and overage plans; unsupported formulas fail explicitly. Quota rules independently specify counted outcomes, unit weights, connection/account/endpoint pool and rolling/fixed/billing windows with reset time zone. Handle refunds/adjustments as evidence-backed entries; aggregate invoices and allocated fixed fees must not double count. Deduplicate retries versus exports, apply effective plan at event time, expose price/coverage uncertainty and provider-reported snapshots separately. Emit threshold alerts with deduplication; monitoring does not guarantee hard quota enforcement across processes. Reuse PostgreSQL worker and SDK, no new service. Dependencies: AI0008, AI0014, AI0017 and API catalog. Acceptance: deterministic fixtures exercise success/error/429/timeout, retry/pagination/batch/cache, overlapping worker runs, late arrivals, plan changes and two tenants. AgentTrade demo combines a custom market-data call and LiteLLM analysis, with per-provider and total run cost matching unique billable events. Synthetic fixture limits/prices are explicitly labelled and do not assert current vendor terms.
+
+### Source checked for the design
+
+CoinGecko distinguishes successful-request monthly credit consumption from all-attempt minute rate limiting. This motivates independent count rules rather than one universal request counter. Its published limits vary by plan and source, so values must be verified against the connected account rather than hardcoded. [CoinGecko credit accounting](https://support.coingecko.com/articles/1864417806-how-does-coingecko-api-count-the-api-usage-credit).
 
 ## Product surfaces
 
@@ -171,7 +249,7 @@ The first demonstrable slice is independent services + tenant ledger + SDK + one
 
 ## Tracked work
 
-The existing use case and all 12 original child IDs are retained; four tasks are added, without approving or completing implementation.
+The existing use case and all 12 original child IDs are retained; six tasks are added, without approving or completing implementation.
 
 ### AI0002 — Install & first-run setup
 
@@ -213,13 +291,26 @@ Scaffold UI (React/TypeScript/Vite), Python/FastAPI API, dedicated background wo
 
 Store all durable product data in PostgreSQL: tenants/memberships/apps, connections, schedule/job/run/step state, sessions/traces/tool calls, normalised billable attempts, price snapshots, subscriptions, config snapshots/diffs, policies/evals/experiments, audit history and coverage. Use mandatory tenant ownership and tenant-aware constraints/indexes, authenticated API/worker scope and enforced RLS with non-bypass runtime roles. One cluster/shared application schema is the minimal default; dedicated tenant databases are optional future deployment isolation. Separate LiteLLM persistence and access. Preserve app YAML as source, secrets in encrypted/env stores. Correlate SDK/proxy/OTel/provider events using stable IDs and unique tenant/source event keys. Distinguish retries from repeated exports; use decimal money, currency and pricing provenance; unknown costs stay unknown.
 
+Extend the common event/ledger model with resource_kind (llm/api/tool), api_id, connection/account and quota-pool identity, operation/route template, logical operation/attempt IDs, HTTP outcome, observed quota units and billable units. Persist tenant-owned catalog, immutable effective-dated plan/rate versions, quota windows/snapshots, subscription charges, pricing evidence and cost allocations. Keep one pricing/deduplication implementation shared with LLM accounting; do not require model/token fields on general API events. Retain raw measurement evidence separately from derived cost. Scope shared credential pools explicitly and preserve tenant access; never persist raw keys as pool IDs.
+
 **Verification:** Integration tests with two tenants prove API, DB, workers, exports and joins cannot cross tenant boundaries, including pooled connections and malicious attribution tags. Fixture ingestion covers duplicate/reordered events, concurrent runs, retries/fallbacks, cached usage, missing prices and subscription equivalents. Parent totals sum unique billable attempts. Idempotent migrations and a restore smoke test preserve data and ownership.
+
+- A tenant admin registers a previously unknown API, connection and free/paid plan through React, and a wrapped or manually recorded call appears under its API ID without adding provider-specific Dispatcher code.
+- A scheduled AgentTrade fixture includes one non-LLM API operation and one LLM request in the same trace; the dashboard shows distinct and combined costs without double counting.
+- Two independent quota rules can count all attempts for a rate window while counting only configured successful statuses for billing credits; retries, pagination, batches, cache hits, 429s and ambiguous timeouts follow documented rules.
+- Deterministic fixtures verify free, per-request, custom-unit, subscription-with-included-units, tiered/overage and unknown pricing; historical events retain the effective plan version and fixed fees are counted once.
+- Per-connection quota windows, budgets, threshold alerts, stale/missing coverage and observed-vs-provider remaining values are visible. Distributed hard enforcement is outside passive monitoring and must not be claimed.
+- Cross-tenant API catalogs, telemetry, pricing, exports and plan edits are access-controlled; sensitive bodies, credentials and raw query strings are absent from default telemetry.
 
 ### AI0009 — Responsive React monitoring UI: overview, jobs, sessions and connections
 
 React/TypeScript/Vite web UI primarily for user monitoring on desktop and mobile, using shared AgentDesk/AgentData design tokens. Build Overview, Jobs/Runs, Sessions/Traces, Connections/Coverage, Budgets, Configuration and Licenses views. Support authenticated tenant selection, accessible charts/tables and request-level drilldowns. Config changes call backend connectors; a browser cannot silently edit remote/local YAML or CLI files. Retain optional desktop packaging for later; original mockups are visual reference, not a desktop requirement.
 
+Add API Catalog/Plans admin screens to create and update a new API ID, connection, endpoint/operation matching, quota windows, currency/unit prices, free allowances, tiers/overage, fixed fees and alert thresholds. Show validation and a synthetic pricing preview before publishing an effective-dated revision, with permission checks and audit history. Monitoring filters LLM/API/tool and displays request/quota/billed units, costs, errors, latency and coverage. Link SDK integration instructions to the saved stable ID. No desktop companion is required.
+
 **Verification:** Production web build passes. Browser checks at mobile/desktop widths cover overview -> job -> request, tenant access, stale/unknown data states and connection onboarding. Totals match tenant-scoped ledger fixtures. Configuration write controls reflect permissions. No provider secrets are sent to the frontend; licenses are reachable.
+
+A newly configured API becomes visible in job/query drilldowns without provider-specific frontend code. Admin-only plan changes are versioned and previewed; unknown and explicitly free prices differ. Mobile/desktop UI validates quota scopes and charging rules and never asks to paste provider credentials into telemetry.
 
 ### AI0010 — Tenant-scoped AgentData connector and usage semantic model
 
@@ -245,12 +336,16 @@ Add dependency/license inventory and CI checks covering application code, SDKs, 
 
 **Verification:** CI catches a prohibited fixture dependency or enterprise path; notices include every shipped third-party component. Default sample traffic leaks no secrets or prompt/response content. Two-tenant and connector-permission checks pass. The documented offline demo and independent service restarts succeed with only the documented prerequisites.
 
-### AI0014 — Lightweight monitoring SDK and AgentTrade scheduled-job integration
+### AI0014 — Reusable LLM/API monitoring SDK and AgentTrade integration
 
 Build a minimal OpenTelemetry-based monitoring SDK, initially for AgentTrade's runtime; add other language SDKs only when a consuming app needs them. Instrument the shared LLM client once and wrap scheduler/job entrypoints. Carry authenticated tenant/app/environment identity plus user/service, job definition/run/attempt/step, trace/request IDs and prompt/config version across asynchronous tasks, queued workers, HTTP and MCP. Export start/finish/failure events, token/latency data and gateway correlation; record actual provider usage when available. Monitoring does not use an LLM. Bounded buffering, configurable retries/backoff, graceful flush, idempotency and observable drop counters must not block business jobs. Optional local spool is encrypted/redacted, bounded, transient and not an authoritative datastore.
 
 Acceptance: One AgentTrade scheduled-job fixture, including a worker boundary, MCP step, concurrent run and charged retry, is visible end-to-end. Totals equal distinct billing attempts. Replayed SDK/gateway events do not inflate cost. Timeout, exporter outage and abrupt termination produce visible coverage gaps without stopping trading jobs. Document minimal integration at the shared client and job boundary; direct bypass calls are identified as uncovered.
 Dependencies: AI0007 and AI0008. Do not modify a separate AgentTrade repository until implementation scope/access is established. Detailed spec: documents/output/agentdispatcher-specification.md.
+
+Generalise the SDK boundary to arbitrary API operations: supported HTTP-client instrumentation plus explicit context/wrapper and record-usage interfaces for vendor libraries or custom units. Reuse the same job/trace/export contract for LLM and non-LLM calls. Record attempt-level events with stable API/connection/operation IDs and supplied units, preserve responses and exceptions, avoid implicit retries and duplicated auto/manual spans, and never collect credentials or raw request/response content by default. Admin config owns plan rules; SDK configuration binds local calls to catalog IDs. First fixture combines market-data retrieval and LLM analysis in a scheduled job and also covers a user-query path.
+
+**Verification:** Replay and automatic/manual overlap do not duplicate calls. A successful, failed, timed-out, retried, paginated, batched and cached operation has explicit semantics. Instrumentation preserves application behaviour during exporter failure. Uninstrumented/out-of-process retries remain documented coverage gaps. New generic APIs need configuration plus SDK binding, not core provider code.
 
 ### AI0015 — MCP gateway and external CLI monitoring adapters
 
@@ -272,6 +367,18 @@ Implement the independent Dispatcher worker using shared application contracts a
 
 Acceptance: Deterministic clock/fixture checks cover missed/stuck runs, DST/time zones, overlapping runs, late completion, worker restart and stale connection indicators. Two tenants cannot read or modify each other's jobs or exports. Reconciliation fixtures surface drift without adding aggregate invoices to already-counted request costs. Provider-API unavailability appears as stale/incomplete data. Decimal money and explicit currencies are preserved.
 Dependencies: AI0007, AI0008 and monitoring SDK. Detailed spec: documents/output/agentdispatcher-specification.md.
+
+Extend background aggregation/reconciliation to API quota pools and effective-dated plans. Maintain distinct short rate windows and billing-cycle allowances, configurable threshold crossing notifications with deduplication, time-zone/reset handling and late-event corrections. Show provider snapshots versus locally observed remaining allowance with freshness and scope; imports/reconciliation never add already-counted charges twice. Monitoring calls made by Dispatcher itself must also be attributed. No automatic provider probing, retry of business requests or distributed quota enforcement is introduced by passive monitoring.
+
+**Verification:** Fixtures cover multiple apps sharing a credential pool, reset boundaries, duplicate/late events, provider snapshot drift and threshold notification deduplication. Changing prices preserves original historical calculations; any re-rating is explicit/audited. Fixed fees are recorded once and allocated views do not add to actual total.
+
+### AI0018 — Admin API catalog and versioned provider plans
+
+Create tenant-scoped catalog/connection and plan CRUD endpoints with React admin forms. Users register stable IDs for custom APIs, operation/endpoint templates, quota scope/account-key pools, rate/billing windows, reset policy, unit definitions, status-dependent counting, free allowances, subscription fees, per-unit/tiered/overage pricing, currency and thresholds. Persist effective-dated revisions, source/last-verified date, audit and role permissions in PostgreSQL. Validate rules declaratively; no arbitrary scripts, automatic endpoint probes or plaintext keys. Preview synthetic usage charges before publishing. SDK binds calls to IDs; config-only changes cover generic request/unit pricing. Unknown provider terms or counters remain unknown. CoinGecko/Yahoo Finance are example connection names, not guarantees of fixed free tiers or official supported APIs. Dependencies: AI0008, AI0009. Acceptance: a new custom API can be created and metered without code changes; version changes preserve history; pricing preview and cross-tenant/admin-only tests pass.
+
+### AI0019 — Shared API quota and pricing engine with mixed-workload fixtures
+
+Extend shared accounting behind LLM/API adapters to distinguish logical operations, physical attempts, quota consumption and charged units. Implement decimal pricing for explicit free, request/custom-unit, fixed subscription with included units, graduated versus volume tiers and overage plans; unsupported formulas fail explicitly. Quota rules independently specify counted outcomes, unit weights, connection/account/endpoint pool and rolling/fixed/billing windows with reset time zone. Handle refunds/adjustments as evidence-backed entries; aggregate invoices and allocated fixed fees must not double count. Deduplicate retries versus exports, apply effective plan at event time, expose price/coverage uncertainty and provider-reported snapshots separately. Emit threshold alerts with deduplication; monitoring does not guarantee hard quota enforcement across processes. Reuse PostgreSQL worker and SDK, no new service. Dependencies: AI0008, AI0014, AI0017 and API catalog. Acceptance: deterministic fixtures exercise success/error/429/timeout, retry/pagination/batch/cache, overlapping worker runs, late arrivals, plan changes and two tenants. AgentTrade demo combines a custom market-data call and LiteLLM analysis, with per-provider and total run cost matching unique billable events. Synthetic fixture limits/prices are explicitly labelled and do not assert current vendor terms.
 
 ## Implementation decisions to verify
 
