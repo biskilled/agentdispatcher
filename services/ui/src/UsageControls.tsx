@@ -100,7 +100,7 @@ export function UsageCharts({ overview }: { overview: Overview }) {
               <span style={{ width: `${(row.attempts / max) * 100}%` }} />
             </div>
             <span>
-              {row.attempts} calls · {money(row.cost, row.currency)}
+              {row.attempts} calls · {money(row.cost, row.currency)} ·{" "}
               <small>
                 {row.cost_kind} · {row.unknown_cost} unpriced
               </small>

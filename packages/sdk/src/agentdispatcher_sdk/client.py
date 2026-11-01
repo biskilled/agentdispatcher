@@ -7,7 +7,7 @@ import threading
 import time
 from contextlib import contextmanager
 from datetime import UTC, datetime
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import httpx
 from opentelemetry import trace
@@ -132,6 +132,16 @@ class Monitor:
         if run := _run.get():
             attributes.update(job_run_id=run["run_id"], trace_id=run["trace_id"])
         return attributes
+
+    def configuration_activation(self, change_id: str, digest: str, success: bool) -> bool:
+        """Report reload outcome; hash the actual loaded bytes, not a requested version."""
+        change_id = str(UUID(change_id))
+        if len(digest) != 64 or any(character not in "0123456789abcdef" for character in digest):
+            raise ValueError("Configuration digest must be a lowercase SHA-256 hash")
+        return self._enqueue(
+            f"api/configurations/changes/{change_id}/activation",
+            {"digest": digest, "success": success},
+        )
 
     @contextmanager
     def operation(self, *, provider: str, operation: str, resource_kind: str = "api", **metadata):

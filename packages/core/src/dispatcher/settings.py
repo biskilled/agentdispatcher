@@ -6,6 +6,8 @@ from pathlib import Path
 from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from dispatcher.configuration_document import ConfigSource
+
 
 class Settings(BaseSettings):
     """Load service configuration from DISPATCHER_ environment variables."""
@@ -47,6 +49,8 @@ class Settings(BaseSettings):
     gateway_url: str = ""
     gateway_master_key: SecretStr = SecretStr("")
     gateway_callback_secret: SecretStr = SecretStr("")
+    config_sources: dict[str, ConfigSource] = Field(default_factory=dict)
+    config_max_bytes: int = Field(default=65536, gt=0)
 
     @model_validator(mode="after")
     def validate_security(self):

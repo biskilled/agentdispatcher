@@ -6,6 +6,7 @@ from uuid import UUID
 import psycopg
 from psycopg.rows import dict_row
 
+from dispatcher.migrations import MIGRATIONS
 from dispatcher.settings import Settings
 
 _SQL_TENANT = "SELECT set_config('dispatcher.tenant_id', %s, true)"
@@ -42,4 +43,5 @@ class Database:
     def ready(self) -> bool:
         """Check migrations without reading any tenant data."""
         with self.auth() as connection:
-            return connection.execute(_SQL_READY).fetchone() is not None
+            applied = connection.execute(_SQL_READY).fetchone()
+            return bool(applied and applied["version"] >= MIGRATIONS[-1][0])

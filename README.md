@@ -18,7 +18,7 @@ Open the short-lived `sign_in` link printed by the demo command and click **Cont
 
 The UI binds to `127.0.0.1:8088` by default. Change `UI_PORT` and `DISPATCHER_PUBLIC_URL` together in `.env`. PostgreSQL, API, gateway and collector have no published management ports. Data survives service/container restarts in the `database` volume. Do not remove that volume if you need the data.
 
-**Verification note:** local PostgreSQL/API/SDK/browser tests passed. [GitHub CI](https://github.com/biskilled/agentdispatcher/actions/runs/41299724331) also passed the application checks, Compose build/startup, synthetic demo, worker restart and API readiness check. Docker is unavailable on the local development machine; container verification ran on the CI runner. Optional gateway/collector profiles and database backup/restore remain unverified.
+**Verification note:** local PostgreSQL/API/SDK/browser tests passed. [GitHub CI](https://github.com/biskilled/agentdispatcher/actions/runs/41360357236) passed application checks, Compose startup, synthetic demo, worker restart and real LiteLLM container checks for tenant keys, model restrictions, streaming accounting and revocation. Docker is unavailable locally; container verification runs in CI. Collector ingestion and database backup/restore remain unverified.
 
 ## Create a real workspace
 
@@ -87,12 +87,53 @@ Export runs in a bounded background queue. Delivery retries retain event IDs; bu
 | Worker | `dispatcher-worker` | Tenant-scoped run health, expected schedules, leases, budget/quota alerts |
 | UI | `npm run dev` / static Vite build | Desktop/mobile monitoring and administration |
 | Migrations | `python scripts/migrate.py` | Sole schema owner, separate deployment credentials |
-| LiteLLM | Compose `gateway` profile | Main planned LLM gateway; adapter integration pending |
+| LiteLLM | Compose `gateway` profile | Managed virtual keys, model restrictions, per-attempt callbacks |
 | OTel collector | Compose `telemetry` profile | Private diagnostic receiver; ledger export pending |
 
-`docker compose --profile gateway up -d gateway` starts the configured LiteLLM image after you supply `LLM_PROVIDER_MODEL` and `LLM_API_KEY`. It is internal-only. Its master key is an operator credential and must not be used as a tenant SDK key. Automatic virtual-key provisioning, model policy integration, billing correlation and live provider verification are still open work. OpenRouter can later be configured as a LiteLLM upstream.
+`docker compose --profile gateway up -d gateway` starts LiteLLM after you supply `LLM_PROVIDER_MODEL` and `LLM_API_KEY`. It is internal-only; connect applications on an authorised service network. Its master key is operator-only. Use **LLM keys** to provision an application/environment key with explicit model aliases. The gateway verifies revocation and scope before each call and exports metadata-only usage using a separate internal callback secret. These calculated prices are not invoices. End-to-end tests use synthetic provider responses inside the real LiteLLM image; paid provider billing and SDK/gateway correlation still need verification. OpenRouter can be configured as a LiteLLM upstream.
 
 The collector's debug exporter reports basic diagnostics, not durable usage; it does not feed the ledger. Do not expose it publicly or count it as complete OTel ingestion coverage.
+
+Tenant-bound AgentData database credentials, a Cube model and sample questions are in
+[the AgentData integration](integrations/agentdata/README.md). The database credential
+enforces tenant isolation even when generated SQL changes or omits a tenant filter.
+
+## Review application YAML
+
+An installation operator grants access through `DISPATCHER_CONFIG_SOURCES`, a JSON
+map of named sources. Existing `.env` files need `DISPATCHER_CONFIG_SOURCES={}` when
+upgrading. Each entry specifies `tenant_id`, `app`, `environment`, `kind` (`file`,
+`api`, or `git`), `writable`, and permitted `fields`. File/Git sources also specify
+an authorised `root` and relative `path`; API sources specify `endpoint` and optional
+`token_env` naming a secret environment variable. Git sources require `author_name`
+and `author_email`. Mount authorised directories into the API container explicitly.
+
+A field such as `llm.model` uses `{"kind":"model","models":["approved-model-a",
+"approved-model-b"]}`. Numeric fields specify `kind: number` or `integer` plus
+`minimum`/`maximum`; boolean fields use `kind: boolean`. Operators must verify model
+capability compatibility before allowing a candidate. A cheaper price alone does
+not establish quality equivalence. No arbitrary string/secret/prompt edits are allowed.
+
+In **Configuration**, scan a source, edit permitted values, prepare a review, then
+apply the displayed scalar diff. Comments and unrelated content stay unchanged.
+Aliases, duplicate keys, flow-mapping edit paths, multiline scalar edits, escaping
+paths and symlink file targets fail explicitly. PostgreSQL stores safe parameter
+values, source revisions, hashes and review history, never original YAML or prompts.
+
+API sources must implement atomic strong-ETag `If-Match` writes. Local files use
+atomic replacement with hash checks; external writers must coordinate because
+ordinary filesystems offer no atomic compare-and-swap against uncooperative writers.
+Git creates an unpushed review branch while preserving the checkout/index. Merge,
+PR publication and deployment remain explicit external actions. A crash while
+creating a Git branch can leave an orphan review branch; inspect it before retrying.
+
+Saving is separate from activation. After reloading the actual YAML bytes, the app
+calls `monitor.configuration_activation(change_id, sha256_of_loaded_bytes, success)`
+and attributes requests with `monitor.context(config_version=sha256_of_loaded_bytes)`.
+File/API changes can restore previous parameter values after failed activation,
+provided no external edit followed the applied version. Rollback also requires an
+application reload; it does not imply deployment. Automated evaluations, source
+polling, Git rollback/publishing and runtime drift reports remain under development.
 
 ## Development and verification
 

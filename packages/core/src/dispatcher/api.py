@@ -17,6 +17,8 @@ from starlette.concurrency import run_in_threadpool
 from starlette.middleware.sessions import SessionMiddleware
 
 from dispatcher.auth import AuthService, require_admin
+from dispatcher.configuration import Configurations
+from dispatcher.configuration_api import routes as configuration_routes
 from dispatcher.contracts import ApiConnection, ApiPlan, Contract, EventBatch, JobEvent, UsageEvent
 from dispatcher.db import Database
 from dispatcher.gateway import Gateway
@@ -168,7 +170,7 @@ def create_app(settings: Settings | None = None, mailer=None, oauth_transport=No
         return auth.human(request.cookies.get(SESSION_COOKIE, ""), tenant_id)
 
     def service(
-        authorization: Annotated[str, Header()],
+        authorization: Annotated[str, Header()] = "",
         delegation: Annotated[str | None, Header(alias="X-User-Delegation")] = None,
     ):
         scheme, _, token = authorization.partition(" ")
@@ -489,4 +491,5 @@ def create_app(settings: Settings | None = None, mailer=None, oauth_transport=No
         return ledger.ingest(gateway.principal(body.service_id), [body.event])
 
     app.include_router(operations_routes(ledger.operations, human))
+    app.include_router(configuration_routes(Configurations(db), human, service))
     return app

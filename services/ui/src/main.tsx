@@ -30,6 +30,7 @@ import { CatalogView } from "./Accounting";
 import { AccessView, JoinWorkspace, LinkGoogle } from "./Access";
 import { UsageControls, UsageCharts, AttemptDetail } from "./UsageControls";
 import { OperationsView } from "./Operations";
+import { ConfigurationsView } from "./Configurations";
 import { repository as sourceUrl } from "../../../package.json";
 
 type Tab =
@@ -38,6 +39,7 @@ type Tab =
   | "API catalog"
   | "SDK keys"
   | "LLM keys"
+  | "Configuration"
   | "Access"
   | "Schedules"
   | "Budgets";
@@ -47,6 +49,7 @@ const navigation = [
   { label: "API catalog", icon: Database },
   { label: "SDK keys", icon: KeyRound },
   { label: "LLM keys", icon: KeyRound },
+  { label: "Configuration", icon: Layers },
   { label: "Access", icon: Shield },
   { label: "Schedules", icon: Workflow },
   { label: "Budgets", icon: Database },
@@ -842,6 +845,9 @@ function App() {
                   role={current?.role || ""}
                   report={setMessage}
                 />
+              )}
+              {tab === "Configuration" && admin && (
+                <ConfigurationsView tenant={tenant} report={setMessage} />
               )}
               {tab === "API catalog" && admin && (
                 <CatalogView
