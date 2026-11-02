@@ -1,58 +1,45 @@
 # US10000 implementation progress
 
-First implementation slice, 2026-11-01. Approval promoted the original AI IDs to US10000, FE10000–FE10004 and TA10000–TA10012. Requirements in agentdispatcher-specification.md remain the full target; this file describes actual implementation coverage.
+Updated 2026-11-02. The approved specification remains the target. This document distinguishes implemented behaviour from remaining acceptance work; the full use case is not yet complete.
 
-## Current implementation update (2026-11-01)
+## Implemented and verified
 
-- LiteLLM is now connected through managed virtual keys and OSS Python callbacks. [CI run 41360357236](https://github.com/biskilled/agentdispatcher/actions/runs/41360357236) passed the real container checks: two-tenant scope, streaming accounting, model restrictions and immediate revocation. Upstream key aliases use unique internal IDs, avoiding tenant name collisions. Full MCP/CLI/OTel and duplicate-source correlation are still open.
-- AgentData now has per-tenant PostgreSQL read-only credentials bound to `session_user`, an RLS-protected view, Cube model, provisioning/rotation/revocation and SQL/dashboard parity checks. Live AgentData import and its own LLM call instrumentation remain open.
-- YAML file/API/Git connectors, redacted PostgreSQL snapshots, reviewed scalar changes, optimistic concurrency, activation evidence and file/API rollback are implemented with four passing connector/workflow tests. Git produces an unpushed review branch without changing the checkout. Source polling, evaluation-backed recommendations, Git publishing/rollback and runtime drift reports remain open.
-- Current local verification: 42 backend/SDK/PostgreSQL tests pass. Desktop/mobile browser flows pass for catalog, SDK keys, schedule registration/disable, budget creation, empty configuration setup and the LLM-key form. Worker startup/health/shutdown and React build pass; overview screenshots reviewed at both sizes. Connected-source browser editing still needs a dedicated fixture.
+- A Python/FastAPI API, independent worker, React/TypeScript mobile dashboard, separately installable monitoring SDK and PostgreSQL ledger share reusable application services. Compose also provides optional LiteLLM, collector and MCP services.
+- PostgreSQL enforces tenant isolation with forced RLS, separate auth/runtime grants and transaction-local scope. Human sessions, invitations, live membership/app grants, owner safeguards and scoped SDK keys have integration tests. SDK secrets are displayed once and stored only as hashes.
+- Google OIDC and passwordless email use explicit identity linking, single-use state/tokens, CSRF protection and revocable sessions. Signed-token callback fixtures exercise issuer, audience, signature, expiry, nonce and state rejection. Live Google and SMTP verification still needs configured deployment credentials.
+- AgentDesk has an explicit identity adapter, tenant binding and personal account linking. Effective-time session context preserves historical work-item/role attribution. The sibling AgentDesk identity endpoint patch and its verification harness are included under `integrations/agentdesk`; deployment remains separate.
+- The optional official-SDK MCP service exposes `get_usage`, `get_session`, `list_experiments` and `set_policy`. Dedicated hashed grants remain tied to the human session and current membership; policy changes additionally require explicit consent and a live admin role. This control service is separate from monitoring arbitrary MCP providers.
+- LiteLLM uses managed virtual keys and OSS callbacks. Real-container CI verifies tenant separation, streaming accounting, model restrictions, immediate revocation and policy activation/rollback against synthetic provider responses. [CI 41366473576](https://github.com/biskilled/agentdispatcher/actions/runs/41366473576) passed.
+- API catalog versions support free/unknown/unit/token/subscription/tier pricing, custom units, multiple quota windows, shared pools and historical audit. Accounting distinguishes physical attempts, logical operations, quotas and charges. Provider statements and adjustments remain separate from original request totals.
+- Registered external schedules, expected runs, heartbeats, late-run reconciliation, worker leases, budgets and threshold alerts monitor application schedulers without running their business jobs.
+- Model policies support permitted aliases, declared capabilities, fallbacks and deterministic experiments. Promotion requires quality, latency, sample, coverage and successful-task cost checks, including retries and evaluation spend. Immutable promotion evidence and rollback are retained. Passing gates is not labelled statistical proof of savings.
+- AgentTrade's actual shared provider clients and scheduler entry points are instrumented. Its synthetic integration harness exercises two tenants, multiple jobs, provider failures and exact dashboard totals without trading or paid API calls. External regression tests passed.
+- AgentData has per-tenant read-only PostgreSQL credentials bound to `session_user`, RLS-protected views, a Cube model and credential lifecycle/SQL-dashboard parity tests. Live AgentData import and its own LLM instrumentation remain outstanding.
+- YAML file/API/Git connectors preserve safe scalar changes, comments and unrelated fields. PostgreSQL retains redacted snapshots and reviewed diffs. Optimistic concurrency, source-permission fingerprints, activation evidence and file/API rollback are tested. Git currently creates an unpushed review branch.
+- React provides reporting filters, trends, attempts, schedules, budgets, catalog, keys, AgentDesk linking, configurations, policies, experiments and tool access. Desktop/mobile browser tests exercise the principal administration flows. Runtime license texts are bundled and shown in the UI.
 
-- Added tenant invitations, membership administration, concurrent last-owner protection, app view grants, verified-user delegation and recent-login Google linking. OAuth state is single-use in PostgreSQL. Eight full callback tests exercise locally signed identity tokens and invalid issuer/audience/signature/expiry/nonce/state/missing-token cases. Live Google and SMTP still require deployment configuration.
-- Added API/account/connection/operation pools, subscriptions and included-unit overage, graduated/volume/token pricing, explicit quota outcome rules, rolling/calendar windows, time zones and deduplicated threshold alerts. Admin forms provide connection revisions and synthetic pricing previews. Original event prices remain immutable; cumulative tier allocation uses arrival order within the event-time billing period.
-- Added common filtered reporting for app/environment/provider/model/source/user/session/project/work item/job/config/API and time ranges, daily trends, dimension breakdowns, pagination and original-attempt evidence.
-- Added HTTPX sync/async monitoring transports, request-scoped metadata, credential-free queue context propagation and short-lived user delegation headers.
-- Added persisted external schedules, expected occurrences, late-run reconciliation, worker leases and budget configuration. Fixed fees, explicit refunds and imported provider statement comparisons remain separate from original request totals. Provider statements never become new charges.
-- Verification: 36 PostgreSQL/SDK/OIDC tests passed; React TypeScript/production build passed. Desktop and mobile Playwright flows passed including synthetic pricing preview/publication and scoped key lifecycle. New schedule/budget screens build successfully; their browser interaction checks are still pending. Independent worker startup/health/shutdown passed before the latest schedule additions.
-- All remaining integrations, release work and full-item acceptance still need completion. This update is not a claim that the entire use case is finished.
+## Verification
 
-## Implemented in the first slice
+The previous committed baseline passed 55 backend/SDK/PostgreSQL tests, two desktop/mobile browser tests, three sibling AgentDesk identity tests, React type checking/build and GitHub's real Compose/LiteLLM checks. MCP adds three backend grant-lifecycle tests and two official-SDK protocol/HTTP checks. The current expanded suite and MCP container check are being verified before that change is closed out.
 
-- Shared Python package, FastAPI service, standalone worker, React/Vite UI, separately installable Python SDK, Compose definitions and a sole migration job.
-- PostgreSQL identity store and tenant ledger; separate auth/runtime grants, forced RLS on tenant data, runtime bypass-role rejection, transaction-local scope and tenant-aware constraints.
-- Email login/token consumption, secure session cookies, CSRF origin checks, Google OIDC routes via Authlib, explicit Google-link endpoint, operator-only initial owner provisioning.
-- Admin-created per-tenant/app/environment SDK keys with hashes only, expiration, immediate revocation, scoped metadata and audit entries.
-- Metadata-only event intake, atomic batch scope validation, stable-event replay deduplication, conflicting-evidence rejection, distinct retry attempts, exact decimal cost serialization.
-- API catalog with immutable effective versions for unknown/free/per-unit prices; configured status-based billing. Other formulas reject rather than silently approximating.
-- Job start/terminal/heartbeat events, concurrent SDK contexts, out-of-order protection and tenant-scoped stale-run detection.
-- Responsive overview, recent activity, job runs, API pricing forms, key lifecycle, login and license notices. Synthetic seeded workload traverses SDK → HTTP intake → PostgreSQL → UI.
+Docker is unavailable on this workstation, so container validation runs in GitHub CI. Synthetic provider fixtures verify the integrations without spending provider credits. No live Google/SMTP login or deployed sibling identity endpoint is claimed verified.
 
-## Verification evidence
-
-- PostgreSQL integration + SDK suite: 13 passed against an isolated PostgreSQL 15.17 instance. Includes no-scope/cross-tenant RLS reads, identity-table denial, batch atomicity, concurrent replay, changed evidence, token replay, logout, CSRF, expiry/revocation, membership changes, cost history/unknowns, job ordering, no automatic Google/email linking and exporter failure behaviour.
-- Independent worker process startup, health command and shutdown passed; the API remained ready. The standalone SDK wheel built successfully with its license included.
-- React production build and TypeScript checking passed.
-- Playwright end-to-end checks passed at desktop 1440×1000 and mobile 390×844, including actual tenant dashboard data and issuing/revoking SDK keys. Screenshots visually reviewed.
-- Runtime dependency notices include 32 Python/JavaScript packages with original license texts. Frontend dependency audit reported no vulnerabilities at install time; this is not a comprehensive release security audit.
-- [GitHub CI run 41299724331](https://github.com/biskilled/agentdispatcher/actions/runs/41299724331) passed the application job and Compose build/startup, synthetic SDK demo, worker restart and API readiness checks for runtime commit 7233ae6. Docker remains unavailable locally. Optional gateway/collector profiles and database restart/backup/restore checks remain unverified.
-- No live Google or SMTP credentials were supplied. Auth routes and local email-token/session flows exist; real Google login, actual email delivery and the full OIDC negative-case matrix remain unverified. Upstream Authlib/Starlette emit HTTPX deprecation notices; migration to their newer HTTP client integration should be assessed before release.
-
-## Remaining approved scope
+## Remaining acceptance work
 
 | Item | Remaining work |
 | --- | --- |
-| TA10004 / FE10000 | Database persistence/restore and optional integration-profile checks, guided setup and live connection verification |
-| TA10003 | AgentDesk identity/membership adapter and live provider verification; existing standalone identity/access flows now tested |
-| TA10011 | Gateway/provider correlation, exports/retention/deletion/restore, full durable entities and broader isolation coverage |
-| TA10012 | Instrument the real AgentTrade shared client/scheduler and coverage diagnostics; HTTP hooks and explicit queue context now implemented |
-| TA10010 / FE10001 | Browser checks for new budget/schedule screens and full integration connection coverage |
-| TA10001 / TA10002 | Full end-to-end mixed AgentTrade/LiteLLM workload and final catalog acceptance review |
-| TA10000 | Retention/config polling jobs, live provider refresh integrations, and final worker acceptance review |
-| TA10008 / FE10003 | LiteLLM virtual-key/billing adapter, MCP and CLI adapters, authenticated OTel intake |
-| TA10005 | AgentData tenant-scoped connector and semantic model |
-| TA10009 / FE10002 | YAML inventory/connectors/versioning, reviewed writes, activation checks and rollback |
-| TA10006 | Evaluation-backed model alternatives, routing policies and experiments |
-| TA10007 / FE10004 | Container/dev-tool notices, full dependency/license/security checks, release audit and end-to-end installation validation |
+| TA10001 | Implemented and in review: custom API catalog, immutable plans, multi-window quotas and audit |
+| TA10006 | Implemented and in review: policy/experiment evidence, runtime activation and rollback |
+| TA10003 | Finish MCP container verification and configured live Google/email/AgentDesk checks |
+| TA10004 / FE10000 | Guided setup, connection diagnostics, database persistence/backup/restore and optional-profile installation checks |
+| TA10011 | Cross-source physical-attempt correlation; export, retention, deletion and restore |
+| TA10012 | Queue/MCP instrumentation, mixed-source correlation and complete coverage diagnostics |
+| TA10010 / FE10001 | Full connection/trace coverage and connected YAML browser editing fixtures |
+| TA10002 | Mixed SDK/gateway/OTel accounting without duplicate physical charges |
+| TA10000 | Configuration polling/drift, retention work and provider refresh acceptance |
+| TA10008 | Arbitrary MCP monitoring gateway, external CLI adapters and authenticated OTel intake |
+| TA10005 | Live AgentData model import and its own LLM-call instrumentation |
+| TA10009 / FE10002 | Source polling/runtime drift, Git publish/rollback and evaluation-backed YAML suggestions |
+| TA10007 / FE10004 | Container/development notices, dependency/security checks and release installation audit |
 
-No work item is claimed complete merely because a slice exists. LiteLLM now sends calculated usage to accounting; provider invoice verification is separate. The OTel collector is diagnostic only. Quotas are evaluated for monitoring and alerts, without hard distributed enforcement.
+Quotas currently provide monitoring and alerts, not distributed hard enforcement. The collector is diagnostic until authenticated intake is connected. Completed items go to human review; parent features remain open until their full acceptance criteria are met.

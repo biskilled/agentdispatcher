@@ -85,6 +85,32 @@ test("authenticated monitoring, catalog and scoped keys work at this viewport", 
     .getByRole("combobox", { name: "Experiment", exact: true })
     .selectOption({ label: policyId });
   await expect(page.getByText("No assignments").first()).toBeVisible();
+  await page.getByRole("button", { name: "Tool access", exact: true }).click();
+  const toolIssued = page.waitForResponse(
+    (response) =>
+      response.url().endsWith("/api/tools/access") &&
+      response.request().method() === "POST",
+  );
+  await page
+    .getByRole("button", { name: "Create tool credential", exact: true })
+    .click();
+  const toolGrant = await (await toolIssued).json();
+  await expect(
+    page.getByText(
+      "Save this credential in your MCP client's secret environment. It is shown once; never paste it into a prompt.",
+    ),
+  ).toBeVisible();
+  await page
+    .getByRole("button", {
+      name: "I have saved the tool credential",
+      exact: true,
+    })
+    .click();
+  await page
+    .locator(`[data-grant-id="${toolGrant.id}"]`)
+    .getByRole("button", { name: "Revoke tool credential", exact: true })
+    .click();
+  await expect(page.getByText("Tool credential revoked.")).toBeVisible();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= window.innerWidth,

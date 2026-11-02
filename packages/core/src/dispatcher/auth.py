@@ -113,6 +113,15 @@ def usage_scope(principal: Principal) -> tuple:
     )
 
 
+def member_principal(connection, tenant_id: UUID, user_id: UUID, role: str) -> Principal:
+    """Build app visibility from a live membership read in this same auth transaction."""
+    grants = connection.execute(_SQL_GRANTS, (tenant_id, user_id)).fetchall()
+    return Principal(
+        tenant_id=tenant_id, subject_id=user_id, role=role,
+        visible_apps=[row["app"] for row in grants],
+    )
+
+
 class AuthService:
     """Resolve credentials from private auth tables without accepting claimed tenant tags."""
 
@@ -172,15 +181,9 @@ class AuthService:
             membership = connection.execute(
                 _SQL_MEMBERSHIP, (user["user_id"], tenant_id)
             ).fetchone()
-            grants = connection.execute(_SQL_GRANTS, (tenant_id, user["user_id"])).fetchall()
-        if membership is None:
-            raise HTTPException(403, "Tenant membership required")
-        return Principal(
-            tenant_id=tenant_id,
-            subject_id=user["user_id"],
-            role=membership["role"],
-            visible_apps=[row["app"] for row in grants],
-        )
+            if membership is None:
+                raise HTTPException(403, "Tenant membership required")
+            return member_principal(connection, tenant_id, user["user_id"], membership["role"])
 
     def recent_user(self, session: str) -> dict:
         """Require recent sign-in before binding an additional identity."""

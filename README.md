@@ -88,11 +88,18 @@ Export runs in a bounded background queue. Delivery retries retain event IDs; bu
 | UI | `npm run dev` / static Vite build | Desktop/mobile monitoring and administration |
 | Migrations | `python scripts/migrate.py` | Sole schema owner, separate deployment credentials |
 | LiteLLM | Compose `gateway` profile | Managed virtual keys, model restrictions, per-attempt callbacks |
+| MCP tools | Compose `mcp` profile or standalone stdio | Session-bound usage/session/experiment reads and consented policy writes |
 | OTel collector | Compose `telemetry` profile | Private diagnostic receiver; ledger export pending |
 
 `docker compose --profile gateway up -d gateway` starts LiteLLM after you supply `LLM_PROVIDER_MODEL` and `LLM_API_KEY`. It is internal-only; connect applications on an authorised service network. Its master key is operator-only. Use **LLM keys** to provision an application/environment key with explicit model aliases. The gateway verifies revocation and scope before each call and exports metadata-only usage using a separate internal callback secret. These calculated prices are not invoices. End-to-end tests use synthetic provider responses inside the real LiteLLM image; paid provider billing and SDK/gateway correlation still need verification. OpenRouter can be configured as a LiteLLM upstream.
 
 The collector's debug exporter reports basic diagnostics, not durable usage; it does not feed the ledger. Do not expose it publicly or count it as complete OTel ingestion coverage.
+
+The optional [MCP tools service](services/mcp/README.md) has its own dependency lock
+and container. Create a dedicated credential in **Tool access**; SDK keys cannot read
+monitoring data. MCP grants preserve the user's current permissions and end on logout
+or revocation. This is the monitoring-tool interface; instrumentation of arbitrary
+third-party MCP calls is a separate adapter.
 
 Tenant-bound AgentData database credentials, a Cube model and sample questions are in
 [the AgentData integration](integrations/agentdata/README.md). The database credential

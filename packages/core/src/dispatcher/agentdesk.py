@@ -7,7 +7,8 @@ import httpx
 from fastapi import HTTPException
 from pydantic import AwareDatetime, Field, ValidationError
 
-from dispatcher.contracts import Contract, Principal
+from dispatcher.auth import member_principal
+from dispatcher.contracts import Contract
 
 _SQL_BIND = """
 INSERT INTO mng_agentdesk_bindings(tenant_id,issuer,client_id,created_by)
@@ -28,7 +29,6 @@ SELECT l.user_id,m.role FROM mng_agentdesk_links l JOIN mng_memberships m
 ON (m.tenant_id,m.user_id)=(l.tenant_id,l.user_id)
 WHERE l.tenant_id=%s AND l.subject=%s
 """
-_SQL_GRANTS = "SELECT app FROM mng_view_grants WHERE tenant_id=%s AND user_id=%s"
 _SQL_AUDIT = """
 INSERT INTO mng_auth_audit(tenant_id,actor_id,action,target_id) VALUES(%s,%s,%s,%s)
 """
@@ -194,16 +194,10 @@ class AgentDesk:
             row = connection.execute(_SQL_RESOLVE, (tenant_id, identity.subject)).fetchone()
             if not row:
                 raise HTTPException(403, "Link your existing workspace account first")
-            grants = connection.execute(_SQL_GRANTS, (tenant_id, row["user_id"])).fetchall()
-        # A remote role can reduce, but never increase, local permissions.
-        role = row["role"]
-        if identity.role == "viewer":
-            role = "viewer"
-        elif identity.role != "admin" and role in {"owner", "admin"}:
-            role = "member"
-        return Principal(
-            tenant_id=tenant_id,
-            subject_id=row["user_id"],
-            role=role,
-            visible_apps=[grant["app"] for grant in grants],
-        )
+            # A remote role can reduce, but never increase, local permissions.
+            role = row["role"]
+            if identity.role == "viewer":
+                role = "viewer"
+            elif identity.role != "admin" and role in {"owner", "admin"}:
+                role = "member"
+            return member_principal(connection, tenant_id, row["user_id"], role)

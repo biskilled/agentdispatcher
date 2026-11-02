@@ -64,6 +64,9 @@ services:
       DISPATCHER_GOOGLE_CLIENT_ID: ${DISPATCHER_GOOGLE_CLIENT_ID:-}
       DISPATCHER_GOOGLE_CLIENT_SECRET: ${DISPATCHER_GOOGLE_CLIENT_SECRET:-}
       DISPATCHER_AGENTDESK_IDENTITY_URL: ${DISPATCHER_AGENTDESK_IDENTITY_URL:-}
+      DISPATCHER_TOOL_RESOURCE_URL: ${DISPATCHER_TOOL_RESOURCE_URL:-}
+      DISPATCHER_TOOL_TOKEN_SECONDS: ${DISPATCHER_TOOL_TOKEN_SECONDS:-3600}
+      DISPATCHER_MCP_INTERNAL_URL: http://mcp:${MCP_PORT:-8090}/mcp
       DISPATCHER_GATEWAY_URL: http://gateway:${LITELLM_PORT}
       DISPATCHER_GATEWAY_MASTER_KEY: ${LITELLM_MASTER_KEY:-}
       DISPATCHER_GATEWAY_CALLBACK_SECRET: ${DISPATCHER_GATEWAY_CALLBACK_SECRET:-}
@@ -98,6 +101,27 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+
+  mcp:
+    profiles: [mcp]
+    build:
+      context: .
+      dockerfile: services/mcp/Dockerfile
+      args:
+        PYTHON_IMAGE: ${PYTHON_IMAGE}
+    init: true
+    restart: unless-stopped
+    depends_on:
+      api: { condition: service_healthy }
+    environment:
+      DISPATCHER_API_URL: http://api:${API_PORT}
+      DISPATCHER_MCP_TRANSPORT: http
+      DISPATCHER_MCP_RESOURCE_URL: ${DISPATCHER_TOOL_RESOURCE_URL:-}
+      DISPATCHER_MCP_ISSUER_URL: ${DISPATCHER_PUBLIC_URL}
+      DISPATCHER_MCP_HOST: ${MCP_HOST:-0.0.0.0}
+      DISPATCHER_MCP_PORT: ${MCP_PORT:-8090}
+      DISPATCHER_MCP_ALLOW_HTTP: "true"
+    ports: ["${PUBLIC_HOST:-127.0.0.1}:${MCP_PORT:-8090}:${MCP_PORT:-8090}"]
 
   ui:
     build:

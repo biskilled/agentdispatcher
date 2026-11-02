@@ -25,6 +25,8 @@ class Settings(BaseSettings):
     invite_seconds: int = Field(default=172800, gt=0)
     reauth_seconds: int = Field(default=600, gt=0)
     delegation_seconds: int = Field(default=300, gt=0)
+    tool_token_seconds: int = Field(default=3600, gt=0, le=86400)
+    tool_resource_url: str = ""
     secret_bytes: int = Field(default=32, ge=32)
     request_limit: int = 1000
     page_size: int = 100
@@ -64,8 +66,10 @@ class Settings(BaseSettings):
             raise ValueError("public_url must be an absolute HTTP(S) URL")
         if self.secure_cookies and not self.public_url.startswith("https://"):
             raise ValueError("secure_cookies requires an HTTPS public_url")
-        if self.agentdesk_identity_url:
-            identity_url = urlsplit(self.agentdesk_identity_url)
+        for name in ("agentdesk_identity_url", "tool_resource_url"):
+            if not getattr(self, name):
+                continue
+            identity_url = urlsplit(getattr(self, name))
             if (
                 identity_url.scheme not in {"http", "https"}
                 or not identity_url.hostname
@@ -74,11 +78,9 @@ class Settings(BaseSettings):
                 or identity_url.query
                 or identity_url.fragment
             ):
-                raise ValueError(
-                    "agentdesk_identity_url must be an absolute URL without credentials"
-                )
+                raise ValueError(f"{name} must be an absolute URL without credentials")
             if self.secure_cookies and identity_url.scheme != "https":
-                raise ValueError("AgentDesk identity verification requires HTTPS in production")
+                raise ValueError(f"{name} requires HTTPS in production")
         for name in (
             "session_seconds",
             "login_seconds",

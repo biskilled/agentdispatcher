@@ -32,6 +32,8 @@ jobs:
 
   compose:
     runs-on: ubuntu-latest
+    env:
+      DISPATCHER_TOOL_RESOURCE_URL: http://127.0.0.1:8090/mcp
     steps:
       - uses: actions/checkout@v4
       - run: python3 scripts/configure.py
@@ -45,7 +47,21 @@ jobs:
         run: GATEWAY_CONFIG_PATH=./gateway-fixture.yaml docker compose --profile gateway up -d gateway
       - name: Verify real LiteLLM image and callback boundary
         run: docker compose exec -T api python scripts/gateway_smoke.py
+      - name: Start optional MCP service
+        run: docker compose --profile mcp up --build -d mcp
+      - name: Verify MCP tenant and session boundary
+        run: docker compose exec -T api python scripts/mcp_smoke.py
       - if: always()
-        run: docker compose logs --tail 100 api worker migrate gateway
+        run: docker compose logs --tail 100 api worker migrate gateway mcp
       - if: always()
         run: docker compose down
+
+  mcp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r services/mcp/requirements.lock
+      - run: python services/mcp/test_server.py
+      - run: python scripts/notices.py --python-only-root services/mcp

@@ -36,6 +36,8 @@ from dispatcher.reconciliation import Adjustment, ProviderSnapshot, Reconciliati
 from dispatcher.reporting import Reporter, UsageFilter
 from dispatcher.session_context import SessionContext, SessionContexts
 from dispatcher.settings import Settings, get_settings
+from dispatcher.tool_access import ToolAccess
+from dispatcher.tools_api import routes as tool_routes
 
 SESSION_COOKIE = "dispatcher_session"
 
@@ -511,6 +513,17 @@ def create_app(settings: Settings | None = None, mailer=None, oauth_transport=No
         return ledger.ingest(gateway.principal(body.service_id), [body.event])
 
     app.include_router(operations_routes(ledger.operations, human))
+    app.include_router(
+        tool_routes(
+            ToolAccess(auth),
+            reporter,
+            Policies(db),
+            Experiments(db),
+            human,
+            ledger_response,
+            SESSION_COOKIE,
+        )
+    )
     app.include_router(configuration_routes(Configurations(db), human, service))
     app.include_router(
         policy_routes(Policies(db), Experiments(db), human, service, ledger_response)

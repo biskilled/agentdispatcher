@@ -15,4 +15,10 @@ Optional services are distributed as upstream images and are not vendored into t
 | PostgreSQL | Durable tenant data | https://www.postgresql.org/about/licence/ |
 | Nginx | Static UI and same-origin proxy | https://nginx.org/en/LICENSE |
 
+The optional MCP service uses the official [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk)
+under its MIT license. Its isolated pinned dependency closure and original license texts are in
+[services/mcp/third_party/notices.json](services/mcp/third_party/notices.json), and are also included
+in the UI's combined notice artifact. Run `python scripts/notices.py --python-only-root services/mcp`
+using the MCP service environment before regenerating the combined artifact with the main environment.
+
 LiteLLM's enterprise components have separate terms. The starter configuration does not request enterprise features; inspecting the selected image's complete contents and notices is a release requirement still tracked under TA10007. Container/OS dependency inventory, dev-tool notices and a full distribution audit remain pending. QuotaBar and CodexBar informed earlier planning; their code is not included.

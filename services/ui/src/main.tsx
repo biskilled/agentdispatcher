@@ -30,6 +30,7 @@ import { CatalogView } from "./Accounting";
 import { AccessView, JoinWorkspace, LinkGoogle } from "./Access";
 import { AgentDeskView } from "./AgentDesk";
 import { PoliciesView } from "./Policies";
+import { ToolsView } from "./Tools";
 import { UsageControls, UsageCharts, AttemptDetail } from "./UsageControls";
 import { OperationsView } from "./Operations";
 import { ConfigurationsView } from "./Configurations";
@@ -46,6 +47,7 @@ type Tab =
   | "AgentDesk"
   | "Model policies"
   | "Experiments"
+  | "Tool access"
   | "Schedules"
   | "Budgets";
 const navigation = [
@@ -59,6 +61,7 @@ const navigation = [
   { label: "AgentDesk", icon: Workflow },
   { label: "Model policies", icon: Layers },
   { label: "Experiments", icon: Activity },
+  { label: "Tool access", icon: KeyRound },
   { label: "Schedules", icon: Workflow },
   { label: "Budgets", icon: Database },
 ] as const;
@@ -76,6 +79,7 @@ const descriptions: Record<Tab, string> = {
   "Model policies":
     "Configure compatible model routes and restore previous versions.",
   Experiments: "Compare whole-task cost, quality and latency before promotion.",
+  "Tool access": "Delegate short-lived access to monitoring and policy tools.",
   Schedules: "Monitor expected background runs and missing reports.",
   Budgets: "Follow spending, provider statements and budget alerts.",
 };
@@ -726,7 +730,10 @@ function App() {
           {navigation
             .filter(
               ({ label }) =>
-                admin || ["Overview", "Job runs", "AgentDesk"].includes(label),
+                admin ||
+                ["Overview", "Job runs", "AgentDesk", "Tool access"].includes(
+                  label,
+                ),
             )
             .map(({ label, icon: Icon }) => (
               <button
@@ -866,6 +873,14 @@ function App() {
               )}
               {tab === "AgentDesk" && (
                 <AgentDeskView
+                  tenant={tenant}
+                  role={current?.role || ""}
+                  report={setMessage}
+                />
+              )}
+              {tab === "Tool access" && (
+                <ToolsView
+                  key={tenant}
                   tenant={tenant}
                   role={current?.role || ""}
                   report={setMessage}

@@ -50,7 +50,7 @@ export function Credits() {
             </p>
             {error && <p role="alert">{error}</p>}
             {notices.map((item) => (
-              <details key={item.name}>
+              <details key={`${item.name}-${item.version}`}>
                 <summary>
                   {item.name} {item.version}
                 </summary>

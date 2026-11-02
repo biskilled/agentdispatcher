@@ -1,5 +1,6 @@
 """Generate runtime attribution from installed packages and reject prohibited licenses."""
 
+import argparse
 import json
 from importlib.metadata import distribution
 from pathlib import Path
@@ -84,8 +85,20 @@ def node_notices(root: Path) -> list[dict]:
 
 def main() -> None:
     """Produce the single notice artifact used by the source distribution and UI."""
-    root = Path(__file__).resolve().parents[1]
-    notices = sorted(python_notices(root) + node_notices(root), key=lambda item: item["name"])
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--python-only-root", type=Path)
+    args = parser.parse_args()
+    root = args.python_only_root or Path(__file__).resolve().parents[1]
+    notices = python_notices(root)
+    if not args.python_only_root:
+        notices.extend(node_notices(root))
+        optional = root / "services/mcp/third_party/notices.json"
+        if optional.exists():
+            notices.extend(json.loads(optional.read_text()))
+    notices = sorted(
+        {(item["name"], item["version"], item["ecosystem"]): item for item in notices}.values(),
+        key=lambda item: (item["name"], item["version"]),
+    )
     missing = [item["name"] for item in notices if not item["texts"]]
     if missing:
         raise RuntimeError(f"License text missing for {missing}; review distribution files")
