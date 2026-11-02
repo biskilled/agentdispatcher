@@ -11,6 +11,7 @@ from dispatcher.accounting import Accounting, audit
 from dispatcher.auth import require_admin, require_usage_reader, usage_scope, validate_scope
 from dispatcher.contracts import ApiPlan, JobEvent, Principal, UsageEvent
 from dispatcher.db import Database
+from dispatcher.experiments import validate_assignment
 from dispatcher.operations import Operations
 from dispatcher.pricing import calculate_price
 from dispatcher.reporting import Reporter, UsageFilter
@@ -102,7 +103,20 @@ class Ledger:
         omitted = {"reported_cost", "reported_currency"} if event.reported_cost is None else set()
         if event.pipeline_role is None:
             omitted.add("pipeline_role")
+        omitted.update(
+            name
+            for name in (
+                "requested_model",
+                "policy_version",
+                "experiment_id",
+                "assignment_id",
+                "variant",
+                "usage_category",
+            )
+            if getattr(event, name) is None
+        )
         digest = hashlib.sha256(canonical.model_dump_json(exclude=omitted).encode()).hexdigest()
+        validate_assignment(connection, principal, event)
         payload.update(attributes_at(connection, principal, event))
         row = connection.execute(
             _SQL_PRICE, (principal.tenant_id, event.api_id, event.occurred_at)

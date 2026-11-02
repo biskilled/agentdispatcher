@@ -12,6 +12,7 @@ from dispatcher.schema_configuration import SQL_CONFIGURATION
 from dispatcher.schema_context import SQL_CONTEXT
 from dispatcher.schema_gateway import SQL_GATEWAY
 from dispatcher.schema_operations import SQL_OPERATIONS
+from dispatcher.schema_policies import SQL_POLICIES
 
 _SQL_LOCK = "SELECT pg_advisory_xact_lock(73190521)"
 _SQL_TRACKING = """
@@ -142,6 +143,7 @@ MIGRATIONS = (
     (7, SQL_CONFIGURATION),
     (8, SQL_AGENTDESK),
     (9, SQL_CONTEXT),
+    (10, SQL_POLICIES),
 )
 
 

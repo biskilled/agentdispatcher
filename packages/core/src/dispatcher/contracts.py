@@ -36,6 +36,12 @@ class UsageEvent(Contract):
     project: str | None = Field(default=None, max_length=100)
     work_item: str | None = Field(default=None, max_length=100)
     pipeline_role: str | None = Field(default=None, max_length=100)
+    requested_model: str | None = Field(default=None, max_length=100)
+    policy_version: str | None = Field(default=None, max_length=150)
+    experiment_id: UUID | None = None
+    assignment_id: UUID | None = None
+    variant: str | None = Field(default=None, max_length=100)
+    usage_category: Literal["runtime", "evaluation"] | None = None
     session_id: str | None = Field(default=None, max_length=100)
     trace_id: str | None = Field(default=None, max_length=100)
     job_run_id: UUID | None = None
@@ -54,6 +60,11 @@ class UsageEvent(Contract):
         """Reported amounts require a currency; trust is derived from the credential source."""
         if (self.reported_cost is None) != (self.reported_currency is None):
             raise ValueError("reported_cost and reported_currency must be supplied together")
+        experiment_fields = (self.experiment_id, self.assignment_id, self.variant)
+        if any(value is not None for value in experiment_fields) and any(
+            value is None for value in experiment_fields
+        ):
+            raise ValueError("Experiment, assignment and variant must be supplied together")
         return self
 
 

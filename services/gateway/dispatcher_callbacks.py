@@ -48,28 +48,59 @@ class DispatcherCallbacks(CustomLogger):
         )
         if not service_id:
             raise HTTPException(403, "A Dispatcher-managed virtual key is required")
+        metadata = dict(data.get("metadata") or {})
+        context = metadata.get("dispatcher_context") or {}
+        if not isinstance(context, dict):
+            raise HTTPException(400, "dispatcher_context must be an object")
+        try:
+            operation = str(UUID(context.get("operation_id") or str(uuid4())))
+            task_id = str(UUID(context.get("job_run_id") or operation))
+        except (ValueError, TypeError, AttributeError):
+            raise HTTPException(
+                400, "Dispatcher operation and job identifiers must be UUIDs"
+            ) from None
         try:
             response = await self._post(
                 "/internal/gateway/authorize",
-                {"service_id": service_id, "model": data.get("model", "")},
+                {"service_id": service_id, "model": data.get("model", ""), "task_id": task_id},
             )
             if not response.is_success:
                 raise HTTPException(403, "Virtual key or requested model is not authorised")
             scope = response.json()
         except httpx.HTTPError:
             raise HTTPException(503, "Dispatcher key verification is unavailable") from None
-        metadata = dict(data.get("metadata") or {})
-        context = metadata.get("dispatcher_context") or {}
-        if not isinstance(context, dict):
-            raise HTTPException(400, "dispatcher_context must be an object")
-        operation = context.get("operation_id") or str(uuid4())
-        try:
-            operation = str(UUID(operation))
-        except (ValueError, TypeError):
-            raise HTTPException(400, "dispatcher_context.operation_id must be a UUID") from None
         attributes = {key: context[key] for key in _ATTRIBUTES if context.get(key) is not None}
         if any(not isinstance(value, str) or len(value) > 100 for value in attributes.values()):
             raise HTTPException(400, "Dispatcher context values must be short strings")
+        attributes.update(
+            {
+                key: scope[key]
+                for key in (
+                    "requested_model",
+                    "policy_version",
+                    "experiment_id",
+                    "assignment_id",
+                    "variant",
+                )
+                if scope.get(key) is not None
+            }
+        )
+        if scope.get("policy_version"):
+            if any(
+                key in data
+                for key in (
+                    "api_base",
+                    "api_key",
+                    "base_url",
+                    "model_list",
+                    "custom_llm_provider",
+                )
+            ):
+                raise HTTPException(403, "Policy requests must use configured provider routes")
+            data["model"] = scope["model"]
+            data["fallbacks"] = [{scope["model"]: scope["fallbacks"]}]
+            data["context_window_fallbacks"] = []
+            data["content_policy_fallbacks"] = []
         metadata["_dispatcher"] = {
             "scope": scope,
             "operation_id": operation,

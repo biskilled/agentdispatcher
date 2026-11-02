@@ -20,6 +20,10 @@ _FILTER_COLUMNS = {
     "project": "payload->>'project'",
     "work_item": "payload->>'work_item'",
     "pipeline_role": "payload->>'pipeline_role'",
+    "experiment_id": "payload->>'experiment_id'",
+    "variant": "payload->>'variant'",
+    "requested_model": "payload->>'requested_model'",
+    "policy_version": "payload->>'policy_version'",
     "job_run_id": "job_run_id::text",
     "config_version": "payload->>'config_version'",
     "resource_kind": "resource_kind",
@@ -99,6 +103,10 @@ class UsageFilter(Contract):
     project: str | None = None
     work_item: str | None = None
     pipeline_role: str | None = None
+    experiment_id: str | None = None
+    variant: str | None = None
+    requested_model: str | None = None
+    policy_version: str | None = None
     job_run_id: str | None = None
     config_version: str | None = None
     resource_kind: str | None = None
@@ -115,6 +123,10 @@ class UsageFilter(Contract):
         "project",
         "work_item",
         "pipeline_role",
+        "experiment_id",
+        "variant",
+        "requested_model",
+        "policy_version",
         "job_run_id",
         "config_version",
         "resource_kind",

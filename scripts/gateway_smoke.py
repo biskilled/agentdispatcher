@@ -11,6 +11,8 @@ from dispatcher.bootstrap import create_tenant
 from dispatcher.db import Database
 from dispatcher.gateway import Gateway
 from dispatcher.ledger import Ledger
+from dispatcher.policies import Policies
+from dispatcher.policy_contracts import ModelPolicy
 from dispatcher.settings import get_settings
 
 
@@ -24,7 +26,29 @@ def prepare(destination: Path, source: Path):
         "input_cost_per_token": 0.001,
         "output_cost_per_token": 0.002,
     }
+    config["model_list"].append(
+        {
+            "model_name": "alternative-model",
+            "litellm_params": {
+                **config["model_list"][0]["litellm_params"],
+                "model": "openai/gpt-4o",
+            },
+        }
+    )
     destination.write_text(yaml.safe_dump(config))
+
+
+def wait_events(ledger, owner, expected):
+    """Wait for asynchronous callbacks, then assert the exact physical-attempt count."""
+    deadline = time.monotonic() + 30
+    rows = []
+    while time.monotonic() < deadline:
+        rows = ledger.events(owner)
+        if len(rows) >= expected:
+            break
+        time.sleep(0.2)
+    assert len(rows) == expected, f"Expected {expected} gateway attempts, observed {len(rows)}"
+    return rows
 
 
 def wait_ready(client):
@@ -52,7 +76,11 @@ def verify():
                 db, f"Gateway synthetic tenant {index}", f"gateway-{index}@example.test"
             )
             key = gateway.issue(
-                owner, "Synthetic LLM key", "fixture-app", "test", ["configured-model"]
+                owner,
+                "Synthetic LLM key",
+                "fixture-app",
+                "test",
+                ["configured-model", "alternative-model"],
             )
             client.headers["Authorization"] = "Bearer " + key["secret"]
             body = {
@@ -70,16 +98,32 @@ def verify():
                 json={**body, "stream": True, "stream_options": {"include_usage": True}},
             )
             streamed.raise_for_status()
-            deadline = time.monotonic() + 30
-            rows = []
-            while time.monotonic() < deadline:
-                rows = ledger.events(owner)
-                if len(rows) >= 2:
-                    break
-                time.sleep(0.2)
-            assert len(rows) == 2, f"Expected two gateway attempts, observed {len(rows)}"
+            rows = wait_events(ledger, owner, 2)
             assert all(row["app"] == "fixture-app" for row in rows)
             assert all(row["cost_kind"] == "gateway_calculated" for row in rows), rows
+            policies = Policies(db)
+            config = ModelPolicy(
+                id="fixture-routing",
+                app="fixture-app",
+                environment="test",
+                allowed_models=["configured-model", "alternative-model"],
+                primary="configured-model",
+            )
+            policies.put(owner, config, 0)
+            policies.put(owner, config.model_copy(update={"primary": "alternative-model"}), 1)
+            routed = client.post("/v1/chat/completions", json=body)
+            routed.raise_for_status()
+            assert "gpt-4o" in routed.json()["model"] and "mini" not in routed.json()["model"]
+            rows = wait_events(ledger, owner, 3)
+            assert rows[0]["payload"]["requested_model"] == "configured-model"
+            assert rows[0]["payload"]["policy_version"] == "fixture-routing:2"
+            policies.rollback(owner, config.id, 2, 1)
+            restored = client.post("/v1/chat/completions", json=body)
+            restored.raise_for_status()
+            assert "mini" in restored.json()["model"]
+            assert (
+                wait_events(ledger, owner, 4)[0]["payload"]["policy_version"] == "fixture-routing:3"
+            )
             assert (
                 client.post("/v1/chat/completions", json={**body, "model": "forbidden"}).status_code
                 >= 400
@@ -87,7 +131,8 @@ def verify():
             auth.revoke_key(owner, key["id"])
             assert client.post("/v1/chat/completions", json=body).status_code >= 400
     print(
-        "Real LiteLLM image: tenant/model restrictions, streaming attempts and revocation verified."
+        "Real LiteLLM image: tenant/model restrictions, streaming, effective routing/rollback "
+        "and revocation verified."
     )
 
 

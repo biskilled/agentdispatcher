@@ -40,6 +40,56 @@ test("authenticated monitoring, catalog and scoped keys work at this viewport", 
       "An operator must configure the AgentDesk identity connection for this installation.",
     ),
   ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Model policies", exact: true })
+    .click();
+  const policyId = `policy-${test.info().project.name}-${Date.now()}`;
+  await page.getByLabel("Policy ID", { exact: true }).fill(policyId);
+  await page.getByLabel("Application", { exact: true }).fill(policyId);
+  await page.getByLabel("Environment", { exact: true }).fill("test");
+  await page
+    .getByLabel("Allowed model aliases (comma separated)")
+    .fill("fixture-a, fixture-b");
+  await page
+    .getByRole("button", { name: "Activate policy", exact: true })
+    .click();
+  await expect(
+    page.getByText("Policy activated. New gateway requests use this revision."),
+  ).toBeVisible();
+  await page
+    .getByRole("combobox", { name: "Policy to edit", exact: true })
+    .selectOption(policyId);
+  await expect(
+    page.getByRole("heading", { name: "Routing history", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Experiments", exact: true }).click();
+  await page.getByLabel("Experiment name", { exact: true }).fill(policyId);
+  await page.getByLabel("Application", { exact: true }).fill(policyId);
+  await page.getByLabel("Environment", { exact: true }).fill("test");
+  await page
+    .getByLabel("Baseline model alias", { exact: true })
+    .fill("fixture-a");
+  await page
+    .getByLabel("Candidate model alias", { exact: true })
+    .fill("fixture-b");
+  await page.getByLabel("Maximum average task latency (ms)").fill("1000");
+  await page
+    .getByRole("button", { name: "Create experiment", exact: true })
+    .click();
+  await expect(
+    page.getByText(
+      "Experiment created. Assign it to a compatible model policy to start routing tasks.",
+    ),
+  ).toBeVisible();
+  await page
+    .getByRole("combobox", { name: "Experiment", exact: true })
+    .selectOption({ label: policyId });
+  await expect(page.getByText("No assignments").first()).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBeTruthy();
   await page.getByRole("button", { name: "API catalog", exact: true }).click();
   await expect(
     page.getByText("Synthetic market data", { exact: true }),

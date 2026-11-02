@@ -98,6 +98,50 @@ Tenant-bound AgentData database credentials, a Cube model and sample questions a
 [the AgentData integration](integrations/agentdata/README.md). The database credential
 enforces tenant isolation even when generated SQL changes or omits a tenant filter.
 
+The [AgentDesk integration](integrations/agentdesk/README.md) provides explicit tenant
+binding, personal account linking, live identity checks, authorized session/usage reads
+and effective-time work-item/pipeline-role attribution. It requires the included
+AgentDesk identity endpoint to be deployed; matching email addresses never grant access.
+
+## Model policies and experiments
+
+Use **Model policies** to allow model aliases, select a primary route and ordered
+fallbacks, and declare required capabilities. Every selected alias must also be
+allowed by the application's LiteLLM virtual key. Policies apply to an app/environment;
+new gateway requests read the current revision. Provider URLs and secrets remain in
+the operator's LiteLLM configuration. Capability lists are operator declarations,
+not automatic proof that a provider implements a feature correctly.
+
+**Experiments** creates immutable weighted variants, a seed and quality/latency/sample
+gates. The browser starts with two equally weighted variants; the API accepts up to
+ten configurable weights. Attach the experiment to a compatible policy. Use the same
+job-run UUID (or logical operation UUID for a single-call task) in every gateway request's
+`metadata.dispatcher_context`. Assignment is deterministic for the entire task.
+
+An app can call `monitor.route(model_alias, task_id)` to obtain the assignment before
+starting a multi-step job. This explicit routing lookup is synchronous and fails when
+the policy service is unavailable; ordinary telemetry exports remain asynchronous.
+Copy `experiment_id`, `assignment_id` and `variant` into `monitor.context(...)` for
+other task/evaluation calls, setting `usage_category="evaluation"` for evaluator spend.
+The same identifiers on gateway calls come from trusted server selection, not caller
+tags. The ledger separately records requested alias, served model and policy revision.
+
+At task completion, call `monitor.task_outcome(assignment_id, status=..., quality=...,
+duration_ms=..., coverage_complete=..., fees_accounted=..., currency=..., evaluator=...)`.
+Quality is an app-provided score from 0 to 1. Declare coverage complete only after
+recording all task attempts and evaluator calls. `additional_cost` includes allocated
+fees or other task charges not already present in the ledger; do not count them twice.
+Final feedback is immutable, and export retries remain idempotent.
+
+Results include spend from failed/retried attempts and failed tasks, evaluator spend
+and declared allocations, divided by successful tasks. Missing feedback, unknown costs,
+mixed currencies, incomplete coverage, insufficient samples or failing quality/latency
+gates prevent promotion. App-attested observations are never labelled proven future
+savings. An eligible candidate can be promoted explicitly: this stores the evaluation
+snapshot and activates a new routing revision. **Routing history** restores any prior
+revision, including an earlier experiment configuration. YAML changes still follow
+their separate review/reload workflow.
+
 ## Review application YAML
 
 An installation operator grants access through `DISPATCHER_CONFIG_SOURCES`, a JSON

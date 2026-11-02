@@ -29,6 +29,7 @@ import { Credits } from "./Credits";
 import { CatalogView } from "./Accounting";
 import { AccessView, JoinWorkspace, LinkGoogle } from "./Access";
 import { AgentDeskView } from "./AgentDesk";
+import { PoliciesView } from "./Policies";
 import { UsageControls, UsageCharts, AttemptDetail } from "./UsageControls";
 import { OperationsView } from "./Operations";
 import { ConfigurationsView } from "./Configurations";
@@ -43,6 +44,8 @@ type Tab =
   | "Configuration"
   | "Access"
   | "AgentDesk"
+  | "Model policies"
+  | "Experiments"
   | "Schedules"
   | "Budgets";
 const navigation = [
@@ -54,9 +57,28 @@ const navigation = [
   { label: "Configuration", icon: Layers },
   { label: "Access", icon: Shield },
   { label: "AgentDesk", icon: Workflow },
+  { label: "Model policies", icon: Layers },
+  { label: "Experiments", icon: Activity },
   { label: "Schedules", icon: Workflow },
   { label: "Budgets", icon: Database },
 ] as const;
+
+const descriptions: Record<Tab, string> = {
+  Overview: "Follow the calls and background work across your applications.",
+  "Job runs": "See what ran, what failed, and what stopped reporting.",
+  "API catalog":
+    "Define the services, prices and quotas your applications use.",
+  "SDK keys": "Manage scoped monitoring credentials for your applications.",
+  "LLM keys": "Control which model aliases each application can call.",
+  Configuration: "Review application settings and track their activation.",
+  Access: "Manage workspace membership and application views.",
+  AgentDesk: "Connect a tenant and link your own account.",
+  "Model policies":
+    "Configure compatible model routes and restore previous versions.",
+  Experiments: "Compare whole-task cost, quality and latency before promotion.",
+  Schedules: "Monitor expected background runs and missing reports.",
+  Budgets: "Follow spending, provider statements and budget alerts.",
+};
 
 function Login({ onLogin }: { onLogin: () => void }) {
   const [email, setEmail] = useState("");
@@ -747,7 +769,7 @@ function App() {
             <ChevronRight size={14} />
             {tab}
           </span>
-          <span className="build-tag">Initial release</span>
+          <span className="build-tag">Development preview</span>
           <button
             className="mobile-logout"
             aria-label="Sign out"
@@ -760,15 +782,7 @@ function App() {
           <header className="page-heading">
             <div>
               <h1>{tab === "Overview" ? "Usage overview" : tab}</h1>
-              <p>
-                {tab === "Overview"
-                  ? "Follow the calls and background work across your applications."
-                  : tab === "Job runs"
-                    ? "See what ran, what failed, and what stopped reporting."
-                    : tab === "API catalog"
-                      ? "Define the services and pricing your applications use."
-                      : "Manage scoped credentials for your applications."}
-              </p>
+              <p>{descriptions[tab]}</p>
             </div>
             <button className="secondary" onClick={refresh} disabled={loading}>
               <RefreshCw size={16} />
@@ -854,6 +868,14 @@ function App() {
                 <AgentDeskView
                   tenant={tenant}
                   role={current?.role || ""}
+                  report={setMessage}
+                />
+              )}
+              {admin && (tab === "Model policies" || tab === "Experiments") && (
+                <PoliciesView
+                  key={`${tenant}-${tab}`}
+                  tenant={tenant}
+                  section={tab}
                   report={setMessage}
                 />
               )}

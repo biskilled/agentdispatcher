@@ -10,6 +10,7 @@ from fastapi import HTTPException
 
 from dispatcher.auth import require_admin, verifier
 from dispatcher.contracts import Principal
+from dispatcher.policies import Policies
 
 _SQL_KEY = """
 INSERT INTO mng_sdk_keys(id,tenant_id,token_hash,name,app,environment,created_by,expires_at,
@@ -64,6 +65,13 @@ class Gateway:
         require_admin(principal)
         with self.db.auth() as connection:
             return connection.execute(_SQL_KEYS, (principal.tenant_id,)).fetchall()
+
+    def route(self, principal, requested_model, task_id):
+        """Select policy routes only when every candidate is also allowed by this virtual key."""
+        route = Policies(self.db).route(principal, requested_model, task_id)
+        for model in [route["model"], *route["fallbacks"]]:
+            self.principal(principal.subject_id, model)
+        return route
 
     def issue(self, principal, name, app, environment, models):
         """Create an upstream virtual key then register its scope; unregistered keys cannot run."""

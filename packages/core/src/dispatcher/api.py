@@ -4,7 +4,7 @@ import logging
 from decimal import Decimal
 from typing import Annotated, Literal
 from urllib.parse import parse_qs, urlparse
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from authlib.integrations.base_client.errors import OAuthError
 from authlib.integrations.starlette_client import OAuth
@@ -23,11 +23,14 @@ from dispatcher.configuration import Configurations
 from dispatcher.configuration_api import routes as configuration_routes
 from dispatcher.contracts import ApiConnection, ApiPlan, Contract, EventBatch, JobEvent, UsageEvent
 from dispatcher.db import Database
+from dispatcher.experiments import Experiments
 from dispatcher.gateway import Gateway
 from dispatcher.ledger import Ledger
 from dispatcher.mail import Mailer
 from dispatcher.membership import MembershipService
 from dispatcher.operations_api import routes as operations_routes
+from dispatcher.policies import Policies
+from dispatcher.policies_api import routes as policy_routes
 from dispatcher.pricing import calculate_price
 from dispatcher.reconciliation import Adjustment, ProviderSnapshot, Reconciliation
 from dispatcher.reporting import Reporter, UsageFilter
@@ -111,6 +114,7 @@ class GatewayAuthorization(Contract):
 
     service_id: UUID
     model: str = Field(min_length=1, max_length=100)
+    task_id: UUID = Field(default_factory=uuid4)
 
 
 class GatewayObservation(Contract):
@@ -498,6 +502,7 @@ def create_app(settings: Settings | None = None, mailer=None, oauth_transport=No
             "service_id": principal.subject_id,
             "app": principal.app,
             "environment": principal.environment,
+            **gateway.route(principal, body.model, body.task_id),
         }
 
     @app.post("/internal/gateway/ingest", status_code=202, dependencies=[Depends(gateway_callback)])
@@ -507,6 +512,9 @@ def create_app(settings: Settings | None = None, mailer=None, oauth_transport=No
 
     app.include_router(operations_routes(ledger.operations, human))
     app.include_router(configuration_routes(Configurations(db), human, service))
+    app.include_router(
+        policy_routes(Policies(db), Experiments(db), human, service, ledger_response)
+    )
     app.include_router(
         agentdesk_routes(agentdesk, reporter, human, ledger_response, SESSION_COOKIE)
     )

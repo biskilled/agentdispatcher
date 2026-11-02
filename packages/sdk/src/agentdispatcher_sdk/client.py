@@ -21,6 +21,10 @@ _CONTEXT_FIELDS = frozenset(
         "project",
         "work_item",
         "pipeline_role",
+        "experiment_id",
+        "assignment_id",
+        "variant",
+        "usage_category",
         "session_id",
         "trace_id",
         "user_id",
@@ -184,6 +188,49 @@ class Monitor:
             f"api/configurations/changes/{change_id}/activation",
             {"digest": digest, "success": success},
         )
+
+    def task_outcome(
+        self,
+        assignment_id: str,
+        *,
+        status: str,
+        quality: float,
+        duration_ms: float,
+        coverage_complete: bool,
+        fees_accounted: bool,
+        currency: str,
+        evaluator: str,
+        additional_cost: str = "0",
+    ) -> bool:
+        """Report final task quality and explicit cost coverage, including any unobserved fees."""
+        return self._enqueue(
+            "api/experiments/outcomes",
+            {
+                "assignment_id": str(UUID(assignment_id)),
+                "app": self.app,
+                "environment": self.environment,
+                "status": status,
+                "quality": quality,
+                "duration_ms": str(duration_ms),
+                "coverage_complete": coverage_complete,
+                "fees_accounted": fees_accounted,
+                "currency": currency,
+                "evaluator": evaluator,
+                "additional_cost": additional_cost,
+            },
+        )
+
+    def route(self, model: str, task_id: str) -> dict:
+        """Explicit synchronous policy lookup; unlike telemetry, an unavailable decision raises."""
+        response = self._client.post(
+            "api/policies/route",
+            json={
+                "model": model,
+                "task_id": str(UUID(task_id)),
+            },
+        )
+        response.raise_for_status()
+        return response.json()
 
     @contextmanager
     def operation(self, *, provider: str, operation: str, resource_kind: str = "api", **metadata):
