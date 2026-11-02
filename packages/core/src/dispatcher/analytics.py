@@ -1,6 +1,6 @@
 """Deployment-only provisioning of individually revocable analytics credentials."""
 
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import psycopg
 from psycopg import sql
@@ -19,13 +19,13 @@ ON CONFLICT(role_oid) DO UPDATE SET enabled=true
 _SQL_REVOKE = "UPDATE mng_analytics_roles SET enabled=false WHERE tenant_id=%s"
 
 
-def provision(dsn: str, tenant_id: UUID, password: str) -> str:
+def provision(dsn: str, tenant_id: UUID, password: str, *, new_login: bool = False) -> str:
     """Create/rotate one tenant login using the migration credential, never runtime privileges."""
     if len(password) < 32:
         raise ValueError("Analytics passwords must contain at least 32 characters")
-    role = "dispatcher_ro_" + tenant_id.hex
+    role = "dispatcher_ro_" + (uuid4().hex if new_login else tenant_id.hex)
     with psycopg.connect(dsn) as connection:
-        connection.execute(_SQL_LOCK, (role,))
+        connection.execute(_SQL_LOCK, ("analytics:" + str(tenant_id),))
         if not connection.execute(_SQL_TENANT, (tenant_id,)).fetchone():
             raise ValueError("Tenant does not exist")
         existing = connection.execute(_SQL_ROLE, (role,)).fetchone()
@@ -35,6 +35,9 @@ def provision(dsn: str, tenant_id: UUID, password: str) -> str:
                 raise ValueError("Existing database role is not this tenant's managed credential")
         else:
             connection.execute(_SQL_CREATE.format(sql.Identifier(role)))
+        if new_login:
+            # Recovery must not adopt a stale cluster-local OID or alter another database's login.
+            connection.execute(_SQL_REVOKE, (tenant_id,))
         # PostgreSQL role DDL cannot bind PASSWORD as a query parameter. psycopg Literal
         # quotes this value as data; it is never interpolated into an SQL string.
         connection.execute(_SQL_PASSWORD.format(sql.Identifier(role), sql.Literal(password)))

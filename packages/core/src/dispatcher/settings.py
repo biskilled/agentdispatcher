@@ -61,6 +61,7 @@ class Settings(BaseSettings):
     identity_max_bytes: int = Field(default=16384, ge=1024, le=65536)
     telemetry_max_bytes: int = Field(default=1048576, ge=1024)
     source_stale_seconds: int = Field(default=300, gt=0)
+    export_rows: int = Field(default=10000, ge=1, le=100000)
 
     @model_validator(mode="after")
     def validate_security(self):

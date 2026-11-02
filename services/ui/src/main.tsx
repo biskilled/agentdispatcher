@@ -31,7 +31,7 @@ import { AccessView, JoinWorkspace, LinkGoogle } from "./Access";
 import { AgentDeskView } from "./AgentDesk";
 import { PoliciesView } from "./Policies";
 import { ToolsView } from "./Tools";
-import { UsageControls, UsageCharts, AttemptDetail } from "./UsageControls";
+import { UsageControls, UsageCharts, AttemptDetail, UsageExport } from "./UsageControls";
 import { OperationsView } from "./Operations";
 import { ConfigurationsView } from "./Configurations";
 import { CoverageView } from "./Coverage";
@@ -826,6 +826,7 @@ function App() {
                       setOffset(0);
                     }}
                   />
+                  <UsageExport tenant={tenant} query={filters} report={setMessage} />
                   <OverviewView
                     overview={overview}
                     events={events}

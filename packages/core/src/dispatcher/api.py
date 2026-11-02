@@ -524,6 +524,14 @@ def create_app(settings: Settings | None = None, mailer=None, oauth_transport=No
         """Show correlation and missing upstream evidence within current usage permissions."""
         return Observations(db).coverage(principal)
 
+    @app.get("/api/export/events")
+    def export_events(filters: Annotated[UsageFilter, Query()], principal=Depends(human)):
+        """Download the same authorized selection as the dashboard with exact decimal strings."""
+        response = ledger_response(reporter.export(principal, filters))
+        response.headers["Content-Disposition"] = 'attachment; filename="dispatcher-usage.json"'
+        response.headers["Cache-Control"] = "no-store"
+        return response
+
     app.include_router(operations_routes(ledger.operations, human))
     app.include_router(telemetry_routes(db, service))
     app.include_router(

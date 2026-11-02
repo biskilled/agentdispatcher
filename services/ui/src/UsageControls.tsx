@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { api, money, type Overview, type Usage } from "./api";
+import { api, apiResponse, money, type Overview, type Usage } from "./api";
 
 const dimensions = [
   "app",
@@ -86,6 +86,32 @@ export function UsageControls({ apply }: { apply: (query: string) => void }) {
       </form>
     </details>
   );
+}
+
+/** Download the selected visible attempts; the backend rejects oversized exports explicitly. */
+export function UsageExport({ tenant, query, report }: {
+  tenant: string; query: string; report: (message: string) => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  async function download() {
+    setBusy(true);
+    try {
+      const response = await apiResponse(`/export/events?${query}`, tenant);
+      const url = URL.createObjectURL(await response.blob());
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "dispatcher-usage.json";
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      report((error as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  return <button className="secondary" disabled={busy} onClick={download}>
+    {busy ? "Preparing export…" : "Export selected usage"}
+  </button>;
 }
 
 /** Keep currencies/provenance separate while showing trend and selected dimension totals. */

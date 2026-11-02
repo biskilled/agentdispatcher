@@ -1,5 +1,10 @@
 # AgentDispatcher
 
+Operators can use the optional [PostgreSQL backup/recovery profile](documents/output/recovery.md)
+to restore into a new database with fresh credentials. The monitoring dashboard also
+exports the selected authorized usage as JSON, preserving exact decimal costs and
+rejecting oversized selections instead of silently truncating them.
+
 React monitoring for application API calls, LLM requests and scheduled work, backed by a tenant-isolated PostgreSQL ledger. One repository contains independently runnable API, worker, UI and Python SDK packages.
 
 **Development preview:** the first monitoring flow works. This is not yet the complete approved US10000 use case or a production release. See [implementation status](documents/output/implementation-progress.md) for implemented, verified and outstanding work.

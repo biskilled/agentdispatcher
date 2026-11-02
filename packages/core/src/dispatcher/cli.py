@@ -21,6 +21,7 @@ def main() -> None:
     analytics = commands.add_parser("analytics-access")
     analytics.add_argument("--tenant", type=UUID, required=True)
     analytics.add_argument("--revoke", action="store_true")
+    analytics.add_argument("--new-login", action="store_true")
     args = parser.parse_args()
     if args.command == "analytics-access":
         from dispatcher.analytics import provision, revoke
@@ -30,7 +31,12 @@ def main() -> None:
             revoke(dsn, args.tenant)
             print(json.dumps({"revoked": str(args.tenant)}))
         else:
-            role = provision(dsn, args.tenant, os.environ["DISPATCHER_ANALYTICS_PASSWORD"])
+            role = provision(
+                dsn,
+                args.tenant,
+                os.environ["DISPATCHER_ANALYTICS_PASSWORD"],
+                new_login=args.new_login,
+            )
             print(json.dumps({"role": role, "tenant_id": str(args.tenant)}))
         return
     db = Database(get_settings())

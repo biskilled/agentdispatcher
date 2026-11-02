@@ -20,6 +20,11 @@ test("authenticated monitoring, catalog and scoped keys work at this viewport", 
   ).toBeVisible();
   await expect(page.getByText("Observed attempts")).toBeVisible();
   await expect(page.getByText("Synthetic market API").first()).toBeVisible();
+  const downloaded = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Export selected usage" }).click();
+  const file = await downloaded;
+  expect(file.suggestedFilename()).toBe("dispatcher-usage.json");
+  expect(await file.failure()).toBeNull();
   await page.screenshot({
     path: `test-results/overview-${test.info().project.name}.png`,
     fullPage: true,

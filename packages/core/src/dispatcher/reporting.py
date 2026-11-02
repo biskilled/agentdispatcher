@@ -70,6 +70,7 @@ cost,currency,cost_kind,job_run_id,payload,verified_user_id,plan_id FROM mem_usa
 )
 _SQL_EVENT_PAGE = _SQL_EVENTS + " ORDER BY occurred_at DESC,event_id LIMIT %s OFFSET %s"
 _SQL_EVENT_ONE = _SQL_EVENTS + " AND event_id=%s"
+_SQL_EVENT_EXPORT = _SQL_EVENTS + " ORDER BY occurred_at,event_id LIMIT %s"
 _SQL_TREND = (
     """
 SELECT date_trunc('day',occurred_at AT TIME ZONE 'UTC') AS day,currency,cost_kind,
@@ -197,6 +198,23 @@ class Reporter:
         if not row:
             raise HTTPException(404, "Event not found")
         return self._attribution(row)
+
+    def export(self, principal, filters):
+        """Export one consistent bounded result; refuse oversized selections without truncation."""
+        limit = self.db.settings.export_rows
+        args = (*self._args(principal, filters), limit + 1)
+        with self.db.tenant(principal.tenant_id) as connection:
+            rows = connection.execute(_SQL_EVENT_EXPORT, args).fetchall()
+        if len(rows) > limit:
+            raise HTTPException(
+                413, "Export exceeds the configured row limit; narrow the time range or filters"
+            )
+        return {
+            "format": 1,
+            "tenant_id": principal.tenant_id,
+            "filters": filters.model_dump(exclude={"offset"}, exclude_none=True),
+            "events": [self._attribution(row) for row in rows],
+        }
 
     def _attribution(self, row):
         row["user_attribution"] = (

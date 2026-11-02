@@ -16,6 +16,7 @@ x-runtime: &runtime
   DISPATCHER_TELEMETRY_MAX_BYTES: ${DISPATCHER_TELEMETRY_MAX_BYTES:-1048576}
   DISPATCHER_SOURCE_STALE_SECONDS: ${DISPATCHER_SOURCE_STALE_SECONDS:-300}
   DISPATCHER_REQUEST_LIMIT: ${DISPATCHER_REQUEST_LIMIT:-1000}
+  DISPATCHER_EXPORT_ROWS: ${DISPATCHER_EXPORT_ROWS:-10000}
 
 x-app: &app
   build:
@@ -33,6 +34,21 @@ x-app: &app
       condition: service_completed_successfully
 
 services:
+  recovery:
+    profiles: [recovery]
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+      args:
+        PYTHON_IMAGE: ${PYTHON_IMAGE}
+        INSTALL_POSTGRES_CLIENT: "true"
+    image: agentdispatcher-recovery:local
+    user: "${RECOVERY_UID:-0}:${RECOVERY_GID:-0}"
+    environment:
+      DISPATCHER_RECOVERY_DATABASE_URL: ${DISPATCHER_RECOVERY_DATABASE_URL:-${DISPATCHER_MIGRATION_DATABASE_URL}}
+    volumes: ["${BACKUP_DIRECTORY:-./backups}:/backups"]
+    entrypoint: [python, -m, dispatcher.recovery]
+
   db:
     image: ${POSTGRES_IMAGE}
     restart: unless-stopped

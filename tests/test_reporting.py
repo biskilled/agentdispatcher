@@ -2,6 +2,9 @@
 
 from datetime import UTC, datetime, timedelta
 
+from dispatcher.contracts import UsageEvent
+from dispatcher.ledger import Ledger
+from test_access import invite_user
 from test_integration import event, ingest
 
 
@@ -43,3 +46,30 @@ def test_filter_breakdowns_drilldown_and_unknown_dimensions(system):
         ).status_code
         == 422
     )
+
+
+def test_export_preserves_scope_precision_and_refuses_truncation(system, monkeypatch):
+    client = system["client"]
+    value = event(reported_cost="0.123456789012345678", reported_currency="USD", source="export")
+    assert ingest(system, [value, event(source="another")]).status_code == 202
+    foreign = system["auth"].issue_key(system["other"], "foreign", "trader", "test")
+    Ledger(system["db"]).ingest(
+        system["auth"].service(foreign["secret"]), [UsageEvent.model_validate(event())]
+    )
+    response = client.get("/api/export/events", params={"source": "export"})
+    assert response.status_code == 200
+    assert response.headers["Cache-Control"] == "no-store"
+    assert response.json()["events"][0]["cost"] == "0.123456789012345678"
+    assert len(client.get("/api/export/events").json()["events"]) == 2
+    assert (
+        client.get(
+            "/api/export/events", headers={"X-Tenant-ID": str(system["other"].tenant_id)}
+        ).status_code
+        == 403
+    )
+    monkeypatch.setattr(system["db"].settings, "export_rows", 1)
+    assert client.get("/api/export/events").status_code == 413
+    monkeypatch.setattr(system["db"].settings, "export_rows", 10)
+    session, _, _ = invite_user(system, "member")
+    client.cookies.set("dispatcher_session", session)
+    assert client.get("/api/export/events").json()["events"] == []

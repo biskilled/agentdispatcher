@@ -66,11 +66,11 @@ export type Plan = {
 };
 
 /** Call the same-origin backend; tenant selection is always verified server-side. */
-export async function api<T>(
+export async function apiResponse(
   path: string,
   tenant?: string,
   options: RequestInit = {},
-): Promise<T> {
+): Promise<Response> {
   const response = await fetch(`/api${path}`, {
     ...options,
     credentials: "same-origin",
@@ -88,6 +88,12 @@ export async function api<T>(
         : `Request failed (${response.status})`,
     );
   }
+  return response;
+}
+
+/** Decode JSON through the same authenticated boundary used by downloads. */
+export async function api<T>(path: string, tenant?: string, options: RequestInit = {}): Promise<T> {
+  const response = await apiResponse(path, tenant, options);
   return response.status === 204 ? (undefined as T) : response.json();
 }
 
