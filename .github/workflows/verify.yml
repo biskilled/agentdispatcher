@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:17.6-alpine
+        image: postgres:17.11-alpine
         env:
           POSTGRES_HOST_AUTH_METHOD: trust
         ports: [5432:5432]
@@ -25,7 +25,8 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "24" }
       - run: pip install -r requirements.lock
-      - run: pip install -e '.[dev]'
+      - run: pip install -r requirements-dev.lock
+      - run: pip install --no-deps -e .
       - run: npm ci
       - run: ruff check packages scripts tests
       - name: Ensure PostgreSQL recovery clients
@@ -41,6 +42,7 @@ jobs:
       - run: python scripts/verify_codex_telemetry.py
       - run: npm run build
       - run: python scripts/notices.py
+      - run: python scripts/notices.py --development
 
   compose:
     runs-on: ubuntu-latest

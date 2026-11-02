@@ -1,0 +1,1248 @@
+[
+  {
+    "name": "iniconfig",
+    "version": "2.3.1",
+    "license": "MIT",
+    "source": "https://github.com/pytest-dev/iniconfig",
+    "ecosystem": "Python",
+    "texts": [
+      {
+        "file": "iniconfig-2.3.1.dist-info/licenses/LICENSE",
+        "text": "The MIT License (MIT)\n\nCopyright (c) 2010 - 2023 Holger Krekel and others\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of\nthis software and associated documentation files (the \"Software\"), to deal in\nthe Software without restriction, including without limitation the rights to\nuse, copy, modify, merge, publish, distribute, sublicense, and/or sell copies\nof the Software, and to permit persons to whom the Software is furnished to do\nso, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+      }
+    ]
+  },
+  {
+    "name": "packaging",
+    "version": "26.3",
+    "license": "Apache-2.0 OR BSD-2-Clause",
+    "source": "https://packaging.pypa.io/",
+    "ecosystem": "Python",
+    "texts": [
+      {
+        "file": "packaging-26.3.dist-info/licenses/LICENSE",
+        "text": "This software is made available under the terms of *either* of the licenses\nfound in LICENSE.APACHE or LICENSE.BSD. Contributions to this software is made\nunder the terms of *both* these licenses.\n"
+      },
+      {
+        "file": "packaging-26.3.dist-info/licenses/LICENSE.APACHE",
+        "text": "\n                                 Apache License\n                           Version 2.0, January 2004\n                        http://www.apache.org/licenses/\n\n   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION\n\n   1. Definitions.\n\n      \"License\" shall mean the terms and conditions for use, reproduction,\n      and distribution as defined by Sections 1 through 9 of this document.\n\n      \"Licensor\" shall mean the copyright owner or entity authorized by\n      the copyright owner that is granting the License.\n\n      \"Legal Entity\" shall mean the union of the acting entity and all\n      other entities that control, are controlled by, or are under common\n      control with that entity. For the purposes of this definition,\n      \"control\" means (i) the power, direct or indirect, to cause the\n      direction or management of such entity, whether by contract or\n      otherwise, or (ii) ownership of fifty percent (50%) or more of the\n      outstanding shares, or (iii) beneficial ownership of such entity.\n\n      \"You\" (or \"Your\") shall mean an individual or Legal Entity\n      exercising permissions granted by this License.\n\n      \"Source\" form shall mean the preferred form for making modifications,\n      including but not limited to software source code, documentation\n      source, and configuration files.\n\n      \"Object\" form shall mean any form resulting from mechanical\n      transformation or translation of a Source form, including but\n      not limited to compiled object code, generated documentation,\n      and conversions to other media types.\n\n      \"Work\" shall mean the work of authorship, whether in Source or\n      Object form, made available under the License, as indicated by a\n      copyright notice that is included in or attached to the work\n      (an example is provided in the Appendix below).\n\n      \"Derivative Works\" shall mean any work, whether in Source or Object\n      form, that is based on (or derived from) the Work and for which the\n      editorial revisions, annotations, elaborations, or other modifications\n      represent, as a whole, an original work of authorship. For the purposes\n      of this License, Derivative Works shall not include works that remain\n      separable from, or merely link (or bind by name) to the interfaces of,\n      the Work and Derivative Works thereof.\n\n      \"Contribution\" shall mean any work of authorship, including\n      the original version of the Work and any modifications or additions\n      to that Work or Derivative Works thereof, that is intentionally\n      submitted to Licensor for inclusion in the Work by the copyright owner\n      or by an individual or Legal Entity authorized to submit on behalf of\n      the copyright owner. For the purposes of this definition, \"submitted\"\n      means any form of electronic, verbal, or written communication sent\n      to the Licensor or its representatives, including but not limited to\n      communication on electronic mailing lists, source code control systems,\n      and issue tracking systems that are managed by, or on behalf of, the\n      Licensor for the purpose of discussing and improving the Work, but\n      excluding communication that is conspicuously marked or otherwise\n      designated in writing by the copyright owner as \"Not a Contribution.\"\n\n      \"Contributor\" shall mean Licensor and any individual or Legal Entity\n      on behalf of whom a Contribution has been received by Licensor and\n      subsequently incorporated within the Work.\n\n   2. Grant of Copyright License. Subject to the terms and conditions of\n      this License, each Contributor hereby grants to You a perpetual,\n      worldwide, non-exclusive, no-charge, royalty-free, irrevocable\n      copyright license to reproduce, prepare Derivative Works of,\n      publicly display, publicly perform, sublicense, and distribute the\n      Work and such Derivative Works in Source or Object form.\n\n   3. Grant of Patent License. Subject to the terms and conditions of\n      this License, each Contributor hereby grants to You a perpetual,\n      worldwide, non-exclusive, no-charge, royalty-free, irrevocable\n      (except as stated in this section) patent license to make, have made,\n      use, offer to sell, sell, import, and otherwise transfer the Work,\n      where such license applies only to those patent claims licensable\n      by such Contributor that are necessarily infringed by their\n      Contribution(s) alone or by combination of their Contribution(s)\n      with the Work to which such Contribution(s) was submitted. If You\n      institute patent litigation against any entity (including a\n      cross-claim or counterclaim in a lawsuit) alleging that the Work\n      or a Contribution incorporated within the Work constitutes direct\n      or contributory patent infringement, then any patent licenses\n      granted to You under this License for that Work shall terminate\n      as of the date such litigation is filed.\n\n   4. Redistribution. You may reproduce and distribute copies of the\n      Work or Derivative Works thereof in any medium, with or without\n      modifications, and in Source or Object form, provided that You\n      meet the following conditions:\n\n      (a) You must give any other recipients of the Work or\n          Derivative Works a copy of this License; and\n\n      (b) You must cause any modified files to carry prominent notices\n          stating that You changed the files; and\n\n      (c) You must retain, in the Source form of any Derivative Works\n          that You distribute, all copyright, patent, trademark, and\n          attribution notices from the Source form of the Work,\n          excluding those notices that do not pertain to any part of\n          the Derivative Works; and\n\n      (d) If the Work includes a \"NOTICE\" text file as part of its\n          distribution, then any Derivative Works that You distribute must\n          include a readable copy of the attribution notices contained\n          within such NOTICE file, excluding those notices that do not\n          pertain to any part of the Derivative Works, in at least one\n          of the following places: within a NOTICE text file distributed\n          as part of the Derivative Works; within the Source form or\n          documentation, if provided along with the Derivative Works; or,\n          within a display generated by the Derivative Works, if and\n          wherever such third-party notices normally appear. The contents\n          of the NOTICE file are for informational purposes only and\n          do not modify the License. You may add Your own attribution\n          notices within Derivative Works that You distribute, alongside\n          or as an addendum to the NOTICE text from the Work, provided\n          that such additional attribution notices cannot be construed\n          as modifying the License.\n\n      You may add Your own copyright statement to Your modifications and\n      may provide additional or different license terms and conditions\n      for use, reproduction, or distribution of Your modifications, or\n      for any such Derivative Works as a whole, provided Your use,\n      reproduction, and distribution of the Work otherwise complies with\n      the conditions stated in this License.\n\n   5. Submission of Contributions. Unless You explicitly state otherwise,\n      any Contribution intentionally submitted for inclusion in the Work\n      by You to the Licensor shall be under the terms and conditions of\n      this License, without any additional terms or conditions.\n      Notwithstanding the above, nothing herein shall supersede or modify\n      the terms of any separate license agreement you may have executed\n      with Licensor regarding such Contributions.\n\n   6. Trademarks. This License does not grant permission to use the trade\n      names, trademarks, service marks, or product names of the Licensor,\n      except as required for reasonable and customary use in describing the\n      origin of the Work and reproducing the content of the NOTICE file.\n\n   7. Disclaimer of Warranty. Unless required by applicable law or\n      agreed to in writing, Licensor provides the Work (and each\n      Contributor provides its Contributions) on an \"AS IS\" BASIS,\n      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or\n      implied, including, without limitation, any warranties or conditions\n      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A\n      PARTICULAR PURPOSE. You are solely responsible for determining the\n      appropriateness of using or redistributing the Work and assume any\n      risks associated with Your exercise of permissions under this License.\n\n   8. Limitation of Liability. In no event and under no legal theory,\n      whether in tort (including negligence), contract, or otherwise,\n      unless required by applicable law (such as deliberate and grossly\n      negligent acts) or agreed to in writing, shall any Contributor be\n      liable to You for damages, including any direct, indirect, special,\n      incidental, or consequential damages of any character arising as a\n      result of this License or out of the use or inability to use the\n      Work (including but not limited to damages for loss of goodwill,\n      work stoppage, computer failure or malfunction, or any and all\n      other commercial damages or losses), even if such Contributor\n      has been advised of the possibility of such damages.\n\n   9. Accepting Warranty or Additional Liability. While redistributing\n      the Work or Derivative Works thereof, You may choose to offer,\n      and charge a fee for, acceptance of support, warranty, indemnity,\n      or other liability obligations and/or rights consistent with this\n      License. However, in accepting such obligations, You may act only\n      on Your own behalf and on Your sole responsibility, not on behalf\n      of any other Contributor, and only if You agree to indemnify,\n      defend, and hold each Contributor harmless for any liability\n      incurred by, or claims asserted against, such Contributor by reason\n      of your accepting any such warranty or additional liability.\n\n   END OF TERMS AND CONDITIONS\n"
+      },
+      {
+        "file": "packaging-26.3.dist-info/licenses/LICENSE.BSD",
+        "text": "Copyright (c) Donald Stufft and individual contributors.\nAll rights reserved.\n\nRedistribution and use in source and binary forms, with or without\nmodification, are permitted provided that the following conditions are met:\n\n    1. Redistributions of source code must retain the above copyright notice,\n       this list of conditions and the following disclaimer.\n\n    2. Redistributions in binary form must reproduce the above copyright\n       notice, this list of conditions and the following disclaimer in the\n       documentation and/or other materials provided with the distribution.\n\nTHIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\" AND\nANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED\nWARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE\nDISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE\nFOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL\nDAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR\nSERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER\nCAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,\nOR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\nOF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n"
+      }
+    ]
+  },
+  {
+    "name": "pip-licenses",
+    "version": "5.5.5",
+    "license": "MIT",
+    "source": "https://github.com/raimon49/pip-licenses",
+    "ecosystem": "Python",
+    "texts": [
+      {
+        "file": "../../../bin/pip-licenses",
+        "text": "#!/Users/user/Documents/venv/agentdispatcher/bin/python3.12\n# -*- coding: utf-8 -*-\nimport re\nimport sys\nfrom piplicenses import main\nif __name__ == '__main__':\n    sys.argv[0] = re.sub(r'(-script\\.pyw|\\.exe)?$', '', sys.argv[0])\n    sys.exit(main())\n"
+      },
+      {
+        "file": "pip_licenses-5.5.5.dist-info/INSTALLER",
+        "text": "pip\n"
+      },
+      {
+        "file": "pip_licenses-5.5.5.dist-info/METADATA",
+        "text": "Metadata-Version: 2.4\nName: pip-licenses\nVersion: 5.5.5\nSummary: Dump the software license list of Python packages installed with pip.\nAuthor: Mr. Walls\nAuthor-email: raimon <raimon49@hotmail.com>\nMaintainer-email: \"Mr. Walls\" <reactive-firewall@users.noreply.github.com>\nLicense-Expression: MIT\nProject-URL: homepage, https://github.com/raimon49/pip-licenses\nProject-URL: releasenotes, https://github.com/raimon49/pip-licenses/releases\nProject-URL: issues, https://github.com/raimon49/pip-licenses/issues\nKeywords: pip,pypi,package,license,check,audit\nClassifier: Development Status :: 5 - Production/Stable\nClassifier: Intended Audience :: Developers\nClassifier: Programming Language :: Python :: 3\nClassifier: Programming Language :: Python :: 3 :: Only\nClassifier: Programming Language :: Python :: 3.9\nClassifier: Programming Language :: Python :: 3.10\nClassifier: Programming Language :: Python :: 3.11\nClassifier: Programming Language :: Python :: 3.12\nClassifier: Programming Language :: Python :: 3.13\nClassifier: Programming Language :: Python :: 3.14\nClassifier: Topic :: System :: Systems Administration\nClassifier: Topic :: System :: System Shells\nClassifier: Typing :: Typed\nRequires-Python: >=3.9\nDescription-Content-Type: text/markdown\nLicense-File: LICENSE\nRequires-Dist: prettytable>=3.12.0\nRequires-Dist: tomli>=2; python_version < \"3.11\"\nProvides-Extra: dev\nRequires-Dist: docutils>=0.19; extra == \"dev\"\nRequires-Dist: wheel; extra == \"dev\"\nRequires-Dist: mypy; extra == \"dev\"\nRequires-Dist: pip-tools; extra == \"dev\"\nRequires-Dist: pypandoc; extra == \"dev\"\nRequires-Dist: pytest-cov; extra == \"dev\"\nRequires-Dist: pytest-runner; extra == \"dev\"\nRequires-Dist: ruff; extra == \"dev\"\nRequires-Dist: tomli-w; extra == \"dev\"\nRequires-Dist: virtualenv>=21.1.0; extra == \"dev\"\nDynamic: license-file\n\n# pip-licenses\n\n[![Build Status](https://github.com/raimon49/pip-licenses/workflows/Python%20package/badge.svg)](https://github.com/raimon49/pip-licenses/actions?query=workflow%3A%22Python+package%22) [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pip-licenses.svg)](https://pypi.org/project/pip-licenses/) [![PyPI version](https://badge.fury.io/py/pip-licenses.svg)](https://badge.fury.io/py/pip-licenses) [![GitHub Release](https://img.shields.io/github/release/raimon49/pip-licenses.svg)](https://github.com/raimon49/pip-licenses/releases) [![Codecov](https://codecov.io/gh/raimon49/pip-licenses/branch/master/graph/badge.svg)](https://codecov.io/gh/raimon49/pip-licenses) [![GitHub contributors](https://img.shields.io/github/contributors/raimon49/pip-licenses)](https://github.com/raimon49/pip-licenses/graphs/contributors) [![BSD License](http://img.shields.io/badge/license-MIT-green.svg)](https://github.com/raimon49/pip-licenses/blob/master/LICENSE) [![PyPI - Downloads](https://img.shields.io/pypi/dm/pip-licenses)](https://pypistats.org/packages/pip-licenses)\n\nDump the software license list of Python packages installed with pip.\n\n## Table of Contents\n\n* [Description](#description)\n* [Installation](#installation)\n* [Usage](#usage)\n* [Command\\-Line Options](#command-line-options)\n    * [Common options](#common-options)\n        * [Option: python](#option-python)\n        * [Option: from](#option-from)\n        * [Option: order](#option-order)\n        * [Option: format](#option-format)\n            * [Markdown](#markdown)\n            * [reST](#rest)\n            * [Confluence](#confluence)\n            * [HTML](#html)\n            * [JSON](#json)\n            * [JSON LicenseFinder](#json-licensefinder)\n            * [CSV](#csv)\n            * [Plain Vertical](#plain-vertical)\n        * [Option: summary](#option-summary)\n        * [Option: output\\-file](#option-output-file)\n        * [Option: ignore\\-packages](#option-ignore-packages)\n        * [Option: packages](#option-packages)\n    * [Format options](#format-options)\n        * [Option: with\\-system](#option-with-system)\n        * [Option: with\\-authors](#option-with-authors)\n        * [Option: with\\-maintainers](#option-with-maintainers)\n        * [Option: with\\-urls](#option-with-urls)\n        * [Option: with\\-description](#option-with-description)\n        * [Option: no\\-version](#option-no-version)\n        * [Option: with\\-license\\-file](#option-with-license-file)\n        * [Option: filter\\-strings](#option-filter-strings)\n        * [Option: filter\\-code\\-page](#option-filter-code-page)\n    * [Verify options](#verify-options)\n        * [Option: fail\\-on](#option-fail-on)\n        * [Option: allow\\-only](#option-allow-only)\n        * [Option: partial\\-match](#option-partial-match)\n    * [pyproject.toml support](#pyprojecttoml-support)\n    * [More Information](#more-information)\n* [Dockerfile](#dockerfile)\n* [About UnicodeEncodeError](#about-unicodeencodeerror)\n* [License](#license)\n    * [Dependencies](#dependencies)\n* [Uninstallation](#uninstallation)\n* [Contributing](#contributing)\n\n## Description\n\n`pip-licenses` is a CLI tool for checking the software license of installed Python packages with pip.\n\nImplemented with the idea inspired by `composer licenses` command in Composer (a.k.a PHP package management tool).\n\nhttps://getcomposer.org/doc/03-cli.md#licenses\n\n## Installation\n\nInstall it via PyPI using `pip` command.\n\n```bash\n# Install or Upgrade to newest available version\n$ pip install -U pip-licenses\n\n# If upgrading from pip-licenses 3.x, remove PTable\n$ pip uninstall -y PTable\n```\n\n**Note for Python 3.7 users:** pip-licenses 4.x discontinued support earlier than the Python 3.7 EOL schedule. If you want to use it with Python 3.7, install pip-licenses 3.x.\n\n```bash\n# Using old version for the Python 3.7 environment\n$ pip install 'pip-licenses<4.0'\n```\n\n**Note:** If you are still using Python 2.7, install version less than 2.0. No new features will be provided for version 1.x.\n\n```bash\n$ pip install 'pip-licenses<2.0'\n```\n\n## Usage\n\nExecute the command with your venv (or virtualenv) environment.\n\n```bash\n# Install packages in your venv environment\n(venv) $ pip install Django pip-licenses\n\n# Check the licenses with your venv environment\n(venv) $ pip-licenses\n Name    Version  License\n Django  2.0.2    BSD\n pytz    2017.3   MIT\n```\n\n## Command-Line Options\n\n### Common options\n\n#### Option: python\n\nBy default, this tools finds the packages from the environment pip-licenses is launched from, by searching in current python's `sys.path` folders. In the case you want to search for packages in an other environment (e.g. if you want to run pip-licenses from its own isolated environment), you can specify a path to a python executable. The packages will be searched for in the given python's `sys.path`, free of pip-licenses dependencies.\n\n```bash\n(venv) $ pip-licenses --with-system | grep pip\n pip                       22.3.1       MIT License\n pip-licenses              4.1.0        MIT License\n```\n\n```bash\n(venv) $ pip-licenses --python=</path/to/other/env>/bin/python --with-system | grep pip\n pip                       23.0.1       MIT License \n```\n\n#### Option: from\n\nBy default, this tool finds the license from [Trove Classifiers](https://pypi.org/classifiers/) or package Metadata. Some Python packages declare their license only in Trove Classifiers.\n\n(See also): [Set license to MIT in setup.py by alisianoi \u30fb Pull Request #1058 \u30fb pypa/setuptools](https://github.com/pypa/setuptools/pull/1058), [PEP 314\\#License](https://www.python.org/dev/peps/pep-0314/#license)\n\nFor example, even if you check with the `pip show` command, the license is displayed as `UNKNOWN`.\n\n```bash\n(venv) $ pip show setuptools\nName: setuptools\nVersion: 38.5.0\nSummary: Easily download, build, install, upgrade, and uninstall Python packages\nHome-page: https://github.com/pypa/setuptools\nAuthor: Python Packaging Authority\nAuthor-email: distutils-sig@python.org\nLicense: UNKNOWN\n```\n\nThe mixed mode (`--from=mixed`) of this tool works well and looks for licenses.\n\n```bash\n(venv) $ pip-licenses --from=mixed --with-system | grep setuptools\n setuptools    38.5.0   MIT License\n```\n\nIn mixed mode, it first tries to look for licenses in the Trove Classifiers. When not found in the Trove Classifiers, the license declared in Metadata is displayed.\n\nIf you want to look only in metadata, use `--from=meta`. If you want to look only in Trove Classifiers, use `--from=classifier`.\n\nTo list license information from both metadata and classifier, use `--from=all`.\n\n**Note:** If neither can find license information, please check with the `with-authors` and `with-urls` options and contact the software author.\n\n* The `m` keyword is prepared as alias of `meta`.\n* The `c` keyword is prepared as alias of `classifier`.\n* The `mix` keyword is prepared as alias of `mixed`.\n    * Default behavior in this tool\n\n#### Option: order\n\nBy default, it is ordered by package name.\n\nIf you give arguments to the `--order` option, you can output in other sorted order.\n\n```bash\n(venv) $ pip-licenses --order=license\n```\n\n#### Option: format\n\nBy default, it is output to the `plain` format.\n\n##### Markdown\n\nWhen executed with the `--format=markdown` option, you can output list in markdown format. The `m` `md` keyword is prepared as alias of `markdown`.\n\n```bash\n(venv) $ pip-licenses --format=markdown\n| Name   | Version | License |\n|--------|---------|---------|\n| Django | 2.0.2   | BSD     |\n| pytz   | 2017.3  | MIT     |\n```\n\nWhen inserted in a markdown document, it is rendered as follows:\n\n| Name   | Version | License |\n|--------|---------|---------|\n| Django | 2.0.2   | BSD     |\n| pytz   | 2017.3  | MIT     |\n\n##### reST\n\nWhen executed with the `--format=rst` option, you can output list in \"[Grid tables](http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#grid-tables)\" of reStructuredText format. The `r` `rest` keyword is prepared as alias of `rst`.\n\n```bash\n(venv) $ pip-licenses --format=rst\n+--------+---------+---------+\n| Name   | Version | License |\n+--------+---------+---------+\n| Django | 2.0.2   | BSD     |\n+--------+---------+---------+\n| pytz   | 2017.3  | MIT     |\n+--------+---------+---------+\n```\n\n##### Confluence\n\nWhen executed with the `--format=confluence` option, you can output list in [Confluence (or JIRA) Wiki markup](https://confluence.atlassian.com/doc/confluence-wiki-markup-251003035.html#ConfluenceWikiMarkup-Tables) format. The `c` keyword is prepared as alias of `confluence`.\n\n```bash\n(venv) $ pip-licenses --format=confluence\n| Name   | Version | License |\n| Django | 2.0.2   | BSD     |\n| pytz   | 2017.3  | MIT     |\n```\n\n##### HTML\n\nWhen executed with the `--format=html` option, you can output list in HTML table format. The `h` keyword is prepared as alias of `html`.\n\n```bash\n(venv) $ pip-licenses --format=html\n<table>\n    <tr>\n        <th>Name</th>\n        <th>Version</th>\n        <th>License</th>\n    </tr>\n    <tr>\n        <td>Django</td>\n        <td>2.0.2</td>\n        <td>BSD</td>\n    </tr>\n    <tr>\n        <td>pytz</td>\n        <td>2017.3</td>\n        <td>MIT</td>\n    </tr>\n</table>\n```\n\n##### JSON\n\nWhen executed with the `--format=json` option, you can output list in JSON format easily allowing post-processing. The `j` keyword is prepared as alias of `json`.\n\n```json\n[\n  {\n    \"Author\": \"Django Software Foundation\",\n    \"License\": \"BSD\",\n    \"Name\": \"Django\",\n    \"URL\": \"https://www.djangoproject.com/\",\n    \"Version\": \"2.0.2\"\n  },\n  {\n    \"Author\": \"Stuart Bishop\",\n    \"License\": \"MIT\",\n    \"Name\": \"pytz\",\n    \"URL\": \"http://pythonhosted.org/pytz\",\n    \"Version\": \"2017.3\"\n  }\n]\n```\n\n##### JSON LicenseFinder\n\nWhen executed with the `--format=json-license-finder` option, you can output list in JSON format that is identical to [LicenseFinder](https://github.com/pivotal/LicenseFinder). The `jlf` keyword is prepared as alias of `jlf`.\nThis makes pip-licenses a drop-in replacement for LicenseFinder.\n\n```json\n[\n  {\n    \"licenses\": [\"BSD\"],\n    \"name\": \"Django\",\n    \"version\": \"2.0.2\"\n  },\n  {\n    \"licenses\": [\"MIT\"],\n    \"name\": \"pytz\",\n    \"version\": \"2017.3\"\n  }\n]\n\n```\n\n##### CSV\n\nWhen executed with the `--format=csv` option, you can output list in quoted CSV format. Useful when you want to copy/paste the output to an Excel sheet.\n\n```bash\n(venv) $ pip-licenses --format=csv\n\"Name\",\"Version\",\"License\"\n\"Django\",\"2.0.2\",\"BSD\"\n\"pytz\",\"2017.3\",\"MIT\"\n```\n\n##### Plain Vertical\n\nWhen executed with the `--format=plain-vertical` option, you can output a simple plain vertical output that is similar to Angular CLI's\n[--extractLicenses flag](https://angular.io/cli/build#options). This format minimizes rightward drift.\n\n```bash\n(venv) $ pip-licenses --format=plain-vertical --with-license-file --no-license-path\npytest\n5.3.4\nMIT license\nThe MIT License (MIT)\n\nCopyright (c) 2004-2020 Holger Krekel and others\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of\nthis software and associated documentation files (the \"Software\"), to deal in\nthe Software without restriction, including without limitation the rights to\nuse, copy, modify, merge, publish, distribute, sublicense, and/or sell copies\nof the Software, and to permit persons to whom the Software is furnished to do\nso, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n```\n\n#### Option: summary\n\nWhen executed with the `--summary` option, you can output a summary of each license.\n\n```bash\n(venv) $ pip-licenses --summary --from=classifier --with-system\n Count  License\n 2      BSD License\n 4      MIT License\n```\n\n**Note:** When using this option, only `--order=count` or `--order=license` has an effect for the `--order` option. And using `--with-authors` and `--with-urls` will be ignored.\n\n#### Option: output\\-file\n\nWhen executed with the `--output-file` option, write the result to the path specified by the argument.\n\n```\n(venv) $ pip-licenses --format=rst --output-file=/tmp/output.rst\ncreated path: /tmp/output.rst\n```\n\n#### Option: ignore-packages\n\nWhen executed with the `--ignore-packages` option, ignore the package specified by argument from list output.\n\n```bash\n(venv) $ pip-licenses --ignore-packages django\n Name  Version  License\n pytz  2017.3   MIT\n```\n\nPackage names of arguments can be separated by spaces.\n\n```bash\n(venv) $ pip-licenses --with-system --ignore-packages django pip pip-licenses\n Name        Version  License\n prettytable 3.16.0   BSD License\n pytz        2017.3   MIT\n setuptools  38.5.0   UNKNOWN\n wcwidth     0.2.5    MIT License\n```\n\nPackages can also be specified with a version, only ignoring that specific version.\n\n```bash\n(venv) $ pip-licenses --with-system --ignore-packages django pytz:2017.3\n Name        Version  License\n prettytable 3.16.0   BSD License\n setuptools  38.5.0   UNKNOWN\n wcwidth     0.2.5    MIT License\n```\n\n#### Option: packages\n\nWhen executed with the `packages` option, look at the package specified by argument from list output.\n\n```bash\n(venv) $ pip-licenses --packages django\n Name   Version  License\n Django 2.0.2    BSD\n```\n\nPackage names of arguments can be separated by spaces.\n\n```bash\n(venv) $ pip-licenses --with-system --packages prettytable pytz\n Name        Version  License\n prettytable 3.16.0   BSD License\n pytz        2017.3   MIT\n```\n\n### Format options\n\n#### Option: with-system\n\nBy default, system packages such as `pip` and `setuptools` are ignored.\n\nAnd `pip-licenses` and the implicit dependency `prettytable` and `wcwidth` will also be ignored.\n\nIf you want to output all including system package, use the `--with-system` option.\n\n```bash\n(venv) $ pip-licenses --with-system\n Name          Version  License\n Django        2.0.2    BSD\n pip           9.0.1    MIT\n pip-licenses  1.0.0    MIT License\n prettytable   3.16.0   BSD License\n pytz          2017.3   MIT\n setuptools    38.5.0   UNKNOWN\n wcwidth       0.2.5    MIT License\n```\n\n#### Option: with-authors\n\nWhen executed with the `--with-authors` option, output with author of the package.\n\n```bash\n(venv) $ pip-licenses --with-authors\n Name    Version  License  Author\n Django  2.0.2    BSD      Django Software Foundation\n pytz    2017.3   MIT      Stuart Bishop\n```\n\n#### Option: with-maintainers\n\nWhen executed with the `--with-maintainers` option, output with maintainer of the package.\n\n**Note:** This option is available for users who want information about the maintainer as well as the author. See [#144](https://github.com/raimon49/pip-licenses/issues/144)\n\n#### Option: with-urls\n\nFor packages without Metadata, the license is output as `UNKNOWN`. To get more package information, use the `--with-urls` option.\n\n```bash\n(venv) $ pip-licenses --with-urls\n Name    Version  License  URL\n Django  2.0.2    BSD      https://www.djangoproject.com/\n pytz    2017.3   MIT      http://pythonhosted.org/pytz\n```\n\n#### Option: with-description\n\nWhen executed with the `--with-description` option, output with short description of the package.\n\n```bash\n(venv) $ pip-licenses --with-description\n Name    Version  License  Description\n Django  2.0.2    BSD      A high-level Python Web framework that encourages rapid development and clean, pragmatic design.\n pytz    2017.3   MIT      World timezone definitions, modern and historical\n```\n\n#### Option: no-version\n\nWhen executed with the `--no-version` option, output without the version number.\n\n```bash\n(venv) $ pip-licenses --no-version\n Name    License\n Django  BSD\n pytz    MIT\n```\n\n#### Option: with-license-file\n\nWhen executed with the `--with-license-file` option, output the location of the package's license file on disk and the full contents of that file. Due to the length of these fields, this option is best paired with `--format=json`.\n\nIf you also want to output the file `NOTICE` distributed under Apache License etc., specify the `--with-notice-file` option additionally.\n\n**Note:** If you want to keep the license file path secret, specify `--no-license-path` option together.\n\n**Note:** When using `--with-license-file` with structured formats like CSV, Markdown, reST, or Confluence, the multi-line license file contents can break the formatting. For documentation workflows (like Sphinx), consider using separate commands:\n\n```bash\n# Generate clean RST table for documentation\n$ pip-licenses --from=mixed --format=rst --output-file summary.rst\n\n# Generate license file contents in plain-vertical format for inclusion\n$ pip-licenses --from=mixed --format=plain-vertical --with-license-file --no-license-path --output-file with_license.txt\n```\n\nThe RST file can be rendered nicely in Sphinx, while the plain-vertical format preserves the license file contents as monospace text.\n\n#### Option: filter\\-strings\n\nSome package data contains Unicode characters which might cause problems for certain output formats (in particular ReST tables). If this filter is enabled, all characters which cannot be encoded with a given code page (see `--filter-code-page`) will be removed from any input strings (e.g. package name, description).\n\n#### Option: filter\\-code\\-page\n\nIf the input strings are filtered (see `--filter-strings`), you can specify the applied code page (default `latin-1`). A list of all available code pages can be found [codecs module document](https://docs.python.org/3/library/codecs.html#standard-encodings).\n\n\n### Verify options\n\n#### Option: fail\\-on\n\nFail (exit with code 1) on the first occurrence of the licenses of the semicolon-separated list. The license name\nmatching is case-insensitive.\n\nIf `--from=all`, the option will apply to the metadata license field.\n\n```bash\n(venv) $ pip-licenses --fail-on=\"MIT License;BSD License\"\n```\n**Note:** Packages with multiple licenses will fail if at least one license is included in the fail-on list. For example:\n```\n# keyring library has 2 licenses\n$ pip-licenses --package keyring\n Name     Version  License\n keyring  23.0.1   MIT License; Python Software Foundation License\n\n# If just \"Python Software Foundation License\" is specified, it will fail.\n$ pip-licenses --package keyring --fail-on=\"Python Software Foundation License;\"\n$ echo $?\n1\n\n# Matching is case-insensitive. Following check will fail:\n$ pip-licenses --fail-on=\"mit license\"\n```\n\n#### Option: allow\\-only\n\nFail (exit with code 1) if none of the package licenses are in the semicolon-separated list. The license name\nmatching is case-insensitive.\n\nIf `--from=all`, the option will apply to the metadata license field.\n\n```bash\n(venv) $ pip-licenses --allow-only=\"MIT License;BSD License\"\n```\n**Note:** Packages with multiple licenses will only be allowed if at least one license is included in the allow-only list. For example:\n```\n# keyring library has 2 licenses\n$ pip-licenses --package keyring\n Name     Version  License\n keyring  23.0.1   MIT License; Python Software Foundation License\n\n# One or both licenses must be specified (order and case does not matter). Following checks will pass:\n$ pip-licenses --package keyring --allow-only=\"MIT License\"\n$ pip-licenses --package keyring --allow-only=\"mit License\"\n$ pip-licenses --package keyring --allow-only=\"BSD License;MIT License\"\n$ pip-licenses --package keyring --allow-only=\"Python Software Foundation License\"\n$ pip-licenses --package keyring --allow-only=\"Python Software Foundation License;MIT License\"\n\n# If none of the license in the allow list match, the check will fail.\n$ pip-licenses --package keyring  --allow-only=\"BSD License\"\n$ echo $?\n1\n```\n\n#### Option: partial\\-match\n\nIf set, enables partial (substring) matching for `--fail-on` or `--allow-only`. Default is unset (False).\n\nUsage:\n\n```bash\n(venv) $ pip-licenses --partial-match --allow-only=\"MIT License;BSD License\"\n(venv) $ pip-licenses --partial-match --fail-on=\"MIT License;BSD License\"\n\n```\n\n**Note:** Semantics are the same as with `--fail-on` or `--allow-only`. This only enables substring matching.\n```\n# keyring library has 2 licenses\n$ pip-licenses --package keyring\n Name     Version  License\n keyring  23.0.1   MIT License; Python Software Foundation License\n\n# One or both licenses must be specified (order and case does not matter). Following checks will pass:\n$ pip-licenses --package keyring --allow-only=\"MIT License\"\n$ pip-licenses --package keyring --allow-only=\"mit License\"\n$ pip-licenses --package keyring --allow-only=\"BSD License;MIT License\"\n$ pip-licenses --package keyring --allow-only=\"Python Software Foundation License\"\n$ pip-licenses --package keyring --allow-only=\"Python Software Foundation License;MIT License\"\n\n# These won't pass, as they're not a full match against one of the licenses\n$ pip-licenses --package keyring --allow-only=\"MIT\"\n$ echo $?\n1\n$ pip-licenses --package keyring --allow-only=\"mit\"\n$ echo $?\n1\n\n# with --partial-match, they pass\n$ pip-licenses --package keyring --partial-match --allow-only=\"MIT\"\n$ echo $?\n0\n$ pip-licenses --package keyring --partial-match --allow-only=\"mit\"\n$ echo $?\n0\n```\n\n### pyproject.toml support\n\nAll command-line options for `pip-licenses` can be configured using the `pyproject.toml` file under the `[tool.pip-licenses]` section. \nThe `pyproject.toml` file is searched in the directory where the `pip-licenses` script is executed.\nCommand-line options specified during execution will override the corresponding options in `pyproject.toml`.\n\nExample `pyproject.toml` configuration:\n\n```toml\n[tool.pip-licenses]\nfrom = \"classifier\"\nignore-packages = [\n  \"scipy\"\n]\nfail-on = \"MIT;\"\n```\n\nIf you run `pip-licenses` without any command-line options, all options will be taken from the `pyproject.toml` file. \nFor instance, if you run `pip-licenses --from=mixed`, the `from` option will be overridden to `mixed`, while all other options will be sourced from `pyproject.toml`.\n\n### More Information\n\nOther, please make sure to execute the `--help` option.\n\n## Dockerfile\n\nYou can check the package license used by your app in the isolated Docker environment.\n\n```bash\n# Clone this repository to local\n$ git clone https://github.com/raimon49/pip-licenses.git\n$ cd pip-licenses\n\n# Create your app's requirements.txt file\n# Other ways, pip freeze > docker/requirements.txt\n$ echo \"Flask\" > docker/requirements.txt\n\n# Build docker image\n$ docker build . -t myapp-licenses\n\n# Check the package license in container\n$ docker run --rm myapp-licenses\n Name          Version  License\n Click         7.0      BSD License\n Flask         1.0.2    BSD License\n Jinja2        2.10     BSD License\n MarkupSafe    1.1.1    BSD License\n Werkzeug      0.15.2   BSD License\n itsdangerous  1.1.0    BSD License\n\n# Check with options\n$ docker run --rm myapp-licenses --summary\n Count  License\n 4      BSD\n 2      BSD-3-Clause\n\n# When you need help\n$ docker run --rm myapp-licenses --help\n```\n\n**Note:** This Docker image can not check package licenses with C and C ++ Extensions. It only works with pure Python package dependencies.\n\nIf you want to resolve build environment issues, try using not slim image and more.\n\n```diff\ndiff --git a/Dockerfile b/Dockerfile\nindex bfc4edc..175e968 100644\n--- a/Dockerfile\n+++ b/Dockerfile\n@@ -1,4 +1,4 @@\n-FROM python:3.11-slim-bullseye\n+FROM python:3.11-bullseye\n```\n\n## About UnicodeEncodeError\n\nIf a `UnicodeEncodeError` occurs, check your environment variables `LANG` and `LC_TYPE`. Additionally, you can set `PYTHONIOENCODING` to override the encoding used for `stdout`.\n\nOften occurs in isolated environments such as Docker and tox.\n\nSee useful reports:\n\n* [#35](https://github.com/raimon49/pip-licenses/issues/35)\n* [#45](https://github.com/raimon49/pip-licenses/issues/45)\n\n## License\n\n[MIT License](https://github.com/raimon49/pip-licenses/blob/master/LICENSE)\n\n### Dependencies\n\n* [prettytable](https://pypi.org/project/prettytable/) by Luke Maurits and maintainer of fork version Jazzband team under the BSD-3-Clause License\n    * **Note:** This package implicitly requires [wcwidth](https://pypi.org/project/wcwidth/).\n\n* [tomli](https://pypi.org/project/tomli/) by Taneli Hukkinen under the MIT License\n\n`pip-licenses` has been implemented in the policy to minimize the dependence on external package.\n\n## Uninstallation\n\nUninstall package and dependent package with `pip` command.\n\n```bash\n$ pip uninstall pip-licenses prettytable wcwidth\n```\n\n## Contributing\n\nSee [contribution guidelines](https://github.com/raimon49/pip-licenses/blob/master/CONTRIBUTING.md).\n\n## CHANGELOG\n\n### 5.5.5\n\n* Updated cc lines and officially made note of change in maintainers\n\n### 5.5.4\n\n* Expanded typing annotations through-out codebase\n* Configured `prek`/`pre-commit` for CI linting and local developer workflows\n* Additional configuration following v5.5.2's migration of linters\n  * Fine tune ruff to enforce typing and black style opinions (Code style remains PEP-8 aligned)\n  * Cleanup/gitignore for ruff\n* Fixed a typo in previous changelog\n\n### 5.5.3\n\n* Aligned parsing logic with [PEP 753](https://peps.python.org/pep-0753/)\n* Refactored to better leverage f-strings to improve performance slightly\n* Fixed various warnings in tests\n* Got rid of historical Python 3.5 left-overs\n\n### 5.5.2\n\n* Added support for multi-line allow-only and fail-on arguments\n  * Relaxed parsing of most whitespace around semicolon delimiter\n* Added simple `SECURITY.md` policy document\n* Fixed a duplication behavior in output when a package was found at multiple paths (e.g., symlinks)\n* Fixed issue where lowercase license filenames were ignored\n* Improved project `Makefile` stability for developers\n* Migrated from the linters black and isort to ruff\n  * Code style remains PEP-8 aligned, but should be slightly more readable.\n  * Linting configuration remains in `pyproject.toml`\n* Updated `CONTRIBUTORS.md` guide with related changes\n\n### 5.5.1\n\n* Fixed typographical issue in README examples, closing GHI #209.\n* Fixed typographical issue in docstring found by codespell.\n* Aligned Project URLs in `pyproject.toml` with [PEP 753](https://peps.python.org/pep-0753/)\n* Brought `pyproject.toml` (e.g., packaging metadata) into alignment with [PEP 639](https://peps.python.org/pep-0639/) and related packaging guidance.\n  * Improved `MANIFEST.in` to `setuptools-scm` build logic with better filtering, closing GHI #266\n* Fixed a regression in linting via `black` by deprecating support for python 3.9, closing GHI #264\n  * Applied `black 26.1.0`suggestions to codebase, closing GHI #269\n\n### 5.5.0\n\n* Replace dependency on `tomli` with builtin `tomllib` for Python 3.11\n* Added support for `License-Expression` metadata field, see [PEP 639](https://peps.python.org/pep-0639/)\n* Added `--from=expression` option\n* Breaking change: The `--from=all` output now includes the `License-Expression` value\n* Fixed KeyError with `--partial` and `--allow-only` if a license matches multiple allowed licenses.\n* Declare support for Python 3.13 and 3.14\n* Added RST/Sphinx workflow example for `--with-license-file` option in documentation\n\n### 5.0.0\n\n* Dropped support Python 3.8\n* Clarified support for Python 3.12\n* Migration pyproject.toml about this package\n* Breaking changes\n    * Implicitly depends on tomli library since version 4.5.0\n\n### 4.5.1\n\n* Fixes \"tomli\" to be output only with `--with-system` option\n\n### 4.5.0\n\n* Implement new feature pyproject.toml support\n\n### 4.4.0\n\n* Implement new option `--partial-match`\n\n### 4.3.4\n\n* Maintain to pass test with wcwidth>=0.2.10\n\n### 4.3.3\n\n* Always terminate `--allow-only` and `--fail-on` messages with a newline\n* Always terminate files created with `--output-file` with a newline\n\n### 4.3.2\n\n* Better handling extracting URLs from `Project-URL`\n\n### 4.3.1\n\n* Fix to treat package names as normalized as in [PEP 503](https://peps.python.org/pep-0503/) with `--packages` and `--ignore-packages` option\n\n### 4.3.0\n\n* Implement new option `--no-version`\n\n### 4.2.0\n\n* Implement new option `--with-maintainers`\n* Implement new option `--python`\n* Allow version spec in `--ignore-packages` parameters\n* When the `Author` field is `UNKNOWN`, the output is automatically completed from `Author-email`\n* When the `home-page` field is `UNKNOWN`, the output is automatically completed from `Project-URL`\n\n### 4.1.0\n\n* Support case-insensitive license name matching around `--fail-on` and `--allow-only` parameters\n\n### 4.0.3\n\n* Escape unicode output (to e.g. `&#123;`) in the html output\n\n### 4.0.2\n\n* Add type annotations and code formatter\n\n### 4.0.1\n\n* Fix \"pip-licenses\" is missing in output of `pip-licenses --with-system` option\n\n### 4.0.0\n\n* Support for Python 3.11\n* Dropped support Python 3.7\n* Migrate Docker base image from Alpine to Debian 11-slim\n* Breaking changes\n    * Does not work with PTable and depends on prettytable\n    * Depend on importlib\\_metadata rather than pip\n\n### 3.5.5\n\n* Search for path defined in [PEP 639](https://peps.python.org/pep-0639/) with `--with-license-file` option\n* Dropped support Python 3.6\n\n### 3.5.4\n\n* Skip directories when detecting license files\n\n### 3.5.3\n\n* Support pip 21.3 or later\n\n### 3.5.2\n\n* Ignore spaces around `--fail-on` and `--allow-only` parameters\n\n### 3.5.1\n\n* Fix the order in which multiple licenses are output\n\n### 3.5.0\n\n* Handle multiple licenses better with options `--fail-on` and `--allow-only`\n* Small change in output method for multiple licenses, change the separator from comma to semicolon\n    * Up to 3.4.0: `Python Software Foundation License, MIT License`\n    * 3.5.0 or later: `Python Software Foundation License; MIT License`\n\n### 3.4.0\n\n* Implement new option `--packages`\n\n### 3.3.1\n\n* Fix license summary refer to `--from` option\n\n### 3.3.0\n\n* Improves the readability of the help command\n\n### 3.2.0\n\n* Implement new option `--from=all`\n* Change license notation under [SPDX license identifier](https://spdx.org/licenses/) style\n\n### 3.1.0\n\n* Implement new option for use in continuous integration\n    * `--fail-on`\n    * `--allow-only`\n\n### 3.0.0\n\n* Dropped support Python 3.5\n* Clarified support for Python 3.9\n* Migrate package metadata to `setup.cfg`\n* Breaking changes\n    * Change default behavior to `--from=mixed`\n\n### 2.3.0\n\n* Implement new option for manage unicode characters\n    * `--filter-strings`\n    * `--filter-code-page`\n\n### 2.2.1\n\n* Fixed the file that is selected when multiple matches are made with `LICENSE*` with run `--with-license-file`\n\n### 2.2.0\n\n* Implement new option `--with-notice-file`\n* Added to find British style file name `LICENCE` with run `--with-license-file`\n\n### 2.1.1\n\n* Suppress errors when opening license files\n\n### 2.1.0\n\n* Implement new option `--format=plain-vertical`\n* Support for outputting license file named `COPYING *`\n\n### 2.0.1\n\n* Better license file open handling in Python 3\n\n### 2.0.0\n\n* Dropped support Python 2.7\n* Breaking changes\n    * Removed migration path to obsolete options\n        * `--from-classifier`\n        * `--format-markdown`\n        * `--format-rst`\n        * `--format-confluence`\n        * `--format-html`\n        * `--format-json`\n* Implement new option `--no-license-path`\n\n### 1.18.0\n\n* Supports compatibility to work with either PTable or prettytable\n\n### 1.17.0\n\n* Implement new option `--output-file`\n* Clarified support for Python 3.8\n\n### 1.16.1\n\n* Add a help text for `--format=json-license-finder` option\n\n### 1.16.0\n\n* Implement new option `--format=json-license-finder`\n\n### 1.15.2\n\n* Read license file works well with Windows\n\n### 1.15.1\n\n* Skip parsing of license file for packages specified with `--ignore-packages` option\n\n### 1.15.0\n\n* Implement new option `--format=csv`\n\n### 1.14.0\n\n* Implement new option `--from=mixed` as a mixed mode\n\n### 1.13.0\n\n* Implement new option `--from=meta`, `from=classifier`\n* Dropped support Python 3.4\n\n### 1.12.1\n\n* Fix bug\n    * Change warning output to standard error\n\n### 1.12.0\n\n* Supports execution within Docker container\n* Warning of deprecated options\n* Fix bug\n    * Ignore `OSI Approved` string with multiple licenses\n\n### 1.11.0\n\n* Implement new option `--with-license-file`\n\n### 1.10.0\n\n* Implement new option `--with-description`\n\n### 1.9.0\n\n* Implement new option `--summary`\n\n### 1.8.0\n\n* Implement new option `--format-json`\n* Dropped support Python 3.3\n\n### 1.7.1\n\n* Fix bug\n    * Support pip 10.x\n\n### 1.7.0\n\n* Implement new option `--format-confluence`\n\n### 1.6.1\n\n* Fix bug\n    * Support display multiple license with `--from-classifier` option\n* Improve document\n    * Add section of 'Uninstallation' in README\n\n### 1.6.0\n\n* Implement new option `--format-html`\n\n### 1.5.0\n\n* Implement new option `--format-rst`\n\n### 1.4.0\n\n* Implement new option `--format-markdown`\n* Include LICENSE file in distribution package\n\n### 1.3.0\n\n* Implement new option `--ignore-packages`\n\n### 1.2.0\n\n* Implement new option `--from-classifier`\n\n### 1.1.0\n\n* Improve document\n    * Add ToC to README document\n    * Add a information of dependencies\n\n### 1.0.0\n\n* First stable release version\n\n### 0.2.0\n* Implement new option `--order`\n    * Default behavior is `--order=name`\n\n### 0.1.0\n\n* First implementation version\n    * Support options\n        * `--with-system`\n        * `--with-authors`\n        * `--with-urls`\n"
+      },
+      {
+        "file": "pip_licenses-5.5.5.dist-info/RECORD",
+        "text": "../../../bin/pip-licenses,sha256=fdQ1RsKHSeRBjuAXcsD_P-KDu2rWMqGjOUedo-O2Nl8,251\n__pycache__/piplicenses.cpython-312.pyc,,\npip_licenses-5.5.5.dist-info/INSTALLER,sha256=zuuue4knoyJ-UwPPXg8fezS7VCrXJQrAP7zeNuwvFQg,4\npip_licenses-5.5.5.dist-info/METADATA,sha256=ftYXyAE8sUv54h2_jvcYxU1cSD-vYnrSPA0BboIhR-8,35421\npip_licenses-5.5.5.dist-info/RECORD,,\npip_licenses-5.5.5.dist-info/REQUESTED,sha256=47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU,0\npip_licenses-5.5.5.dist-info/WHEEL,sha256=aeYiig01lYGDzBgS8HxWXOg3uV61G9ijOsup-k9o1sk,91\npip_licenses-5.5.5.dist-info/entry_points.txt,sha256=EKVcP0Lba7h9R0W7CKWISSE9KHgJ9Y49IbKxSlMTitg,50\npip_licenses-5.5.5.dist-info/licenses/LICENSE,sha256=s80q10p8Wf9Am4Uj2-eZhNp7px-iWqeHKgLk4aRWTLA,1063\npip_licenses-5.5.5.dist-info/top_level.txt,sha256=kcghxCemJc4B1rINCb8V8sIhneGnHApKf8U_xVTtKeE,12\npiplicenses.py,sha256=10VJDWL3CXROy6zgA7ZXGGFsNoVkOAkUUGt7ZKeHDeE,41814\n"
+      },
+      {
+        "file": "pip_licenses-5.5.5.dist-info/REQUESTED",
+        "text": ""
+      },
+      {
+        "file": "pip_licenses-5.5.5.dist-info/WHEEL",
+        "text": "Wheel-Version: 1.0\nGenerator: setuptools (82.0.1)\nRoot-Is-Purelib: true\nTag: py3-none-any\n\n"
+      },
+      {
+        "file": "pip_licenses-5.5.5.dist-info/entry_points.txt",
+        "text": "[console_scripts]\npip-licenses = piplicenses:main\n"
+      },
+      {
+        "file": "pip_licenses-5.5.5.dist-info/licenses/LICENSE",
+        "text": "MIT License\n\nCopyright (c) 2018 raimon\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+      },
+      {
+        "file": "pip_licenses-5.5.5.dist-info/top_level.txt",
+        "text": "piplicenses\n"
+      }
+    ]
+  },
+  {
+    "name": "pluggy",
+    "version": "1.7.0",
+    "license": "MIT",
+    "source": "https://github.com/pytest-dev/pluggy",
+    "ecosystem": "Python",
+    "texts": [
+      {
+        "file": "pluggy-1.7.0.dist-info/licenses/LICENSE",
+        "text": "The MIT License (MIT)\n\nCopyright (c) 2015 holger krekel (rather uses bitbucket/hpk42)\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+      }
+    ]
+  },
+  {
+    "name": "prettytable",
+    "version": "3.18.0",
+    "license": "BSD-3-Clause",
+    "source": "https://github.com/prettytable/prettytable/releases",
+    "ecosystem": "Python",
+    "texts": [
+      {
+        "file": "prettytable-3.18.0.dist-info/licenses/LICENSE",
+        "text": "# Copyright (c) 2009-2014 Luke Maurits <luke@maurits.id.au>\n# All rights reserved.\n# With contributions from:\n#  * Chris Clark\n#  * Klein Stephane\n#  * John Filleau\n#  * Vladimir Vrzi\u0107\n#\n# Redistribution and use in source and binary forms, with or without\n# modification, are permitted provided that the following conditions are met:\n#\n# * Redistributions of source code must retain the above copyright notice,\n#   this list of conditions and the following disclaimer.\n# * Redistributions in binary form must reproduce the above copyright notice,\n#   this list of conditions and the following disclaimer in the documentation\n#   and/or other materials provided with the distribution.\n# * The name of the author may not be used to endorse or promote products\n#   derived from this software without specific prior written permission.\n#\n# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\"\n# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE\n# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE\n# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE\n# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR\n# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF\n# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS\n# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN\n# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)\n# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE\n# POSSIBILITY OF SUCH DAMAGE.\n"
+      }
+    ]
+  },
+  {
+    "name": "pygments",
+    "version": "2.21.0",
+    "license": "BSD-2-Clause",
+    "source": "https://pygments.org",
+    "ecosystem": "Python",
+    "texts": [
+      {
+        "file": "pygments-2.21.0.dist-info/licenses/AUTHORS",
+        "text": "Pygments is written and maintained by Georg Brandl <georg@python.org>.\n\nMajor developers are Tim Hatch <tim@timhatch.com> and Armin Ronacher\n<armin.ronacher@active-4.com>.\n\nOther contributors, listed alphabetically, are:\n\n* Sam Aaron -- Ioke lexer\n* Jean Abou Samra -- LilyPond lexer\n* Jo\u00e3o Abecasis -- JSLT lexer\n* Ali Afshar -- image formatter\n* Thomas Aglassinger -- Easytrieve, JCL, Rexx, Transact-SQL and VBScript\n  lexers\n* Maxence Ahlouche -- PostgreSQL Explain lexer\n* Muthiah Annamalai -- Ezhil lexer\n* Nikolay Antipov -- OpenSCAD lexer\n* Kumar Appaiah -- Debian control lexer\n* Andreas Amann -- AppleScript lexer\n* Timothy Armstrong -- Dart lexer fixes\n* Jeffrey Arnold -- R/S, Rd, BUGS, Jags, and Stan lexers\n* Eir\u00edkr \u00c5sheim -- Uxntal lexer\n* Jeremy Ashkenas -- CoffeeScript lexer\n* Jos\u00e9 Joaqu\u00edn Atria -- Praat lexer\n* Stefan Matthias Aust -- Smalltalk lexer\n* Lucas Bajolet -- Nit lexer\n* Ben Bangert -- Mako lexers\n* Max Battcher -- Darcs patch lexer\n* Thomas Baruchel -- APL lexer\n* Tim Baumann -- (Literate) Agda lexer\n* Paul Baumgart, 280 North, Inc. -- Objective-J lexer\n* Michael Bayer -- Myghty lexers\n* Thomas Beale -- Archetype lexers\n* John Benediktsson -- Factor lexer\n* David Benjamin, Google LLC -- TLS lexer\n* Trevor Bergeron -- mIRC formatter\n* Vincent Bernat -- LessCSS lexer\n* Christopher Bertels -- Fancy lexer\n* S\u00e9bastien Bigaret -- QVT Operational lexer\n* Jarrett Billingsley -- MiniD lexer\n* Adam Blinkinsop -- Haskell, Redcode lexers\n* St\u00e9phane Blondon -- Procfile, SGF and Sieve lexers\n* Frits van Bommel -- assembler lexers\n* Pierre Bourdon -- bugfixes\n* Martijn Braam -- Kernel log lexer, BARE lexer\n* JD Browne, Google LLC -- GoogleSQL lexer\n* Matthias Bussonnier -- ANSI style handling for terminal-256 formatter\n* chebee7i -- Python traceback lexer improvements\n* Hiram Chirino -- Scaml and Jade lexers\n* Mauricio Caceres -- SAS and Stata lexers.\n* Michael Camilleri, John Gabriele, sogaiu -- Janet lexer\n* Daren Chandisingh -- Gleam lexer\n* Ian Cooper -- VGL lexer\n* David Corbett -- Inform, Jasmin, JSGF, Snowball, and TADS 3 lexers\n* Leaf Corcoran -- MoonScript lexer\n* Fraser Cormack -- TableGen lexer\n* Gabriel Corona -- ASN.1 lexer\n* Radu Costache -- Boogie and Civl Verifier lexer improvements\n* Christopher Creutzig -- MuPAD lexer\n* Dani\u00ebl W. Crompton -- Pike lexer\n* Pete Curry -- bugfixes\n* Bryan Davis -- EBNF lexer\n* Bruno Deferrari -- Shen lexer\n* Walter D\u00f6rwald -- UL4 lexer\n* Luke Drummond -- Meson lexer\n* Giedrius Dubinskas -- HTML formatter improvements\n* Owen Durni -- Haxe lexer\n* Alexander Dutton, Oxford University Computing Services -- SPARQL lexer\n* James Edwards -- Terraform lexer\n* Nick Efford -- Python 3 lexer\n* Sven Efftinge -- Xtend lexer\n* Artem Egorkine -- terminal256 formatter\n* Matthew Fernandez -- CAmkES lexer\n* Pawe\u0142 Fertyk -- GDScript lexer, HTML formatter improvements\n* Michael Ficarra -- CPSA lexer\n* James H. Fisher -- PostScript lexer\n* Amanda Fitch, Google LLC -- GoogleSQL lexer\n* William S. Fulton -- SWIG lexer\n* Carlos Galdino -- Elixir and Elixir Console lexers\n* Michael Galloy -- IDL lexer\n* Naveen Garg -- Autohotkey lexer\n* Simon Garnotel -- FreeFem++ lexer\n* Laurent Gautier -- R/S lexer\n* Alex Gaynor -- PyPy log lexer\n* Richard Gerkin -- Igor Pro lexer\n* Alain Gilbert -- TypeScript lexer\n* Alex Gilding -- BlitzBasic lexer\n* GitHub, Inc -- DASM16, Augeas, TOML, and Slash lexers\n* Bertrand Goetzmann -- Groovy lexer\n* Krzysiek Goj -- Scala lexer\n* Rostyslav Golda -- FloScript lexer\n* Andrey Golovizin -- BibTeX lexers\n* Matt Good -- Genshi, Cheetah lexers\n* Micha\u0142 G\u00f3rny -- vim modeline support\n* Alex Gosse -- TrafficScript lexer\n* Patrick Gotthardt -- PHP namespaces support\n* Hubert Gruniaux -- C and C++ lexer improvements\n* Olivier Guibe -- Asymptote lexer\n* Armin G\u00fcnther -- Go lexer improvements\n* Phil Hagelberg -- Fennel lexer\n* Florian Hahn -- Boogie lexer\n* Martin Harriman -- SNOBOL lexer\n* Matthew Harrison -- SVG formatter\n* Steven Hazel -- Tcl lexer\n* Dan Michael Hegg\u00f8 -- Turtle lexer\n* Aslak Helles\u00f8y -- Gherkin lexer\n* Greg Hendershott -- Racket lexer\n* Justin Hendrick -- ParaSail lexer\n* Jordi Guti\u00e9rrez Hermoso -- Octave lexer\n* David Hess, Fish Software, Inc. -- Objective-J lexer\n* Ken Hilton -- Typographic Number Theory and Arrow lexers\n* Varun Hiremath -- Debian control lexer\n* Rob Hoelz -- Perl 6 lexer\n* Doug Hogan -- Mscgen lexer\n* Ben Hollis -- Mason lexer\n* Max Horn -- GAP lexer\n* Fred Hornsey -- OMG IDL Lexer\n* Alastair Houghton -- Lexer inheritance facility\n* Tim Howard -- BlitzMax lexer\n* Dustin Howett -- Logos lexer\n* Ivan Inozemtsev -- Fantom lexer\n* Hiroaki Itoh -- Shell console rewrite, Lexers for PowerShell session,\n  MSDOS session, BC, WDiff\n* Brian R. Jackson -- Tea lexer\n* Alex Jeffery, ChromaWay AB -- Rell lexer\n* Christian Jann -- ShellSession lexer\n* Jonas Camillus Jeppesen -- Line numbers and line highlighting for \n  RTF-formatter\n* Dennis Kaarsemaker -- sources.list lexer\n* Dmitri Kabak -- Inferno Limbo lexer\n* Igor Kalnitsky -- vhdl lexer\n* Colin Kennedy - USD lexer\n* Alexander Kit -- MaskJS lexer\n* Pekka Kl\u00e4rck -- Robot Framework lexer\n* Gerwin Klein -- Isabelle lexer\n* Eric Knibbe -- Lasso lexer\n* Stepan Koltsov -- Clay lexer\n* Oliver Kopp - Friendly grayscale style\n* Adam Koprowski -- Opa lexer\n* Benjamin Kowarsch -- Modula-2 lexer\n* Domen Ko\u017ear -- Nix lexer\n* Oleh Krekel -- Emacs Lisp lexer\n* Alexander Kriegisch -- Kconfig and AspectJ lexers\n* Marek Kubica -- Scheme lexer\n* Jochen Kupperschmidt -- Markdown processor\n* Gerd Kurzbach -- Modelica lexer\n* Jon Larimer, Google Inc. -- Smali lexer\n* Olov Lassus -- Dart lexer\n* Matt Layman -- TAP lexer\n* Dan Lazin, Google LLC -- GoogleSQL lexer\n* Kristian Lyngst\u00f8l -- Varnish lexers\n* Sylvestre Ledru -- Scilab lexer\n* Chee Sing Lee -- Flatline lexer\n* Mark Lee -- Vala lexer\n* Thomas Linder Puls -- Visual Prolog lexer\n* Pete Lomax -- Phix lexer\n* Valentin Lorentz -- C++ lexer improvements\n* Ben Mabey -- Gherkin lexer\n* Angus MacArthur -- QML lexer\n* Louis Mandel -- X10 lexer\n* Louis Marchand -- Eiffel lexer\n* Simone Margaritelli -- Hybris lexer\n* Tim Martin - World of Warcraft TOC lexer\n* Kirk McDonald -- D lexer\n* Gordon McGregor -- SystemVerilog lexer\n* Stephen McKamey -- Duel/JBST lexer\n* Brian McKenna -- F# lexer\n* Charles McLaughlin -- Puppet lexer\n* Kurt McKee -- Tera Term macro lexer, PostgreSQL updates, MySQL overhaul, JSON lexer\n* Joe Eli McIlvain -- Savi lexer\n* Lukas Meuser -- BBCode formatter, Lua lexer\n* Bruno Mesquita -- Night Owl style\n* Cat Miller -- Pig lexer\n* Paul Miller -- LiveScript lexer\n* Hong Minhee -- HTTP lexer\n* Michael Mior -- Awk lexer\n* Bruce Mitchener -- Dylan lexer rewrite\n* Reuben Morais -- SourcePawn lexer\n* Jon Morton -- Rust lexer\n* Paulo Moura -- Logtalk lexer\n* Mher Movsisyan -- DTD lexer\n* Dejan Muhamedagic -- Crmsh lexer\n* Adrien Nayrat -- PostgreSQL Explain lexer\n* Ana Nelson -- Ragel, ANTLR, R console lexers\n* David Neto, Google LLC -- WebGPU Shading Language lexer\n* Kurt Neufeld -- Markdown lexer\n* Nam T. Nguyen -- Monokai style\n* Jesper Noehr -- HTML formatter \"anchorlinenos\"\n* Mike Nolta -- Julia lexer\n* Avery Nortonsmith -- Pointless lexer\n* Jonas Obrist -- BBCode lexer\n* Edward O'Callaghan -- Cryptol lexer\n* David Oliva -- Rebol lexer\n* Pat Pannuto -- nesC lexer\n* Jon Parise -- Protocol buffers and Thrift lexers\n* Benjamin Peterson -- Test suite refactoring\n* Ronny Pfannschmidt -- BBCode lexer\n* Dominik Picheta -- Nimrod lexer\n* Andrew Pinkham -- RTF Formatter Refactoring\n* Cl\u00e9ment Pr\u00e9vost -- UrbiScript lexer\n* Tanner Prynn -- cmdline -x option and loading lexers from files\n* Oleh Prypin -- Crystal lexer (based on Ruby lexer)\n* Nick Psaris -- K and Q lexers\n* Xidorn Quan -- Web IDL lexer\n* Elias Rabel -- Fortran fixed form lexer\n* raichoo -- Idris lexer\n* Daniel Ramirez -- GDScript lexer\n* Kashif Rasul -- CUDA lexer\n* Nathan Reed -- HLSL lexer\n* Justin Reidy -- MXML lexer\n* Jonathon Reinhart, Google LLC -- Soong lexer\n* Norman Richards -- JSON lexer\n* Corey Richardson -- Rust lexer updates\n* Fabrizio Riguzzi -- cplint leder\n* Lubomir Rintel -- GoodData MAQL and CL lexers\n* Andre Roberge -- Tango style\n* Georg Rollinger -- HSAIL lexer\n* Michiel Roos -- TypoScript lexer\n* Konrad Rudolph -- LaTeX formatter enhancements\n* Mario Ruggier -- Evoque lexers\n* Miikka Salminen -- Lovelace style, Hexdump lexer, lexer enhancements\n* Stou Sandalski -- NumPy, FORTRAN, tcsh and XSLT lexers\n* Matteo Sasso -- Common Lisp lexer\n* Joe Schafer -- Ada lexer\n* Max Schillinger -- TiddlyWiki5 lexer\n* Andrew Schmidt -- X++ lexer\n* Ken Schutte -- Matlab lexers\n* Ren\u00e9 Schwaiger -- Rainbow Dash style\n* Sebastian Schweizer -- Whiley lexer\n* Tassilo Schweyer -- Io, MOOCode lexers\n* Pablo Seminario -- PromQL lexer\n* Ted Shaw -- AutoIt lexer\n* Joerg Sieker -- ABAP lexer\n* Robert Simmons -- Standard ML lexer\n* Kirill Simonov -- YAML lexer\n* Corbin Simpson -- Monte lexer\n* Ville Skytt\u00e4 -- ASCII armored lexer\n* Alexander Smishlajev -- Visual FoxPro lexer\n* Steve Spigarelli -- XQuery lexer\n* Jerome St-Louis -- eC lexer\n* Camil Staps -- Clean and NuSMV lexers; Solarized style\n* James Strachan -- Kotlin lexer\n* Tom Stuart -- Treetop lexer\n* Colin Sullivan -- SuperCollider lexer\n* Ben Swift -- Extempore lexer\n* tatt61880 -- Kuin lexer\n* Edoardo Tenani -- Arduino lexer\n* Tiberius Teng -- default style overhaul\n* Jeremy Thurgood -- Erlang, Squid config lexers\n* Brian Tiffin -- OpenCOBOL lexer\n* Bob Tolbert -- Hy lexer\n* Doug Torrance -- Macaulay2 lexer\n* Matthias Trute -- Forth lexer\n* Tuoa Spi T4 -- Bdd lexer\n* Erick Tryzelaar -- Felix lexer\n* Alexander Udalov -- Kotlin lexer improvements\n* Thomas Van Doren -- Chapel lexer\n* Dave Van Ee -- Uxntal lexer updates\n* Daniele Varrazzo -- PostgreSQL lexers\n* Abe Voelker -- OpenEdge ABL lexer\n* Pepijn de Vos -- HTML formatter CTags support\n* Matthias Vallentin -- Bro lexer\n* Beno\u00eet Vinot -- AMPL lexer\n* Linh Vu Hong -- RSL lexer\n* Taavi V\u00e4\u00e4n\u00e4nen -- Debian control, PHP lexers\n* Immanuel Washington -- Smithy lexer\n* Nathan Weizenbaum -- Haml and Sass lexers\n* Nathan Whetsell -- Csound lexers\n* Dietmar Winkler -- Modelica lexer\n* Nils Winter -- Smalltalk lexer\n* Trevor Woerner -- BitBake lexer\n* Davy Wybiral -- Clojure lexer\n* Whitney Young -- ObjectiveC lexer\n* Diego Zamboni -- CFengine3 lexer\n* Enrique Zamudio -- Ceylon lexer\n* Alex Zimin -- Nemerle lexer\n* Rob Zimmerman -- Kal lexer\n* Evgenii Zheltonozhskii -- Maple lexer\n* Vincent Zurczak -- Roboconf lexer\n* Hubert Gruniaux -- C and C++ lexer improvements\n* Thomas Symalla -- AMDGPU Lexer\n* 15b3 -- Image Formatter improvements\n* Fabian Neumann -- CDDL lexer\n* Thomas Duboucher -- CDDL lexer\n* Philipp Imhof -- Pango Markup formatter\n* Thomas Voss -- Sed lexer\n* Martin Fischer -- WCAG contrast testing\n* Marc Auberer -- Spice lexer\n* Amr Hesham -- Carbon lexer\n* diskdance -- Wikitext lexer\n* vanillajonathan -- PRQL lexer\n* Nikolay Antipov -- OpenSCAD lexer\n* Markus Meyer, Nextron Systems -- YARA lexer\n* Hannes R\u00f6mer -- Mojo lexer\n* Jan Frederik Schaefer -- PDDL lexer\n\nMany thanks for all contributions!\n"
+      },
+      {
+        "file": "pygments-2.21.0.dist-info/licenses/LICENSE",
+        "text": "Copyright (c) 2006-2022 by the respective authors (see AUTHORS file).\nAll rights reserved.\n\nRedistribution and use in source and binary forms, with or without\nmodification, are permitted provided that the following conditions are\nmet:\n\n* Redistributions of source code must retain the above copyright\n  notice, this list of conditions and the following disclaimer.\n\n* Redistributions in binary form must reproduce the above copyright\n  notice, this list of conditions and the following disclaimer in the\n  documentation and/or other materials provided with the distribution.\n\nTHIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS\n\"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT\nLIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR\nA PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT\nOWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,\nSPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT\nLIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,\nDATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY\nTHEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT\n(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\nOF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n"
+      }
+    ]
+  },
+  {
+    "name": "pytest",
+    "version": "9.2.0",
+    "license": "MIT",
+    "source": "https://docs.pytest.org/en/stable/changelog.html",
+    "ecosystem": "Python",
+    "texts": [
+      {
+        "file": "pytest-9.2.0.dist-info/licenses/LICENSE",
+        "text": "The MIT License (MIT)\n\nCopyright (c) 2004 Holger Krekel and others\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of\nthis software and associated documentation files (the \"Software\"), to deal in\nthe Software without restriction, including without limitation the rights to\nuse, copy, modify, merge, publish, distribute, sublicense, and/or sell copies\nof the Software, and to permit persons to whom the Software is furnished to do\nso, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+      }
+    ]
+  },
+  {
+    "name": "ruff",
+    "version": "0.17.3",
+    "license": "MIT",
+    "source": "https://docs.astral.sh/ruff",
+    "ecosystem": "Python",
+    "texts": [
+      {
+        "file": "ruff-0.17.3.dist-info/licenses/LICENSE",
+        "text": "MIT License\n\nCopyright (c) 2022 Charles Marsh\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n\nend of terms and conditions\n\nThe externally maintained libraries from which parts of the Software is derived\nare:\n\n- autoflake, licensed as follows:\n  \"\"\"\n    Copyright (C) 2012-2018 Steven Myint\n\n    Permission is hereby granted, free of charge, to any person obtaining a copy of\n    this software and associated documentation files (the \"Software\"), to deal in\n    the Software without restriction, including without limitation the rights to\n    use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies\n    of the Software, and to permit persons to whom the Software is furnished to do\n    so, subject to the following conditions:\n\n    The above copyright notice and this permission notice shall be included in all\n    copies or substantial portions of the Software.\n\n    THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n    SOFTWARE.\n  \"\"\"\n\n- autotyping, licensed as follows:\n  \"\"\"\n    MIT License\n\n    Copyright (c) 2023 Jelle Zijlstra\n\n    Permission is hereby granted, free of charge, to any person obtaining a copy\n    of this software and associated documentation files (the \"Software\"), to deal\n    in the Software without restriction, including without limitation the rights\n    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n    copies of the Software, and to permit persons to whom the Software is\n    furnished to do so, subject to the following conditions:\n\n    The above copyright notice and this permission notice shall be included in all\n    copies or substantial portions of the Software.\n\n    THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n    SOFTWARE.\n  \"\"\"\n\n- Flake8, licensed as follows:\n  \"\"\"\n    == Flake8 License (MIT) ==\n\n    Copyright (C) 2011-2013 Tarek Ziade <tarek@ziade.org>\n    Copyright (C) 2012-2016 Ian Cordasco <graffatcolmingov@gmail.com>\n\n    Permission is hereby granted, free of charge, to any person obtaining a copy of\n    this software and associated documentation files (the \"Software\"), to deal in\n    the Software without restriction, including without limitation the rights to\n    use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies\n    of the Software, and to permit persons to whom the Software is furnished to do\n    so, subject to the following conditions:\n\n    The above copyright notice and this permission notice shall be included in all\n    copies or substantial portions of the Software.\n\n    THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n    SOFTWARE.\n  \"\"\"\n\n- flake8-eradicate, licensed as follows:\n  \"\"\"\n    MIT License\n\n    Copyright (c) 2018 Nikita Sobolev\n\n    Permission is hereby granted, free of charge, to any person obtaining a copy\n    of this software and associated documentation files (the \"Software\"), to deal\n    in the Software without restriction, including without limitation the rights\n    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n    copies of the Software, and to permit persons to whom the Software is\n    furnished to do so, subject to the following conditions:\n\n    The above copyright notice and this permission notice shall be included in all\n    copies or substantial portions of the Software.\n\n    THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n    SOFTWARE.\n  \"\"\"\n\n- flake8-pyi, licensed as follows:\n  \"\"\"\n    The MIT License (MIT)\n\n    Copyright (c) 2016 \u0141ukasz Langa\n\n    Permission is hereby granted, free of charge, to any person obtaining a copy\n    of this software and associated documentation files (the \"Software\"), to deal\n    in the Software without restriction, including without limitation the rights\n    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n    copies of the Software, and to permit persons to whom the Software is\n    furnished to do so, subject to the following conditions:\n\n    The above copyright notice and this permission notice shall be included in all\n    copies or substantial portions of the Software.\n\n    THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n    SOFTWARE.\n  \"\"\"\n\n- flake8-simplify, licensed as follows:\n  \"\"\"\n    MIT License\n\n    Copyright (c) 2020 Martin Thoma\n\n    Permission is hereby granted, free of charge, to any person obtaining a copy\n    of this software and associated documentation files (the \"Software\"), to deal\n    in the Software without restriction, including without limitation the rights\n    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n    copies of the Software, and to permit persons to whom the Software is\n    furnished to do so, subject to the following conditions:\n\n    The above copyright notice and this permission notice shall be included in all\n    copies or substantial portions of the Software.\n\n    THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n    SOFTWARE.\n  \"\"\"\n\n- isort, licensed as follows:\n  \"\"\"\n    The MIT License (MIT)\n\n    Copyright (c) 2013 Timothy Edmund Crosley\n\n    Permission is hereby granted, free of charge, to any person obtaining a copy\n    of this software and associated documentation files (the \"Software\"), to deal\n    in the Software without restriction, including without limitation the rights\n    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n    copies of the Software, and to permit persons to whom the Software is\n    furnished to do so, subject to the following conditions:\n\n    The above copyright notice and this permission notice shall be included in\n    all copies or substantial portions of the Software.\n\n    THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN\n    THE SOFTWARE.\n  \"\"\"\n\n- pygrep-hooks, licensed as follows:\n  \"\"\"\n    Copyright (c) 2018 Anthony Sottile\n\n    Permission is hereby granted, free of charge, to any person obtaining a copy\n    of this software and associated documentation files (the \"Software\"), to deal\n    in the Software without restriction, including without limitation the rights\n    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n    copies of the Software, and to permit persons to whom the Software is\n    furnished to do so, subject to the following conditions:\n\n    The above copyright notice and this permission notice shall be included in\n    all copies or substantial portions of the Software.\n\n    THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN\n    THE SOFTWARE.\n  \"\"\"\n\n- pycodestyle, licensed as follows:\n  \"\"\"\n    Copyright \u00a9 2006-2009 Johann C. Rocholl <johann@rocholl.net>\n    Copyright \u00a9 2009-2014 Florent Xicluna <florent.xicluna@gmail.com>\n    Copyright \u00a9 2014-2020 Ian Lee <IanLee1521@gmail.com>\n\n    Licensed under the terms of the Expat License\n\n    Permission is hereby granted, free of charge, to any person\n    obtaining a copy of this software and associated documentation files\n    (the \"Software\"), to deal in the Software without restriction,\n    including without limitation the rights to use, copy, modify, merge,\n    publish, distribute, sublicense, and/or sell copies of the Software,\n    and to permit persons to whom the Software is furnished to do so,\n    subject to the following conditions:\n\n    The above copyright notice and this permission notice shall be\n    included in all copies or substantial portions of the Software.\n\n    THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\n    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF\n    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND\n    NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS\n    BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN\n    ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN\n    CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n    SOFTWARE.\n  \"\"\"\n\n- pydocstyle, licensed as follows:\n  \"\"\"\n    Copyright (c) 2012 GreenSteam, <http://greensteam.dk/>\n\n    Copyright (c) 2014-2020 Amir Rachum, <http://amir.rachum.com/>\n\n    Copyright (c) 2020 Sambhav Kothari, <https://github.com/samj1912>\n\n    Permission is hereby granted, free of charge, to any person obtaining a copy of\n    this software and associated documentation files (the \"Software\"), to deal in\n    the Software without restriction, including without limitation the rights to\n    use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies\n    of the Software, and to permit persons to whom the Software is furnished to do\n    so, subject to the following conditions:\n\n    The above copyright notice and this permission notice shall be included in all\n    copies or substantial portions of the Software.\n\n    THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n    SOFTWARE.\n  \"\"\"\n\n- Pyflakes, licensed as follows:\n  \"\"\"\n    Copyright 2005-2011 Divmod, Inc.\n    Copyright 2013-2014 Florent Xicluna\n\n    Permission is hereby granted, free of charge, to any person obtaining\n    a copy of this software and associated documentation files (the\n    \"Software\"), to deal in the Software without restriction, including\n    without limitation the rights to use, copy, modify, merge, publish,\n    distribute, sublicense, and/or sell copies of the Software, and to\n    permit persons to whom the Software is furnished to do so, subject to\n    the following conditions:\n\n    The above copyright notice and this permission notice shall be\n    included in all copies or substantial portions of the Software.\n\n    THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\n    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF\n    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND\n    NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE\n    LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION\n    OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION\n    WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n  \"\"\"\n\n- Pyright, licensed as follows:\n  \"\"\"\n    MIT License\n\n    Pyright - A static type checker for the Python language\n    Copyright (c) Microsoft Corporation. All rights reserved.\n\n    Permission is hereby granted, free of charge, to any person obtaining a copy\n    of this software and associated documentation files (the \"Software\"), to deal\n    in the Software without restriction, including without limitation the rights\n    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n    copies of the Software, and to permit persons to whom the Software is\n    furnished to do so, subject to the following conditions:\n\n    The above copyright notice and this permission notice shall be included in all\n    copies or substantial portions of the Software.\n\n    THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n    SOFTWARE\n  \"\"\"\n\n- pyupgrade, licensed as follows:\n  \"\"\"\n    Copyright (c) 2017 Anthony Sottile\n\n    Permission is hereby granted, free of charge, to any person obtaining a copy\n    of this software and associated documentation files (the \"Software\"), to deal\n    in the Software without restriction, including without limitation the rights\n    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n    copies of the Software, and to permit persons to whom the Software is\n    furnished to do so, subject to the following conditions:\n\n    The above copyright notice and this permission notice shall be included in\n    all copies or substantial portions of the Software.\n\n    THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN\n    THE SOFTWARE.\n  \"\"\"\n\n- rome/tools, licensed under the MIT license:\n  \"\"\"\n    MIT License\n\n    Copyright (c) Rome Tools, Inc. and its affiliates.\n\n    Permission is hereby granted, free of charge, to any person obtaining a copy\n    of this software and associated documentation files (the \"Software\"), to deal\n    in the Software without restriction, including without limitation the rights\n    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n    copies of the Software, and to permit persons to whom the Software is\n    furnished to do so, subject to the following conditions:\n\n    The above copyright notice and this permission notice shall be included in all\n    copies or substantial portions of the Software.\n\n    THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n    SOFTWARE.\n  \"\"\"\n\n- RustPython, licensed as follows:\n  \"\"\"\n    MIT License\n\n    Copyright (c) 2020 RustPython Team\n\n    Permission is hereby granted, free of charge, to any person obtaining a copy\n    of this software and associated documentation files (the \"Software\"), to deal\n    in the Software without restriction, including without limitation the rights\n    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n    copies of the Software, and to permit persons to whom the Software is\n    furnished to do so, subject to the following conditions:\n\n    The above copyright notice and this permission notice shall be included in all\n    copies or substantial portions of the Software.\n\n    THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n    SOFTWARE.\n  \"\"\"\n\n- rust-analyzer/text-size, licensed under the MIT license:\n  \"\"\"\n    Permission is hereby granted, free of charge, to any\n    person obtaining a copy of this software and associated\n    documentation files (the \"Software\"), to deal in the\n    Software without restriction, including without\n    limitation the rights to use, copy, modify, merge,\n    publish, distribute, sublicense, and/or sell copies of\n    the Software, and to permit persons to whom the Software\n    is furnished to do so, subject to the following\n    conditions:\n\n    The above copyright notice and this permission notice\n    shall be included in all copies or substantial portions\n    of the Software.\n\n    THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF\n    ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED\n    TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A\n    PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT\n    SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY\n    CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION\n    OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR\n    IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER\n    DEALINGS IN THE SOFTWARE.\n  \"\"\"\n"
+      }
+    ]
+  },
+  {
+    "name": "setuptools",
+    "version": "84.2.1",
+    "license": "MIT",
+    "source": "https://github.com/pypa/setuptools",
+    "ecosystem": "Python",
+    "texts": [
+      {
+        "file": "setuptools-84.2.1.dist-info/licenses/LICENSE",
+        "text": "Permission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to\ndeal in the Software without restriction, including without limitation the\nrights to use, copy, modify, merge, publish, distribute, sublicense, and/or\nsell copies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in\nall copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING\nFROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS\nIN THE SOFTWARE.\n"
+      },
+      {
+        "file": "setuptools/_vendor/autocommand-2.2.2.dist-info/LICENSE",
+        "text": "GNU LESSER GENERAL PUBLIC LICENSE\n                       Version 3, 29 June 2007\n\n Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>\n Everyone is permitted to copy and distribute verbatim copies\n of this license document, but changing it is not allowed.\n\n\n  This version of the GNU Lesser General Public License incorporates\nthe terms and conditions of version 3 of the GNU General Public\nLicense, supplemented by the additional permissions listed below.\n\n  0. Additional Definitions.\n\n  As used herein, \"this License\" refers to version 3 of the GNU Lesser\nGeneral Public License, and the \"GNU GPL\" refers to version 3 of the GNU\nGeneral Public License.\n\n  \"The Library\" refers to a covered work governed by this License,\nother than an Application or a Combined Work as defined below.\n\n  An \"Application\" is any work that makes use of an interface provided\nby the Library, but which is not otherwise based on the Library.\nDefining a subclass of a class defined by the Library is deemed a mode\nof using an interface provided by the Library.\n\n  A \"Combined Work\" is a work produced by combining or linking an\nApplication with the Library.  The particular version of the Library\nwith which the Combined Work was made is also called the \"Linked\nVersion\".\n\n  The \"Minimal Corresponding Source\" for a Combined Work means the\nCorresponding Source for the Combined Work, excluding any source code\nfor portions of the Combined Work that, considered in isolation, are\nbased on the Application, and not on the Linked Version.\n\n  The \"Corresponding Application Code\" for a Combined Work means the\nobject code and/or source code for the Application, including any data\nand utility programs needed for reproducing the Combined Work from the\nApplication, but excluding the System Libraries of the Combined Work.\n\n  1. Exception to Section 3 of the GNU GPL.\n\n  You may convey a covered work under sections 3 and 4 of this License\nwithout being bound by section 3 of the GNU GPL.\n\n  2. Conveying Modified Versions.\n\n  If you modify a copy of the Library, and, in your modifications, a\nfacility refers to a function or data to be supplied by an Application\nthat uses the facility (other than as an argument passed when the\nfacility is invoked), then you may convey a copy of the modified\nversion:\n\n   a) under this License, provided that you make a good faith effort to\n   ensure that, in the event an Application does not supply the\n   function or data, the facility still operates, and performs\n   whatever part of its purpose remains meaningful, or\n\n   b) under the GNU GPL, with none of the additional permissions of\n   this License applicable to that copy.\n\n  3. Object Code Incorporating Material from Library Header Files.\n\n  The object code form of an Application may incorporate material from\na header file that is part of the Library.  You may convey such object\ncode under terms of your choice, provided that, if the incorporated\nmaterial is not limited to numerical parameters, data structure\nlayouts and accessors, or small macros, inline functions and templates\n(ten or fewer lines in length), you do both of the following:\n\n   a) Give prominent notice with each copy of the object code that the\n   Library is used in it and that the Library and its use are\n   covered by this License.\n\n   b) Accompany the object code with a copy of the GNU GPL and this license\n   document.\n\n  4. Combined Works.\n\n  You may convey a Combined Work under terms of your choice that,\ntaken together, effectively do not restrict modification of the\nportions of the Library contained in the Combined Work and reverse\nengineering for debugging such modifications, if you also do each of\nthe following:\n\n   a) Give prominent notice with each copy of the Combined Work that\n   the Library is used in it and that the Library and its use are\n   covered by this License.\n\n   b) Accompany the Combined Work with a copy of the GNU GPL and this license\n   document.\n\n   c) For a Combined Work that displays copyright notices during\n   execution, include the copyright notice for the Library among\n   these notices, as well as a reference directing the user to the\n   copies of the GNU GPL and this license document.\n\n   d) Do one of the following:\n\n       0) Convey the Minimal Corresponding Source under the terms of this\n       License, and the Corresponding Application Code in a form\n       suitable for, and under terms that permit, the user to\n       recombine or relink the Application with a modified version of\n       the Linked Version to produce a modified Combined Work, in the\n       manner specified by section 6 of the GNU GPL for conveying\n       Corresponding Source.\n\n       1) Use a suitable shared library mechanism for linking with the\n       Library.  A suitable mechanism is one that (a) uses at run time\n       a copy of the Library already present on the user's computer\n       system, and (b) will operate properly with a modified version\n       of the Library that is interface-compatible with the Linked\n       Version.\n\n   e) Provide Installation Information, but only if you would otherwise\n   be required to provide such information under section 6 of the\n   GNU GPL, and only to the extent that such information is\n   necessary to install and execute a modified version of the\n   Combined Work produced by recombining or relinking the\n   Application with a modified version of the Linked Version. (If\n   you use option 4d0, the Installation Information must accompany\n   the Minimal Corresponding Source and Corresponding Application\n   Code. If you use option 4d1, you must provide the Installation\n   Information in the manner specified by section 6 of the GNU GPL\n   for conveying Corresponding Source.)\n\n  5. Combined Libraries.\n\n  You may place library facilities that are a work based on the\nLibrary side by side in a single library together with other library\nfacilities that are not Applications and are not covered by this\nLicense, and convey such a combined library under terms of your\nchoice, if you do both of the following:\n\n   a) Accompany the combined library with a copy of the same work based\n   on the Library, uncombined with any other library facilities,\n   conveyed under the terms of this License.\n\n   b) Give prominent notice with the combined library that part of it\n   is a work based on the Library, and explaining where to find the\n   accompanying uncombined form of the same work.\n\n  6. Revised Versions of the GNU Lesser General Public License.\n\n  The Free Software Foundation may publish revised and/or new versions\nof the GNU Lesser General Public License from time to time. Such new\nversions will be similar in spirit to the present version, but may\ndiffer in detail to address new problems or concerns.\n\n  Each version is given a distinguishing version number. If the\nLibrary as you received it specifies that a certain numbered version\nof the GNU Lesser General Public License \"or any later version\"\napplies to it, you have the option of following the terms and\nconditions either of that published version or of any later version\npublished by the Free Software Foundation. If the Library as you\nreceived it does not specify a version number of the GNU Lesser\nGeneral Public License, you may choose any version of the GNU Lesser\nGeneral Public License ever published by the Free Software Foundation.\n\n  If the Library as you received it specifies that a proxy can decide\nwhether future versions of the GNU Lesser General Public License shall\napply, that proxy's public statement of acceptance of any version is\npermanent authorization for you to choose that version for the\nLibrary.\n\n"
+      },
+      {
+        "file": "setuptools/_vendor/backports.tarfile-1.2.0.dist-info/LICENSE",
+        "text": "Permission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to\ndeal in the Software without restriction, including without limitation the\nrights to use, copy, modify, merge, publish, distribute, sublicense, and/or\nsell copies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in\nall copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING\nFROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS\nIN THE SOFTWARE.\n"
+      },
+      {
+        "file": "setuptools/_vendor/importlib_metadata-8.7.1.dist-info/licenses/LICENSE",
+        "text": "Apache License\nVersion 2.0, January 2004\nhttp://www.apache.org/licenses/\n\nTERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION\n\n1. Definitions.\n\n\"License\" shall mean the terms and conditions for use, reproduction, and distribution as defined by Sections 1 through 9 of this document.\n\n\"Licensor\" shall mean the copyright owner or entity authorized by the copyright owner that is granting the License.\n\n\"Legal Entity\" shall mean the union of the acting entity and all other entities that control, are controlled by, or are under common control with that entity. For the purposes of this definition, \"control\" means (i) the power, direct or indirect, to cause the direction or management of such entity, whether by contract or otherwise, or (ii) ownership of fifty percent (50%) or more of the outstanding shares, or (iii) beneficial ownership of such entity.\n\n\"You\" (or \"Your\") shall mean an individual or Legal Entity exercising permissions granted by this License.\n\n\"Source\" form shall mean the preferred form for making modifications, including but not limited to software source code, documentation source, and configuration files.\n\n\"Object\" form shall mean any form resulting from mechanical transformation or translation of a Source form, including but not limited to compiled object code, generated documentation, and conversions to other media types.\n\n\"Work\" shall mean the work of authorship, whether in Source or Object form, made available under the License, as indicated by a copyright notice that is included in or attached to the work (an example is provided in the Appendix below).\n\n\"Derivative Works\" shall mean any work, whether in Source or Object form, that is based on (or derived from) the Work and for which the editorial revisions, annotations, elaborations, or other modifications represent, as a whole, an original work of authorship. For the purposes of this License, Derivative Works shall not include works that remain separable from, or merely link (or bind by name) to the interfaces of, the Work and Derivative Works thereof.\n\n\"Contribution\" shall mean any work of authorship, including the original version of the Work and any modifications or additions to that Work or Derivative Works thereof, that is intentionally submitted to Licensor for inclusion in the Work by the copyright owner or by an individual or Legal Entity authorized to submit on behalf of the copyright owner. For the purposes of this definition, \"submitted\" means any form of electronic, verbal, or written communication sent to the Licensor or its representatives, including but not limited to communication on electronic mailing lists, source code control systems, and issue tracking systems that are managed by, or on behalf of, the Licensor for the purpose of discussing and improving the Work, but excluding communication that is conspicuously marked or otherwise designated in writing by the copyright owner as \"Not a Contribution.\"\n\n\"Contributor\" shall mean Licensor and any individual or Legal Entity on behalf of whom a Contribution has been received by Licensor and subsequently incorporated within the Work.\n\n2. Grant of Copyright License. Subject to the terms and conditions of this License, each Contributor hereby grants to You a perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable copyright license to reproduce, prepare Derivative Works of, publicly display, publicly perform, sublicense, and distribute the Work and such Derivative Works in Source or Object form.\n\n3. Grant of Patent License. Subject to the terms and conditions of this License, each Contributor hereby grants to You a perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable (except as stated in this section) patent license to make, have made, use, offer to sell, sell, import, and otherwise transfer the Work, where such license applies only to those patent claims licensable by such Contributor that are necessarily infringed by their Contribution(s) alone or by combination of their Contribution(s) with the Work to which such Contribution(s) was submitted. If You institute patent litigation against any entity (including a cross-claim or counterclaim in a lawsuit) alleging that the Work or a Contribution incorporated within the Work constitutes direct or contributory patent infringement, then any patent licenses granted to You under this License for that Work shall terminate as of the date such litigation is filed.\n\n4. Redistribution. You may reproduce and distribute copies of the Work or Derivative Works thereof in any medium, with or without modifications, and in Source or Object form, provided that You meet the following conditions:\n\n     (a) You must give any other recipients of the Work or Derivative Works a copy of this License; and\n\n     (b) You must cause any modified files to carry prominent notices stating that You changed the files; and\n\n     (c) You must retain, in the Source form of any Derivative Works that You distribute, all copyright, patent, trademark, and attribution notices from the Source form of the Work, excluding those notices that do not pertain to any part of the Derivative Works; and\n\n     (d) If the Work includes a \"NOTICE\" text file as part of its distribution, then any Derivative Works that You distribute must include a readable copy of the attribution notices contained within such NOTICE file, excluding those notices that do not pertain to any part of the Derivative Works, in at least one of the following places: within a NOTICE text file distributed as part of the Derivative Works; within the Source form or documentation, if provided along with the Derivative Works; or, within a display generated by the Derivative Works, if and wherever such third-party notices normally appear. The contents of the NOTICE file are for informational purposes only and do not modify the License. You may add Your own attribution notices within Derivative Works that You distribute, alongside or as an addendum to the NOTICE text from the Work, provided that such additional attribution notices cannot be construed as modifying the License.\n\n     You may add Your own copyright statement to Your modifications and may provide additional or different license terms and conditions for use, reproduction, or distribution of Your modifications, or for any such Derivative Works as a whole, provided Your use, reproduction, and distribution of the Work otherwise complies with the conditions stated in this License.\n\n5. Submission of Contributions. Unless You explicitly state otherwise, any Contribution intentionally submitted for inclusion in the Work by You to the Licensor shall be under the terms and conditions of this License, without any additional terms or conditions. Notwithstanding the above, nothing herein shall supersede or modify the terms of any separate license agreement you may have executed with Licensor regarding such Contributions.\n\n6. Trademarks. This License does not grant permission to use the trade names, trademarks, service marks, or product names of the Licensor, except as required for reasonable and customary use in describing the origin of the Work and reproducing the content of the NOTICE file.\n\n7. Disclaimer of Warranty. Unless required by applicable law or agreed to in writing, Licensor provides the Work (and each Contributor provides its Contributions) on an \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied, including, without limitation, any warranties or conditions of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE. You are solely responsible for determining the appropriateness of using or redistributing the Work and assume any risks associated with Your exercise of permissions under this License.\n\n8. Limitation of Liability. In no event and under no legal theory, whether in tort (including negligence), contract, or otherwise, unless required by applicable law (such as deliberate and grossly negligent acts) or agreed to in writing, shall any Contributor be liable to You for damages, including any direct, indirect, special, incidental, or consequential damages of any character arising as a result of this License or out of the use or inability to use the Work (including but not limited to damages for loss of goodwill, work stoppage, computer failure or malfunction, or any and all other commercial damages or losses), even if such Contributor has been advised of the possibility of such damages.\n\n9. Accepting Warranty or Additional Liability. While redistributing the Work or Derivative Works thereof, You may choose to offer, and charge a fee for, acceptance of support, warranty, indemnity, or other liability obligations and/or rights consistent with this License. However, in accepting such obligations, You may act only on Your own behalf and on Your sole responsibility, not on behalf of any other Contributor, and only if You agree to indemnify, defend, and hold each Contributor harmless for any liability incurred by, or claims asserted against, such Contributor by reason of your accepting any such warranty or additional liability.\n\nEND OF TERMS AND CONDITIONS\n\nAPPENDIX: How to apply the Apache License to your work.\n\nTo apply the Apache License to your work, attach the following boilerplate notice, with the fields enclosed by brackets \"[]\" replaced with your own identifying information. (Don't include the brackets!)  The text should be enclosed in the appropriate comment syntax for the file format. We also recommend that a file or class name and description of purpose be included on the same \"printed page\" as the copyright notice for easier identification within third-party archives.\n\nCopyright 2025 [name of copyright owner]\n\nLicensed under the Apache License, Version 2.0 (the \"License\");\nyou may not use this file except in compliance with the License.\nYou may obtain a copy of the License at\n\nhttp://www.apache.org/licenses/LICENSE-2.0\n\nUnless required by applicable law or agreed to in writing, software\ndistributed under the License is distributed on an \"AS IS\" BASIS,\nWITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\nSee the License for the specific language governing permissions and\nlimitations under the License.\n"
+      },
+      {
+        "file": "setuptools/_vendor/jaraco.text-4.0.0.dist-info/LICENSE",
+        "text": "Permission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to\ndeal in the Software without restriction, including without limitation the\nrights to use, copy, modify, merge, publish, distribute, sublicense, and/or\nsell copies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in\nall copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING\nFROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS\nIN THE SOFTWARE.\n"
+      },
+      {
+        "file": "setuptools/_vendor/jaraco_context-6.1.0.dist-info/licenses/LICENSE",
+        "text": "MIT License\n\nCopyright (c) 2026 <copyright holders>\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and\nassociated documentation files (the \"Software\"), to deal in the Software without restriction, including\nwithout limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the\nfollowing conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or substantial\nportions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT\nLIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO\nEVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\nIN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE\nUSE OR OTHER DEALINGS IN THE SOFTWARE.\n"
+      },
+      {
+        "file": "setuptools/_vendor/jaraco_functools-4.4.0.dist-info/licenses/LICENSE",
+        "text": "MIT License\n\nCopyright (c) 2025 <copyright holders>\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and\nassociated documentation files (the \"Software\"), to deal in the Software without restriction, including\nwithout limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the\nfollowing conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or substantial\nportions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT\nLIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO\nEVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\nIN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE\nUSE OR OTHER DEALINGS IN THE SOFTWARE.\n"
+      },
+      {
+        "file": "setuptools/_vendor/more_itertools-10.8.0.dist-info/licenses/LICENSE",
+        "text": "Copyright (c) 2012 Erik Rose\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of\nthis software and associated documentation files (the \"Software\"), to deal in\nthe Software without restriction, including without limitation the rights to\nuse, copy, modify, merge, publish, distribute, sublicense, and/or sell copies\nof the Software, and to permit persons to whom the Software is furnished to do\nso, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+      },
+      {
+        "file": "setuptools/_vendor/packaging-26.3.dist-info/licenses/LICENSE",
+        "text": "This software is made available under the terms of *either* of the licenses\nfound in LICENSE.APACHE or LICENSE.BSD. Contributions to this software is made\nunder the terms of *both* these licenses.\n"
+      },
+      {
+        "file": "setuptools/_vendor/packaging-26.3.dist-info/licenses/LICENSE.APACHE",
+        "text": "\n                                 Apache License\n                           Version 2.0, January 2004\n                        http://www.apache.org/licenses/\n\n   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION\n\n   1. Definitions.\n\n      \"License\" shall mean the terms and conditions for use, reproduction,\n      and distribution as defined by Sections 1 through 9 of this document.\n\n      \"Licensor\" shall mean the copyright owner or entity authorized by\n      the copyright owner that is granting the License.\n\n      \"Legal Entity\" shall mean the union of the acting entity and all\n      other entities that control, are controlled by, or are under common\n      control with that entity. For the purposes of this definition,\n      \"control\" means (i) the power, direct or indirect, to cause the\n      direction or management of such entity, whether by contract or\n      otherwise, or (ii) ownership of fifty percent (50%) or more of the\n      outstanding shares, or (iii) beneficial ownership of such entity.\n\n      \"You\" (or \"Your\") shall mean an individual or Legal Entity\n      exercising permissions granted by this License.\n\n      \"Source\" form shall mean the preferred form for making modifications,\n      including but not limited to software source code, documentation\n      source, and configuration files.\n\n      \"Object\" form shall mean any form resulting from mechanical\n      transformation or translation of a Source form, including but\n      not limited to compiled object code, generated documentation,\n      and conversions to other media types.\n\n      \"Work\" shall mean the work of authorship, whether in Source or\n      Object form, made available under the License, as indicated by a\n      copyright notice that is included in or attached to the work\n      (an example is provided in the Appendix below).\n\n      \"Derivative Works\" shall mean any work, whether in Source or Object\n      form, that is based on (or derived from) the Work and for which the\n      editorial revisions, annotations, elaborations, or other modifications\n      represent, as a whole, an original work of authorship. For the purposes\n      of this License, Derivative Works shall not include works that remain\n      separable from, or merely link (or bind by name) to the interfaces of,\n      the Work and Derivative Works thereof.\n\n      \"Contribution\" shall mean any work of authorship, including\n      the original version of the Work and any modifications or additions\n      to that Work or Derivative Works thereof, that is intentionally\n      submitted to Licensor for inclusion in the Work by the copyright owner\n      or by an individual or Legal Entity authorized to submit on behalf of\n      the copyright owner. For the purposes of this definition, \"submitted\"\n      means any form of electronic, verbal, or written communication sent\n      to the Licensor or its representatives, including but not limited to\n      communication on electronic mailing lists, source code control systems,\n      and issue tracking systems that are managed by, or on behalf of, the\n      Licensor for the purpose of discussing and improving the Work, but\n      excluding communication that is conspicuously marked or otherwise\n      designated in writing by the copyright owner as \"Not a Contribution.\"\n\n      \"Contributor\" shall mean Licensor and any individual or Legal Entity\n      on behalf of whom a Contribution has been received by Licensor and\n      subsequently incorporated within the Work.\n\n   2. Grant of Copyright License. Subject to the terms and conditions of\n      this License, each Contributor hereby grants to You a perpetual,\n      worldwide, non-exclusive, no-charge, royalty-free, irrevocable\n      copyright license to reproduce, prepare Derivative Works of,\n      publicly display, publicly perform, sublicense, and distribute the\n      Work and such Derivative Works in Source or Object form.\n\n   3. Grant of Patent License. Subject to the terms and conditions of\n      this License, each Contributor hereby grants to You a perpetual,\n      worldwide, non-exclusive, no-charge, royalty-free, irrevocable\n      (except as stated in this section) patent license to make, have made,\n      use, offer to sell, sell, import, and otherwise transfer the Work,\n      where such license applies only to those patent claims licensable\n      by such Contributor that are necessarily infringed by their\n      Contribution(s) alone or by combination of their Contribution(s)\n      with the Work to which such Contribution(s) was submitted. If You\n      institute patent litigation against any entity (including a\n      cross-claim or counterclaim in a lawsuit) alleging that the Work\n      or a Contribution incorporated within the Work constitutes direct\n      or contributory patent infringement, then any patent licenses\n      granted to You under this License for that Work shall terminate\n      as of the date such litigation is filed.\n\n   4. Redistribution. You may reproduce and distribute copies of the\n      Work or Derivative Works thereof in any medium, with or without\n      modifications, and in Source or Object form, provided that You\n      meet the following conditions:\n\n      (a) You must give any other recipients of the Work or\n          Derivative Works a copy of this License; and\n\n      (b) You must cause any modified files to carry prominent notices\n          stating that You changed the files; and\n\n      (c) You must retain, in the Source form of any Derivative Works\n          that You distribute, all copyright, patent, trademark, and\n          attribution notices from the Source form of the Work,\n          excluding those notices that do not pertain to any part of\n          the Derivative Works; and\n\n      (d) If the Work includes a \"NOTICE\" text file as part of its\n          distribution, then any Derivative Works that You distribute must\n          include a readable copy of the attribution notices contained\n          within such NOTICE file, excluding those notices that do not\n          pertain to any part of the Derivative Works, in at least one\n          of the following places: within a NOTICE text file distributed\n          as part of the Derivative Works; within the Source form or\n          documentation, if provided along with the Derivative Works; or,\n          within a display generated by the Derivative Works, if and\n          wherever such third-party notices normally appear. The contents\n          of the NOTICE file are for informational purposes only and\n          do not modify the License. You may add Your own attribution\n          notices within Derivative Works that You distribute, alongside\n          or as an addendum to the NOTICE text from the Work, provided\n          that such additional attribution notices cannot be construed\n          as modifying the License.\n\n      You may add Your own copyright statement to Your modifications and\n      may provide additional or different license terms and conditions\n      for use, reproduction, or distribution of Your modifications, or\n      for any such Derivative Works as a whole, provided Your use,\n      reproduction, and distribution of the Work otherwise complies with\n      the conditions stated in this License.\n\n   5. Submission of Contributions. Unless You explicitly state otherwise,\n      any Contribution intentionally submitted for inclusion in the Work\n      by You to the Licensor shall be under the terms and conditions of\n      this License, without any additional terms or conditions.\n      Notwithstanding the above, nothing herein shall supersede or modify\n      the terms of any separate license agreement you may have executed\n      with Licensor regarding such Contributions.\n\n   6. Trademarks. This License does not grant permission to use the trade\n      names, trademarks, service marks, or product names of the Licensor,\n      except as required for reasonable and customary use in describing the\n      origin of the Work and reproducing the content of the NOTICE file.\n\n   7. Disclaimer of Warranty. Unless required by applicable law or\n      agreed to in writing, Licensor provides the Work (and each\n      Contributor provides its Contributions) on an \"AS IS\" BASIS,\n      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or\n      implied, including, without limitation, any warranties or conditions\n      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A\n      PARTICULAR PURPOSE. You are solely responsible for determining the\n      appropriateness of using or redistributing the Work and assume any\n      risks associated with Your exercise of permissions under this License.\n\n   8. Limitation of Liability. In no event and under no legal theory,\n      whether in tort (including negligence), contract, or otherwise,\n      unless required by applicable law (such as deliberate and grossly\n      negligent acts) or agreed to in writing, shall any Contributor be\n      liable to You for damages, including any direct, indirect, special,\n      incidental, or consequential damages of any character arising as a\n      result of this License or out of the use or inability to use the\n      Work (including but not limited to damages for loss of goodwill,\n      work stoppage, computer failure or malfunction, or any and all\n      other commercial damages or losses), even if such Contributor\n      has been advised of the possibility of such damages.\n\n   9. Accepting Warranty or Additional Liability. While redistributing\n      the Work or Derivative Works thereof, You may choose to offer,\n      and charge a fee for, acceptance of support, warranty, indemnity,\n      or other liability obligations and/or rights consistent with this\n      License. However, in accepting such obligations, You may act only\n      on Your own behalf and on Your sole responsibility, not on behalf\n      of any other Contributor, and only if You agree to indemnify,\n      defend, and hold each Contributor harmless for any liability\n      incurred by, or claims asserted against, such Contributor by reason\n      of your accepting any such warranty or additional liability.\n\n   END OF TERMS AND CONDITIONS\n"
+      },
+      {
+        "file": "setuptools/_vendor/packaging-26.3.dist-info/licenses/LICENSE.BSD",
+        "text": "Copyright (c) Donald Stufft and individual contributors.\nAll rights reserved.\n\nRedistribution and use in source and binary forms, with or without\nmodification, are permitted provided that the following conditions are met:\n\n    1. Redistributions of source code must retain the above copyright notice,\n       this list of conditions and the following disclaimer.\n\n    2. Redistributions in binary form must reproduce the above copyright\n       notice, this list of conditions and the following disclaimer in the\n       documentation and/or other materials provided with the distribution.\n\nTHIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\" AND\nANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED\nWARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE\nDISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE\nFOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL\nDAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR\nSERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER\nCAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,\nOR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\nOF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n"
+      },
+      {
+        "file": "setuptools/_vendor/platformdirs-4.4.0.dist-info/licenses/LICENSE",
+        "text": "MIT License\n\nCopyright (c) 2010-202x The platformdirs developers\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+      },
+      {
+        "file": "setuptools/_vendor/tomli-2.4.0.dist-info/licenses/LICENSE",
+        "text": "MIT License\n\nCopyright (c) 2021 Taneli Hukkinen\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+      },
+      {
+        "file": "setuptools/_vendor/wheel-0.46.3.dist-info/licenses/LICENSE.txt",
+        "text": "MIT License\n\nCopyright (c) 2012 Daniel Holth <dholth@fastmail.fm> and contributors\n\nPermission is hereby granted, free of charge, to any person obtaining a\ncopy of this software and associated documentation files (the \"Software\"),\nto deal in the Software without restriction, including without limitation\nthe rights to use, copy, modify, merge, publish, distribute, sublicense,\nand/or sell copies of the Software, and to permit persons to whom the\nSoftware is furnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included\nin all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL\nTHE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR\nOTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,\nARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR\nOTHER DEALINGS IN THE SOFTWARE.\n"
+      },
+      {
+        "file": "setuptools/_vendor/zipp-3.23.0.dist-info/licenses/LICENSE",
+        "text": "MIT License\n\nCopyright (c) 2025 <copyright holders>\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and\nassociated documentation files (the \"Software\"), to deal in the Software without restriction, including\nwithout limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the\nfollowing conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or substantial\nportions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT\nLIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO\nEVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER\nIN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE\nUSE OR OTHER DEALINGS IN THE SOFTWARE.\n"
+      }
+    ]
+  },
+  {
+    "name": "wcwidth",
+    "version": "0.9.4",
+    "license": "MIT License",
+    "source": "https://github.com/jquast/wcwidth",
+    "ecosystem": "Python",
+    "texts": [
+      {
+        "file": "wcwidth-0.9.4.dist-info/licenses/LICENSE",
+        "text": "The MIT License (MIT)\n\nCopyright (c) 2014 Jeff Quast <contact@jeffquast.com>\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n\nMarkus Kuhn -- 2007-05-26 (Unicode 5.0)\n\nPermission to use, copy, modify, and distribute this software\nfor any purpose and without fee is hereby granted. The author\ndisclaims all warranties with regard to this software.\n"
+      }
+    ]
+  },
+  {
+    "name": "@babel/code-frame",
+    "version": "7.29.7",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@babel/code-frame/v/7.29.7",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@babel/compat-data",
+    "version": "7.29.7",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@babel/compat-data/v/7.29.7",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@babel/core",
+    "version": "7.29.7",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@babel/core/v/7.29.7",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@babel/generator",
+    "version": "7.29.12",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@babel/generator/v/7.29.12",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@babel/helper-compilation-targets",
+    "version": "7.29.7",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@babel/helper-compilation-targets/v/7.29.7",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@babel/helper-globals",
+    "version": "7.29.7",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@babel/helper-globals/v/7.29.7",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@babel/helper-module-imports",
+    "version": "7.29.7",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@babel/helper-module-imports/v/7.29.7",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@babel/helper-module-transforms",
+    "version": "7.29.7",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@babel/helper-module-transforms/v/7.29.7",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@babel/helper-plugin-utils",
+    "version": "7.29.7",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@babel/helper-plugin-utils/v/7.29.7",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@babel/helper-string-parser",
+    "version": "7.29.11",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@babel/helper-string-parser/v/7.29.11",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@babel/helper-validator-identifier",
+    "version": "7.29.7",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@babel/helper-validator-identifier/v/7.29.7",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@babel/helper-validator-option",
+    "version": "7.29.7",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@babel/helper-validator-option/v/7.29.7",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@babel/helpers",
+    "version": "7.29.10",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@babel/helpers/v/7.29.10",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@babel/parser",
+    "version": "7.29.12",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@babel/parser/v/7.29.12",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@babel/plugin-transform-react-jsx-self",
+    "version": "7.29.7",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@babel/plugin-transform-react-jsx-self/v/7.29.7",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@babel/plugin-transform-react-jsx-source",
+    "version": "7.29.7",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@babel/plugin-transform-react-jsx-source/v/7.29.7",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@babel/template",
+    "version": "7.29.7",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@babel/template/v/7.29.7",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@babel/traverse",
+    "version": "7.29.12",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@babel/traverse/v/7.29.12",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@babel/types",
+    "version": "7.29.11",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@babel/types/v/7.29.11",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@esbuild/aix-ppc64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@esbuild/aix-ppc64/v/0.28.2",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@esbuild/android-arm",
+    "version": "0.28.2",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@esbuild/android-arm/v/0.28.2",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@esbuild/android-arm64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@esbuild/android-arm64/v/0.28.2",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@esbuild/android-x64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@esbuild/android-x64/v/0.28.2",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@esbuild/darwin-arm64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@esbuild/darwin-arm64/v/0.28.2",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@esbuild/darwin-x64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@esbuild/darwin-x64/v/0.28.2",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@esbuild/freebsd-arm64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@esbuild/freebsd-arm64/v/0.28.2",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@esbuild/freebsd-x64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@esbuild/freebsd-x64/v/0.28.2",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@esbuild/linux-arm",
+    "version": "0.28.2",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@esbuild/linux-arm/v/0.28.2",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@esbuild/linux-arm64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@esbuild/linux-arm64/v/0.28.2",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@esbuild/linux-ia32",
+    "version": "0.28.2",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@esbuild/linux-ia32/v/0.28.2",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@esbuild/linux-loong64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@esbuild/linux-loong64/v/0.28.2",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@esbuild/linux-mips64el",
+    "version": "0.28.2",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@esbuild/linux-mips64el/v/0.28.2",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@esbuild/linux-ppc64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@esbuild/linux-ppc64/v/0.28.2",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@esbuild/linux-riscv64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@esbuild/linux-riscv64/v/0.28.2",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@esbuild/linux-s390x",
+    "version": "0.28.2",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@esbuild/linux-s390x/v/0.28.2",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@esbuild/linux-x64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@esbuild/linux-x64/v/0.28.2",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@esbuild/netbsd-arm64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@esbuild/netbsd-arm64/v/0.28.2",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@esbuild/netbsd-x64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@esbuild/netbsd-x64/v/0.28.2",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@esbuild/openbsd-arm64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@esbuild/openbsd-arm64/v/0.28.2",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@esbuild/openbsd-x64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@esbuild/openbsd-x64/v/0.28.2",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@esbuild/openharmony-arm64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@esbuild/openharmony-arm64/v/0.28.2",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@esbuild/sunos-x64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@esbuild/sunos-x64/v/0.28.2",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@esbuild/win32-arm64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@esbuild/win32-arm64/v/0.28.2",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@esbuild/win32-ia32",
+    "version": "0.28.2",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@esbuild/win32-ia32/v/0.28.2",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@esbuild/win32-x64",
+    "version": "0.28.2",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@esbuild/win32-x64/v/0.28.2",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@jridgewell/gen-mapping",
+    "version": "0.3.13",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@jridgewell/gen-mapping/v/0.3.13",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@jridgewell/remapping",
+    "version": "2.3.5",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@jridgewell/remapping/v/2.3.5",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@jridgewell/resolve-uri",
+    "version": "3.1.2",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@jridgewell/resolve-uri/v/3.1.2",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@jridgewell/sourcemap-codec",
+    "version": "1.6.0",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@jridgewell/sourcemap-codec/v/1.6.0",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@jridgewell/trace-mapping",
+    "version": "0.3.31",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@jridgewell/trace-mapping/v/0.3.31",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@napi-rs/lzma-linux-x64-gnu",
+    "version": "1.5.1",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@napi-rs/lzma-linux-x64-gnu/v/1.5.1",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@playwright/test",
+    "version": "1.64.1",
+    "license": "Apache-2.0",
+    "source": "https://www.npmjs.com/package/@playwright/test/v/1.64.1",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@rolldown/pluginutils",
+    "version": "1.0.0-rc.3",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@rolldown/pluginutils/v/1.0.0-rc.3",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@rollup/rollup-android-arm-eabi",
+    "version": "4.67.4",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@rollup/rollup-android-arm-eabi/v/4.67.4",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@rollup/rollup-android-arm64",
+    "version": "4.67.4",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@rollup/rollup-android-arm64/v/4.67.4",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@rollup/rollup-android-x64",
+    "version": "4.67.4",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@rollup/rollup-android-x64/v/4.67.4",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@rollup/rollup-darwin-arm64",
+    "version": "4.67.4",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@rollup/rollup-darwin-arm64/v/4.67.4",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@rollup/rollup-darwin-x64",
+    "version": "4.67.4",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@rollup/rollup-darwin-x64/v/4.67.4",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@rollup/rollup-freebsd-arm64",
+    "version": "4.67.4",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@rollup/rollup-freebsd-arm64/v/4.67.4",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@rollup/rollup-freebsd-x64",
+    "version": "4.67.4",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@rollup/rollup-freebsd-x64/v/4.67.4",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@rollup/rollup-linux-arm-gnueabihf",
+    "version": "4.67.4",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@rollup/rollup-linux-arm-gnueabihf/v/4.67.4",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@rollup/rollup-linux-arm-musleabihf",
+    "version": "4.67.4",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@rollup/rollup-linux-arm-musleabihf/v/4.67.4",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@rollup/rollup-linux-arm64-gnu",
+    "version": "4.67.4",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@rollup/rollup-linux-arm64-gnu/v/4.67.4",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@rollup/rollup-linux-arm64-musl",
+    "version": "4.67.4",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@rollup/rollup-linux-arm64-musl/v/4.67.4",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@rollup/rollup-linux-loong64-gnu",
+    "version": "4.67.4",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@rollup/rollup-linux-loong64-gnu/v/4.67.4",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@rollup/rollup-linux-loong64-musl",
+    "version": "4.67.4",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@rollup/rollup-linux-loong64-musl/v/4.67.4",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@rollup/rollup-linux-ppc64-gnu",
+    "version": "4.67.4",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@rollup/rollup-linux-ppc64-gnu/v/4.67.4",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@rollup/rollup-linux-ppc64-musl",
+    "version": "4.67.4",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@rollup/rollup-linux-ppc64-musl/v/4.67.4",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@rollup/rollup-linux-riscv64-gnu",
+    "version": "4.67.4",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@rollup/rollup-linux-riscv64-gnu/v/4.67.4",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@rollup/rollup-linux-riscv64-musl",
+    "version": "4.67.4",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@rollup/rollup-linux-riscv64-musl/v/4.67.4",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@rollup/rollup-linux-s390x-gnu",
+    "version": "4.67.4",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@rollup/rollup-linux-s390x-gnu/v/4.67.4",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@rollup/rollup-linux-x64-gnu",
+    "version": "4.67.4",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@rollup/rollup-linux-x64-gnu/v/4.67.4",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@rollup/rollup-linux-x64-musl",
+    "version": "4.67.4",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@rollup/rollup-linux-x64-musl/v/4.67.4",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@rollup/rollup-openbsd-x64",
+    "version": "4.67.4",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@rollup/rollup-openbsd-x64/v/4.67.4",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@rollup/rollup-openharmony-arm64",
+    "version": "4.67.4",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@rollup/rollup-openharmony-arm64/v/4.67.4",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@rollup/rollup-win32-arm64-msvc",
+    "version": "4.67.4",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@rollup/rollup-win32-arm64-msvc/v/4.67.4",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@rollup/rollup-win32-ia32-msvc",
+    "version": "4.67.4",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@rollup/rollup-win32-ia32-msvc/v/4.67.4",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@rollup/rollup-win32-x64-gnu",
+    "version": "4.67.4",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@rollup/rollup-win32-x64-gnu/v/4.67.4",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@rollup/rollup-win32-x64-msvc",
+    "version": "4.67.4",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@rollup/rollup-win32-x64-msvc/v/4.67.4",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "@types/babel__core",
+    "version": "7.20.5",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@types/babel__core/v/7.20.5",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@types/babel__generator",
+    "version": "7.27.0",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@types/babel__generator/v/7.27.0",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@types/babel__template",
+    "version": "7.4.4",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@types/babel__template/v/7.4.4",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@types/babel__traverse",
+    "version": "7.28.0",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@types/babel__traverse/v/7.28.0",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@types/estree",
+    "version": "1.0.10",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@types/estree/v/1.0.10",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@types/node",
+    "version": "24.19.2",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@types/node/v/24.19.2",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@types/react",
+    "version": "19.3.0",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@types/react/v/19.3.0",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@types/react-dom",
+    "version": "19.3.0",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@types/react-dom/v/19.3.0",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "@vitejs/plugin-react",
+    "version": "5.2.0",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/@vitejs/plugin-react/v/5.2.0",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "baseline-browser-mapping",
+    "version": "2.11.34",
+    "license": "Apache-2.0",
+    "source": "https://www.npmjs.com/package/baseline-browser-mapping/v/2.11.34",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "browserslist",
+    "version": "4.29.5",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/browserslist/v/4.29.5",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "caniuse-lite",
+    "version": "1.0.30001820",
+    "license": "CC-BY-4.0",
+    "source": "https://www.npmjs.com/package/caniuse-lite/v/1.0.30001820",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "convert-source-map",
+    "version": "2.0.0",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/convert-source-map/v/2.0.0",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "csstype",
+    "version": "3.2.3",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/csstype/v/3.2.3",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "debug",
+    "version": "4.4.3",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/debug/v/4.4.3",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "electron-to-chromium",
+    "version": "1.5.472",
+    "license": "ISC",
+    "source": "https://www.npmjs.com/package/electron-to-chromium/v/1.5.472",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "esbuild",
+    "version": "0.28.2",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/esbuild/v/0.28.2",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "escalade",
+    "version": "3.2.0",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/escalade/v/3.2.0",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "fdir",
+    "version": "6.5.0",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/fdir/v/6.5.0",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "fsevents",
+    "version": "2.3.3",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/fsevents/v/2.3.3",
+    "ecosystem": "JavaScript build tools",
+    "optional": true
+  },
+  {
+    "name": "gensync",
+    "version": "1.0.0-beta.2",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/gensync/v/1.0.0-beta.2",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "js-tokens",
+    "version": "4.0.0",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/js-tokens/v/4.0.0",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "jsesc",
+    "version": "3.1.0",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/jsesc/v/3.1.0",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "json5",
+    "version": "2.2.3",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/json5/v/2.2.3",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "lru-cache",
+    "version": "5.1.1",
+    "license": "ISC",
+    "source": "https://www.npmjs.com/package/lru-cache/v/5.1.1",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "lucide-react",
+    "version": "0.468.0",
+    "license": "ISC",
+    "source": "https://www.npmjs.com/package/lucide-react/v/0.468.0",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "ms",
+    "version": "2.1.3",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/ms/v/2.1.3",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "nanoid",
+    "version": "3.3.20",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/nanoid/v/3.3.20",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "node-releases",
+    "version": "2.0.63",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/node-releases/v/2.0.63",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "picocolors",
+    "version": "1.1.1",
+    "license": "ISC",
+    "source": "https://www.npmjs.com/package/picocolors/v/1.1.1",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "picomatch",
+    "version": "4.0.7",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/picomatch/v/4.0.7",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "playwright",
+    "version": "1.64.1",
+    "license": "Apache-2.0",
+    "source": "https://www.npmjs.com/package/playwright/v/1.64.1",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "playwright-core",
+    "version": "1.64.1",
+    "license": "Apache-2.0",
+    "source": "https://www.npmjs.com/package/playwright-core/v/1.64.1",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "postcss",
+    "version": "8.5.32",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/postcss/v/8.5.32",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "prettier",
+    "version": "3.9.10",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/prettier/v/3.9.10",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "react",
+    "version": "19.2.0",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/react/v/19.2.0",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "react-dom",
+    "version": "19.2.0",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/react-dom/v/19.2.0",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "react-refresh",
+    "version": "0.18.0",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/react-refresh/v/0.18.0",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "rollup",
+    "version": "4.67.4",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/rollup/v/4.67.4",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "scheduler",
+    "version": "0.27.0",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/scheduler/v/0.27.0",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "semver",
+    "version": "6.3.1",
+    "license": "ISC",
+    "source": "https://www.npmjs.com/package/semver/v/6.3.1",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "source-map-js",
+    "version": "1.2.2",
+    "license": "BSD-3-Clause",
+    "source": "https://www.npmjs.com/package/source-map-js/v/1.2.2",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "tinyglobby",
+    "version": "0.2.17",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/tinyglobby/v/0.2.17",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "typescript",
+    "version": "5.9.3",
+    "license": "Apache-2.0",
+    "source": "https://www.npmjs.com/package/typescript/v/5.9.3",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "undici-types",
+    "version": "7.24.6",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/undici-types/v/7.24.6",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "update-browserslist-db",
+    "version": "1.3.4",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/update-browserslist-db/v/1.3.4",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "vite",
+    "version": "7.3.7",
+    "license": "MIT",
+    "source": "https://www.npmjs.com/package/vite/v/7.3.7",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  },
+  {
+    "name": "yallist",
+    "version": "3.1.1",
+    "license": "ISC",
+    "source": "https://www.npmjs.com/package/yallist/v/3.1.1",
+    "ecosystem": "JavaScript build tools",
+    "optional": false
+  }
+]

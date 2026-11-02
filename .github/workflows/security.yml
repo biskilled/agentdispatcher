@@ -1,0 +1,65 @@
+name: Release security evidence
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: actions/setup-node@v4
+        with: { node-version: "24" }
+      - run: pip install -r requirements.lock
+      - run: python scripts/audit_dependencies.py requirements.lock services/mcp/requirements.lock requirements-dev.lock --endpoint https://api.osv.dev/v1/querybatch --output python-advisories.json
+      - run: npm audit --json > npm-advisories.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dependency-advisories
+          path: '*-advisories.json'
+          retention-days: 30
+
+  containers:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [api, ui, mcp, gateway, collector, db, recovery]
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/configure.py
+      - id: image
+        run: python3 scripts/container_inventory.py ${{ matrix.service }}
+      - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6
+        if: matrix.service == 'gateway'
+      - name: Verify upstream LiteLLM image signature
+        if: matrix.service == 'gateway'
+        env:
+          GATEWAY_IMAGE: ${{ steps.image.outputs.image }}
+        run: cosign verify --key https://raw.githubusercontent.com/BerriAI/litellm/e82a3c646908ba0a6ee0beddc4310d7a6cac4065/cosign.pub "$GATEWAY_IMAGE" > gateway-signature.json
+      - uses: anchore/sbom-action@43a17d6e7add2b5535efe4dcae9952337c479a93
+        with:
+          image: ${{ steps.image.outputs.image }}
+          syft-version: v1.55.0
+          output-file: inventory.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+      - uses: anchore/scan-action@8576240a41341d866dbd7ebc72cd9fc0ef023f54
+        with:
+          sbom: inventory.spdx.json
+          grype-version: v0.121.0
+          output-format: json
+          output-file: vulnerabilities.json
+          severity-cutoff: high
+          fail-build: true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: container-${{ matrix.service }}
+          path: |
+            inventory.spdx.json
+            vulnerabilities.json
+            gateway-signature.json
+          retention-days: 30

@@ -8,15 +8,18 @@ from pathlib import Path
 
 def checked_license(name: str, license_name: str) -> str:
     """Fail on missing or explicitly prohibited licenses rather than guessing terms."""
-    if not license_name or any(word in license_name.upper() for word in ("AGPL", "PROPRIETARY")):
+    if not license_name or any(
+        word in license_name.upper()
+        for word in ("AGPL", "PROPRIETARY", "COMMERCIAL", "BUSL", "SSPL", "UNKNOWN")
+    ):
         raise RuntimeError(f"Review required for {name}: {license_name or 'unknown license'}")
     return license_name
 
 
-def python_notices(root: Path) -> list[dict]:
+def python_notices(root: Path, lock_name="requirements.lock") -> list[dict]:
     """Read the pinned runtime closure and all bundled distribution license files."""
     notices = []
-    for line in (root / "requirements.lock").read_text().splitlines():
+    for line in (root / lock_name).read_text().splitlines():
         if line.startswith("#") or not line:
             continue
         name, version = line.split("==")
@@ -87,8 +90,31 @@ def main() -> None:
     """Produce the single notice artifact used by the source distribution and UI."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--python-only-root", type=Path)
+    parser.add_argument("--development", action="store_true")
     args = parser.parse_args()
     root = args.python_only_root or Path(__file__).resolve().parents[1]
+    if args.development:
+        notices = python_notices(root, "requirements-dev.lock")
+        lock = json.loads((root / "package-lock.json").read_text())
+        for path, item in lock["packages"].items():
+            if not path:
+                continue
+            name = path.split("node_modules/")[-1]
+            notices.append(
+                {
+                    "name": name,
+                    "version": item["version"],
+                    "license": checked_license(name, item.get("license", "")),
+                    "source": f"https://www.npmjs.com/package/{name}/v/{item['version']}",
+                    "ecosystem": "JavaScript build tools",
+                    "optional": item.get("optional", False),
+                }
+            )
+        (root / "third_party/development.json").write_text(json.dumps(notices, indent=2) + "\n")
+        print(
+            f"Recorded {len(notices)} development/optional package attributions from version locks."
+        )
+        return
     notices = python_notices(root)
     if not args.python_only_root:
         notices.extend(node_notices(root))

@@ -1,5 +1,5 @@
-ARG NODE_IMAGE=node:24.13.1-alpine
-ARG NGINX_IMAGE=nginx:1.28.0-alpine
+ARG NODE_IMAGE
+ARG NGINX_IMAGE
 FROM ${NODE_IMAGE} AS builder
 WORKDIR /app
 COPY package*.json ./
