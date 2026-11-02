@@ -17,8 +17,8 @@ _Explicit user instructions — always apply these. When a rule shapes your acti
 - **auth_strategy**: React app: Google OAuth + email sign-in; SDK: hashed API keys scoped per tenant _(candidate)_
 
 ## General
-- **implementation_status**: 2026-11-01: initial Python/FastAPI API, PostgreSQL forced-RLS ledger/separate auth role, email sessions/Google OIDC routes, scoped hashed SDK keys, basic versio _(candidate)_
 - **authentication_and_sdk_keys**: Authentication clarification (2026-11-01): Human access supports Google sign-in and verified email sign-in; passwordless email links are the initial design assu _(candidate)_
+- **implementation_status**: 2026-11-01: initial Python/FastAPI API, PostgreSQL forced-RLS ledger/separate auth role, email sessions/Google OIDC routes, scoped hashed SDK keys, basic versio _(candidate)_
 - **general_api_monitoring**: General API monitoring extension (2026-11-01): Monitor free and paid non-LLM APIs through the same reusable SDK and tenant-isolated PostgreSQL ledger, including _(candidate)_
 
 ## Stack

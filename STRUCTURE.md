@@ -1,4 +1,4 @@
-<!-- Last updated: 2026-11-01 11:09 UTC -->
+<!-- Last updated: 2026-11-02 02:45 UTC -->
 # Code Map: agentdispatcher
 _Comprehensive code structure — single source for all LLMs. Refresh: `/memory`_
 
@@ -233,9 +233,9 @@ app/
 _1 open use case(s), 18 open item(s) — grouped below._
 
 ### `US10000` AgentDispatcher — open-source LLM gateway and API usage monitoring _(18 open · 5 features, 13 tasks)_
-- `TA10002` `task` Shared API quota and pricing engine with mixed-workload fixtures [in-progress]
-- `TA10001` `task` Admin API catalog and versioned provider plans [in-progress]
-- `TA10000` `task` Background job health, coverage and billing reconciliation [in-progress]
+- `TA10002` `task` Shared API quota and pricing engine with mixed-workload fixtures [review]
+- `TA10001` `task` Admin API catalog and versioned provider plans [review]
+- `TA10000` `task` Background job health, coverage and billing reconciliation [review]
 - _… +15 more_
 
 ---

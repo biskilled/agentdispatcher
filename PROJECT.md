@@ -86,9 +86,9 @@ _Born as a design-mode export; review and refine — this file is the project's 
 - [feature] Responsive React monitoring UI: overview, jobs, sessions and connections (in-progress)
 - [feature] Tenant-isolated PostgreSQL ledger, execution context and pricing (in-progress)
 - [feature] Google/email authentication, tenant SDK keys and AgentDesk attribution (in-progress)
-- [feature] Shared API quota and pricing engine with mixed-workload fixtures (in-progress)
-- [feature] Admin API catalog and versioned provider plans (in-progress)
-- [feature] Reusable LLM/API monitoring SDK and AgentTrade integration (in-progress)
+- [task] Shared API quota and pricing engine with mixed-workload fixtures (in-progress)
+- [task] Admin API catalog and versioned provider plans (in-progress)
+- [task] Reusable LLM/API monitoring SDK and AgentTrade integration (in-progress)
 
 ## Project Facts
 
