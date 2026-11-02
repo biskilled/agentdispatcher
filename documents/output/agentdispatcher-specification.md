@@ -391,6 +391,12 @@ Provide least-privilege read-only PostgreSQL access with tenant identity bound t
 
 ### TA10003 — Google/email authentication, tenant SDK keys and AgentDesk attribution
 
+**Owner clarification (2026-11-02):** Deliver authentication through documented environment
+variables for Railway or local configuration. Real Google/SMTP credentials, live sign-in
+verification and activation of the deployed AgentDesk identity integration are deferred
+to environment setup; their absence does not block implementation acceptance. Automated
+authentication, membership, isolation and credential-lifecycle tests remain required.
+
 Validate AgentDesk identity/session credentials and membership server-side; map tenant/user/service to Dispatcher permissions. OTEL_RESOURCE_ATTRIBUTES supplies stable service/project defaults, while changing work-item/role context travels per request/job. Sync caller-session mappings with effective times so mid-session switches do not rewrite prior attribution. Provide tenant-authorised get_usage/get_session/list_experiments and permission-controlled set_policy tools; show work-item and pipeline-role costs in AgentDesk. Provide a minimal standalone identity adapter for the required Google/email sign-in flows.
 
 Authentication clarification (2026-11-01): Human access supports Google sign-in and verified email sign-in; passwordless email links are the initial design assumption. Resolve users, tenant memberships and roles server-side, including AgentDesk identity integration. SDKs use dedicated tenant-scoped service API keys, preferably separate per app/environment, with only a cryptographic verifier/hash stored in PostgreSQL. The SDK transmits the original random secret over TLS; a stored hash is never a client credential. Keys identify services, not human users. Tenant and permissions come from validated credentials, never telemetry tags.

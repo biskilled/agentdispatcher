@@ -1,7 +1,7 @@
 # Release verification — 2026-11-02
 
-**Release blocked.** Application acceptance fixtures pass, but live authentication
-acceptance and two upstream container findings remain open. The security workflow
+**Release blocked.** Application acceptance fixtures pass, but two upstream container
+findings remain open. Live authentication setup is deferred by the owner. The security workflow
 fails on High/Critical findings, including unfixed ones. No advisory exceptions,
 blanket ignores or changed severity thresholds have been added.
 
@@ -60,7 +60,12 @@ Neither finding is suppressed or claimed fixed.
 The core demo does not start these optional gateway/telemetry profiles. They remain
 development-preview integrations pending release clearance.
 
-## Authentication acceptance
+## Deferred authentication deployment setup
+
+On 2026-11-02 the owner confirmed that credentials will be configured later in Railway
+or locally and are not required for implementation completion. TA10003 is ready for
+review based on the implemented environment variables and automated verification.
+The following live checks remain deployment steps, not current implementation blockers.
 
 Google OIDC, email-link sessions, invitation/membership boundaries, scoped hashed
 SDK keys and AgentDesk attribution have automated positive/negative tests. Live
