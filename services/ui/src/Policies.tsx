@@ -173,6 +173,8 @@ export function PoliciesView({ tenant, section, report }: Props) {
         minimum_quality: data.get("minimum_quality"),
         quality_margin: data.get("quality_margin"),
         maximum_latency_ms: data.get("maximum_latency_ms"),
+        configuration_source: data.get("configuration_source") || null,
+        configuration_digest: data.get("configuration_digest") || null,
         variants: [
           { name: "baseline", model: data.get("baseline_model"), weight: 1 },
           { name: "candidate", model: data.get("candidate_model"), weight: 1 },
@@ -401,6 +403,14 @@ export function PoliciesView({ tenant, section, report }: Props) {
           <label>
             Maximum average task latency (ms)
             <input name="maximum_latency_ms" type="number" min="1" required />
+          </label>
+          <label>
+            Configuration source (optional)
+            <input name="configuration_source" />
+          </label>
+          <label>
+            Configuration SHA-256 (required with source)
+            <input name="configuration_digest" pattern="[0-9a-f]{64}" />
           </label>
           <button className="primary" disabled={busy}>
             Create experiment

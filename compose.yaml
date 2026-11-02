@@ -9,6 +9,9 @@ x-runtime: &runtime
   DISPATCHER_WORKER_INTERVAL: ${DISPATCHER_WORKER_INTERVAL:-30}
   DISPATCHER_HEARTBEAT_GRACE_SECONDS: ${DISPATCHER_HEARTBEAT_GRACE_SECONDS:-300}
   DISPATCHER_CONFIG_SOURCES: ${DISPATCHER_CONFIG_SOURCES:?Set to an authorised source map or an empty JSON object}
+  DISPATCHER_CONFIG_POLL_SECONDS: ${DISPATCHER_CONFIG_POLL_SECONDS:-60}
+  DISPATCHER_CONFIG_RUNTIME_TTL: ${DISPATCHER_CONFIG_RUNTIME_TTL:-300}
+  DISPATCHER_CONFIG_CLOCK_SKEW_SECONDS: ${DISPATCHER_CONFIG_CLOCK_SKEW_SECONDS:-30}
 
 x-app: &app
   build:
@@ -16,6 +19,7 @@ x-app: &app
     dockerfile: services/api/Dockerfile
     args:
       PYTHON_IMAGE: ${PYTHON_IMAGE}
+      INSTALL_GIT: ${INSTALL_GIT:-false}
   image: agentdispatcher-core:local
   init: true
   restart: unless-stopped

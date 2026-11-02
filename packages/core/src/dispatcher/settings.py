@@ -54,6 +54,9 @@ class Settings(BaseSettings):
     gateway_callback_secret: SecretStr = SecretStr("")
     config_sources: dict[str, ConfigSource] = Field(default_factory=dict)
     config_max_bytes: int = Field(default=65536, gt=0)
+    config_poll_seconds: int = Field(default=60, gt=0)
+    config_runtime_ttl: int = Field(default=300, gt=0)
+    config_clock_skew_seconds: int = Field(default=30, ge=0)
     agentdesk_identity_url: str = ""
     identity_max_bytes: int = Field(default=16384, ge=1024, le=65536)
 

@@ -8,7 +8,7 @@ from test_access import invite_user
 from test_integration import event, ingest
 
 
-def setup_experiment(system):
+def setup_experiment(system, **configuration):
     """Create two compatible aliases without naming or calling real provider models."""
     client = system["client"]
     experiment = {
@@ -25,6 +25,7 @@ def setup_experiment(system):
             {"name": "baseline", "model": "model-a"},
             {"name": "candidate", "model": "model-b"},
         ],
+        **configuration,
     }
     result = client.post("/api/experiments", json=experiment)
     assert result.status_code == 201, result.text
@@ -88,7 +89,7 @@ def outcome(system, route, **updates):
     )
 
 
-def evidence(system, route, unknown=False):
+def evidence(system, route, unknown=False, **attributes):
     """Record inference, failed retry and evaluator spend as separate physical attempts."""
     tags = {
         key: route[key]
@@ -104,6 +105,7 @@ def evidence(system, route, unknown=False):
     rows = [
         event(
             **tags,
+            **attributes,
             resource_kind="llm",
             model=route["model"],
             reported_cost=cost,

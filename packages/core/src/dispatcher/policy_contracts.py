@@ -34,6 +34,8 @@ class Experiment(Contract):
     quality_margin: Decimal = Field(default=Decimal("0.05"), ge=0, le=1)
     maximum_latency_ms: Decimal = Field(gt=0, allow_inf_nan=False)
     currency: str = Field(pattern=r"^[A-Z]{3}$")
+    configuration_source: Name | None = None
+    configuration_digest: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
 
     @model_validator(mode="after")
     def distinct_variants(self):
@@ -44,6 +46,8 @@ class Experiment(Contract):
             raise ValueError("Variant models must be distinct")
         if self.baseline not in {variant.name for variant in self.variants}:
             raise ValueError("Baseline must name a configured variant")
+        if (self.configuration_source is None) != (self.configuration_digest is None):
+            raise ValueError("Configuration evaluation requires both source and content digest")
         return self
 
 

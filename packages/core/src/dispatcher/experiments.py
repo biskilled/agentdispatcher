@@ -20,7 +20,7 @@ SELECT id,config,created_at FROM mng_experiments WHERE tenant_id=%s
 ORDER BY created_at DESC LIMIT %s
 """
 _SQL_ASSIGNMENT = """
-SELECT a.*,e.app,e.environment FROM mem_assignments a JOIN mng_experiments e
+SELECT a.*,e.app,e.environment,e.config FROM mem_assignments a JOIN mng_experiments e
 ON (e.tenant_id,e.id)=(a.tenant_id,a.experiment_id) WHERE a.tenant_id=%s AND a.id=%s
 """
 _SQL_FEEDBACK = """
@@ -66,6 +66,9 @@ def validate_assignment(connection, principal, event):
         raise HTTPException(403, "Experiment assignment is outside the service scope")
     if (row["experiment_id"], row["variant"]) != (event.experiment_id, event.variant):
         raise HTTPException(409, "Experiment evidence does not match its assignment")
+    digest = row["config"].get("configuration_digest")
+    if digest and event.config_version != digest:
+        raise HTTPException(409, "Usage does not match the experiment's configuration version")
 
 
 class Experiments:

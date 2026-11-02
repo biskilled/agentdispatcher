@@ -670,6 +670,9 @@ td small {
   border-radius: 6px;
   margin-bottom: 20px;
 }
+.source-revision {
+  overflow-wrap: anywhere;
+}
 .muted {
   font-size: 12px;
   color: var(--muted);

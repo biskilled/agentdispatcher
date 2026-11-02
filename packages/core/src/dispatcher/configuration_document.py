@@ -63,6 +63,7 @@ class ConfigSource(Contract):
     fields: dict[str, EditableField] = Field(min_length=1)
     author_name: str = ""
     author_email: str = ""
+    publish_remote: str = Field(default="", pattern=r"^([a-zA-Z0-9][a-zA-Z0-9_.-]*)?$")
 
     def fingerprint(self):
         """Invalidate proposals if the operator changes targets or permissions."""

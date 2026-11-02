@@ -1,12 +1,12 @@
 """Authorised file, conditional API and review-branch Git adapters for app-owned YAML."""
 
+import hashlib
 import os
 import stat
 import subprocess
 import tempfile
 from pathlib import Path
 from typing import Protocol
-from uuid import uuid4
 
 import httpx
 
@@ -131,12 +131,19 @@ class GitConnector:
     """Create an unpushed review branch using Git plumbing; preserve the current checkout/index."""
 
     def __init__(
-        self, root: Path, relative_path: str, max_bytes: int, author: dict, timeout: float
+        self,
+        root: Path,
+        relative_path: str,
+        max_bytes: int,
+        author: dict,
+        timeout: float,
+        publish_remote: str = "",
     ):
         self.root, self.path, self.max_bytes = root.resolve(), relative_path, max_bytes
         if Path(relative_path).is_absolute() or ".." in Path(relative_path).parts:
             raise ValueError("Configuration path escapes the authorised repository")
         self.author, self.timeout = author, timeout
+        self.publish_remote = publish_remote
 
     def _git(self, *args, input=None, extra=None):
         result = subprocess.run(
@@ -174,7 +181,16 @@ class GitConnector:
         """Create a review branch; deployment and activation remain separate actions."""
         if self.read().revision != expected.revision:
             raise RevisionConflict("Repository changed since review")
-        branch = "refs/heads/dispatcher-review/" + uuid4().hex
+        # A repeated apply after a crash reuses the same immutable review branch.
+        identity = hashlib.sha256((expected.revision + text).encode()).hexdigest()
+        branch = "refs/heads/dispatcher-review/" + identity
+        existing = self._git("for-each-ref", "--format=%(objectname)", branch)
+        if existing:
+            if self._git("rev-parse", existing + "^") != expected.revision or self._git(
+                "rev-parse", existing + ":" + self.path
+            ) != self._git("hash-object", "--stdin", input=text):
+                raise RevisionConflict("Review branch already exists with different contents")
+            return Snapshot(text, branch + "@" + existing)
         with tempfile.TemporaryDirectory() as directory:
             extra = {"GIT_INDEX_FILE": str(Path(directory) / "index"), **self.author}
             self._git("read-tree", expected.revision, extra=extra)
@@ -194,3 +210,21 @@ class GitConnector:
                 raise RevisionConflict("Repository changed during apply")
             self._git("update-ref", branch, commit, "")
         return Snapshot(text, branch + "@" + commit)
+
+    def publish(self, revision):
+        """Push only the immutable generated branch to an operator-approved named remote."""
+        if not self.publish_remote:
+            raise ValueError("Git publishing has no installation grant")
+        branch, separator, commit = revision.partition("@")
+        if (
+            not separator
+            or not branch.startswith("refs/heads/dispatcher-review/")
+            or len(commit) not in (40, 64)
+            or any(c not in "0123456789abcdef" for c in commit)
+        ):
+            raise ValueError("Invalid review branch revision")
+        if self._git("rev-parse", "--verify", branch) != commit:
+            raise RevisionConflict("Review branch changed after approval")
+        # No force option and no default refspec: this cannot update the deployment branch.
+        self._git("push", "--", self.publish_remote, f"{branch}:{branch}")
+        return revision

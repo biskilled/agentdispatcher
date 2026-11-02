@@ -157,7 +157,10 @@ upgrading. Each entry specifies `tenant_id`, `app`, `environment`, `kind` (`file
 `api`, or `git`), `writable`, and permitted `fields`. File/Git sources also specify
 an authorised `root` and relative `path`; API sources specify `endpoint` and optional
 `token_env` naming a secret environment variable. Git sources require `author_name`
-and `author_email`. Mount authorised directories into the API container explicitly.
+and `author_email`. Mount authorised directories into both API and worker containers
+explicitly. For Git sources, set `INSTALL_GIT=true` and rebuild the core image. API
+tokens, SSH keys and known-host configuration must be supplied separately to the
+containers that need them; the source map contains only secret environment names.
 
 A field such as `llm.model` uses `{"kind":"model","models":["approved-model-a",
 "approved-model-b"]}`. Numeric fields specify `kind: number` or `integer` plus
@@ -174,17 +177,41 @@ values, source revisions, hashes and review history, never original YAML or prom
 API sources must implement atomic strong-ETag `If-Match` writes. Local files use
 atomic replacement with hash checks; external writers must coordinate because
 ordinary filesystems offer no atomic compare-and-swap against uncooperative writers.
-Git creates an unpushed review branch while preserving the checkout/index. Merge,
-PR publication and deployment remain explicit external actions. A crash while
-creating a Git branch can leave an orphan review branch; inspect it before retrying.
+Git creates an unpushed, deterministic review branch while preserving the checkout/index.
+An optional `publish_remote` names an operator-configured Git remote. With that grant,
+**Publish review branch** pushes only the prepared branch, without force or a deployment
+branch refspec. PR creation, merging and deployment remain explicit external actions.
+Retrying a Git write after a crash reuses the branch after verifying its contents.
 
 Saving is separate from activation. After reloading the actual YAML bytes, the app
 calls `monitor.configuration_activation(change_id, sha256_of_loaded_bytes, success)`
 and attributes requests with `monitor.context(config_version=sha256_of_loaded_bytes)`.
 File/API changes can restore previous parameter values after failed activation,
 provided no external edit followed the applied version. Rollback also requires an
-application reload; it does not imply deployment. Automated evaluations, source
-polling, Git rollback/publishing and runtime drift reports remain under development.
+application reload; it does not imply deployment. For Git, rollback creates a second
+review branch against the currently deployed/merged revision. Publish and merge it,
+then report activation using the rollback digest and the same change ID.
+
+The worker polls sources every `DISPATCHER_CONFIG_POLL_SECONDS` (default 60). Each app
+instance should periodically call `monitor.configuration_runtime(source_id, instance_id,
+sha256_of_loaded_bytes, success=True)`. **Loaded configuration** distinguishes matching,
+drifted, failed, stale and missing evidence. Reports expire after
+`DISPATCHER_CONFIG_RUNTIME_TTL` seconds (default 300); a source unavailable to the worker
+cannot confirm parity. Only reporting instances are covered. Instance IDs must be stable
+within an app/environment; they are metadata, not authorization. Older queued reports
+cannot replace newer observations. Source or permission changes invalidate old evidence.
+
+**Check evaluated alternatives** uses the existing experiment engine. Configure the
+experiment's `configuration_source` and exact `configuration_digest`, and include that
+digest as `config_version` on its usage records. Suggestions require a matching app,
+environment, source revision and allowed model, plus successful-task cost, quality,
+latency and coverage gates. Prices alone never produce suggestions. **Prepare evaluated
+review** rechecks the evidence and stores its snapshot with the diff. Approval and
+activation remain separate; configured gates are not statistical proof of savings.
+
+`scripts/verify_configuration_ui.py --env-file <local-env>` exercises real connected
+YAML editing, failed activation and rollback on desktop/mobile against an isolated
+fixture API and the configured disposable PostgreSQL database. Build the UI first.
 
 ## Development and verification
 

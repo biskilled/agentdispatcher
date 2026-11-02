@@ -8,6 +8,7 @@ from dispatcher.schema_access import SQL_ACCESS
 from dispatcher.schema_accounting import SQL_ACCOUNTING
 from dispatcher.schema_agentdesk import SQL_AGENTDESK
 from dispatcher.schema_analytics import SQL_ANALYTICS
+from dispatcher.schema_config_monitoring import SQL_CONFIG_MONITORING
 from dispatcher.schema_configuration import SQL_CONFIGURATION
 from dispatcher.schema_context import SQL_CONTEXT
 from dispatcher.schema_gateway import SQL_GATEWAY
@@ -146,6 +147,7 @@ MIGRATIONS = (
     (9, SQL_CONTEXT),
     (10, SQL_POLICIES),
     (11, SQL_TOOLS),
+    (12, SQL_CONFIG_MONITORING),
 )
 
 

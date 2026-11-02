@@ -7,6 +7,7 @@ import threading
 import time
 from contextlib import contextmanager
 from datetime import UTC, datetime
+from urllib.parse import quote
 from uuid import UUID, uuid4
 
 import httpx
@@ -32,6 +33,11 @@ _CONTEXT_FIELDS = frozenset(
         "job_run_id",
     }
 )
+
+
+def _validate_configuration_digest(digest):
+    if len(digest) != 64 or any(character not in "0123456789abcdef" for character in digest):
+        raise ValueError("Configuration digest must be a lowercase SHA-256 hash")
 
 
 class Monitor:
@@ -182,11 +188,26 @@ class Monitor:
     def configuration_activation(self, change_id: str, digest: str, success: bool) -> bool:
         """Report reload outcome; hash the actual loaded bytes, not a requested version."""
         change_id = str(UUID(change_id))
-        if len(digest) != 64 or any(character not in "0123456789abcdef" for character in digest):
-            raise ValueError("Configuration digest must be a lowercase SHA-256 hash")
+        _validate_configuration_digest(digest)
         return self._enqueue(
             f"api/configurations/changes/{change_id}/activation",
             {"digest": digest, "success": success},
+        )
+
+    def configuration_runtime(
+        self, source_id: str, instance_id: str, digest: str, success: bool = True
+    ) -> bool:
+        """Heartbeat the actual loaded configuration; call periodically from each app instance."""
+        _validate_configuration_digest(digest)
+        return self._enqueue(
+            f"api/configurations/{quote(source_id, safe='')}/runtime",
+            {
+                "event_id": str(uuid4()),
+                "instance_id": instance_id,
+                "digest": digest,
+                "success": success,
+                "occurred_at": datetime.now(UTC).isoformat(),
+            },
         )
 
     def task_outcome(

@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { api } from "./api";
+import {
+  ConfigurationHealth,
+  ConfigurationRecommendations,
+  ConfigurationStatus,
+} from "./ConfigurationEvidence";
 
 type Field = {
   kind: string;
@@ -14,6 +19,7 @@ type Source = {
   environment: string;
   kind: string;
   writable: boolean;
+  publishable: boolean;
   fields: Record<string, Field>;
 };
 type Version = {
@@ -42,21 +48,27 @@ export function ConfigurationsView({
   const [values, setValues] = useState<Record<string, Scalar>>({});
   const [changes, setChanges] = useState<Change[]>([]);
   const [busy, setBusy] = useState(false);
+  const [statuses, setStatuses] = useState<ConfigurationStatus[]>([]);
   const source = sources.find((item) => item.id === sourceId);
 
   async function history() {
     setChanges(await api<Change[]>("/configurations/changes", tenant));
+    setStatuses(
+      await api<ConfigurationStatus[]>("/configurations/status", tenant),
+    );
   }
   useEffect(() => {
     let active = true;
     Promise.all([
       api<Source[]>("/configurations", tenant),
       api<Change[]>("/configurations/changes", tenant),
+      api<ConfigurationStatus[]>("/configurations/status", tenant),
     ])
-      .then(([available, pending]) => {
+      .then(([available, pending, health]) => {
         if (active) {
           setSources(available);
           setChanges(pending);
+          setStatuses(health);
         }
       })
       .catch((error) => {
@@ -85,6 +97,7 @@ export function ConfigurationsView({
     );
     setVersion(current);
     setValues(current.inventory);
+    await history();
   }
   async function propose(event: React.FormEvent) {
     event.preventDefault();
@@ -120,8 +133,10 @@ export function ConfigurationsView({
       setVersion(null);
       report(
         operation === "rollback"
-          ? "Prior values restored. The application still needs to reload."
-          : "Change saved. Check its activation state before treating it as deployed.",
+          ? "Rollback prepared. Check its review and activation state."
+          : operation === "publish"
+            ? "Review branch published. Merge and deployment remain separate."
+            : "Change saved. Check its activation state before treating it as deployed.",
       );
     });
   }
@@ -168,6 +183,16 @@ export function ConfigurationsView({
                 Scan current version
               </button>
             </div>
+            {source && (
+              <ConfigurationRecommendations
+                key={source.id}
+                tenant={tenant}
+                sourceId={source.id}
+                writable={source.writable}
+                run={action}
+                proposed={history}
+              />
+            )}
             {version && source && (
               <form onSubmit={propose}>
                 <p className="muted">
@@ -234,6 +259,7 @@ export function ConfigurationsView({
           </>
         )}
       </section>
+      <ConfigurationHealth statuses={statuses} />
       <section className="panel form-panel">
         <h2>Changes and activation</h2>
         <p>
@@ -267,8 +293,23 @@ export function ConfigurationsView({
               </table>
             </div>
             {change.result_revision && (
-              <p className="muted">Source revision: {change.result_revision}</p>
+              <p className="muted source-revision">
+                Source revision: {change.result_revision}
+              </p>
             )}
+            {["review_branch", "rollback_review_branch"].includes(
+              change.state,
+            ) &&
+              sources.find((item) => item.id === change.source_id)
+                ?.publishable && (
+                <button
+                  className="secondary"
+                  disabled={busy}
+                  onClick={() => void transition(change, "publish")}
+                >
+                  Publish review branch
+                </button>
+              )}
             {["proposed", "applying"].includes(change.state) && (
               <button
                 className="primary"
