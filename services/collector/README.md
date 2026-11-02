@@ -14,6 +14,11 @@ non-root identity and notices. The Go compiler/builder/license-tool versions are
 configured in `.env.example`. Existing local environments must add these variables
 before rebuilding the telemetry profile.
 
+The checked-in `go.mod` and `go.sum` pin the resolved dependency closure. Normal builds
+generate component source, then build using those locks without resolving upgrades.
+To update them, run the pinned OCB with `builder.yaml` in the configured Go build
+environment, review the resulting module/checksum changes, and rerun both CI workflows.
+
 The image includes compiled dependency license texts, module inventory and Go module
 checksums under `/licenses/dispatcher`. CI archives these with the image inventory and
 scan results. Compiled binary module versions are retained separately from the full

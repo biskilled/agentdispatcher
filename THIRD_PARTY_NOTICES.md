@@ -31,6 +31,20 @@ key/routing/callback paths, requires no enterprise license and does not relicens
 those upstream components. QuotaBar and CodexBar informed planning; their code is
 not included.
 
+The gateway is labelled `1.106.6+dispatcher.1`: an explicit dependency-only backport
+allows fixed filelock on its Python 3.13 runtime. Its provenance, upstream drift
+checks and removal conditions are in [the gateway notes](services/gateway/README.md).
+The original LiteLLM runtime code/license texts are preserved and its upstream version
+is audited separately from the local distribution label.
+
+The collector is a Dispatcher-maintained minimal OCB distribution, labelled
+`0.164.0-dispatcher.1`, with fixed go-jose/v4 4.1.6. It preserves the upstream base
+notices and ships compiled dependency license texts, CSV attribution, Go license,
+module/checksum inventory and binary module evidence under `/licenses/dispatcher`.
+The build checks for forbidden, restricted and unknown compiled dependency licenses.
+See [the collector notes](services/collector/README.md). Both derived images require
+Dispatcher's own compatibility/security verification; neither is an upstream release.
+
 Development and optional platform package attribution is recorded separately in
 [third_party/development.json](third_party/development.json), using the locked npm
 inventory and Python development closure. These build tools are not bundled into

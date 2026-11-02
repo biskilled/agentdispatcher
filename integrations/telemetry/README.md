@@ -59,7 +59,10 @@ It has no debug exporter. Its backend URL stays inside the Compose network.
 1. Create an SDK key for the intended tenant/app/environment in the browser.
 2. Set `DISPATCHER_OTLP_SDK_KEY` to that key and `DISPATCHER_COLLECTOR_TOKEN` to a
    separate random receiver secret in the private deployment environment.
-3. Run `docker compose --profile telemetry up -d collector`.
+3. Run `docker compose --profile telemetry up --build -d collector`. Existing local
+   environments must include `GO_IMAGE`, `COLLECTOR_BUILDER_VERSION` and
+   `GO_LICENSES_VERSION` from `.env.example`. The image builds the pinned
+   [minimal collector distribution](../../services/collector/README.md).
 4. Point that application's exporter to the collector and send its receiver token
    in the Authorization header. Set the resource labels to the key's app/environment.
 
