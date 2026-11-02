@@ -7,8 +7,8 @@ blanket ignores or changed severity thresholds have been added.
 
 ## Reproducible evidence
 
-- [Functional CI 41378379070](https://github.com/biskilled/agentdispatcher/actions/runs/41378379070)
-  passed application/MCP tests, clean Compose/demo, independent database/API/UI/worker
+- [Functional CI 41379337435](https://github.com/biskilled/agentdispatcher/actions/runs/41379337435)
+  passed all 89 application tests, five MCP checks, clean Compose/demo, independent database/API/UI/worker
   restarts, persistence, optional backup, real LiteLLM streaming/key/correlation checks
   and authenticated collector trace/log ingestion.
 - [Security CI 41378952571](https://github.com/biskilled/agentdispatcher/actions/runs/41378952571)
