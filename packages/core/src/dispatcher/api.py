@@ -37,6 +37,7 @@ from dispatcher.reconciliation import Adjustment, ProviderSnapshot, Reconciliati
 from dispatcher.reporting import Reporter, UsageFilter
 from dispatcher.session_context import SessionContext, SessionContexts
 from dispatcher.settings import Settings, get_settings
+from dispatcher.telemetry import routes as telemetry_routes
 from dispatcher.tool_access import ToolAccess
 from dispatcher.tools_api import routes as tool_routes
 
@@ -524,6 +525,7 @@ def create_app(settings: Settings | None = None, mailer=None, oauth_transport=No
         return Observations(db).coverage(principal)
 
     app.include_router(operations_routes(ledger.operations, human))
+    app.include_router(telemetry_routes(db, service))
     app.include_router(
         tool_routes(
             ToolAccess(auth),

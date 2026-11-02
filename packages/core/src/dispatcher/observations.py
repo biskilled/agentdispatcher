@@ -9,6 +9,7 @@ from pydantic import Field
 
 from dispatcher.auth import require_usage_reader, usage_scope, validate_scope
 from dispatcher.contracts import Contract, UsageEvent
+from dispatcher.source_health import SourceHealth
 
 _SQL_ADD = """
 INSERT INTO mem_observations(tenant_id,event_id,service_id,app,environment,expected_source,
@@ -133,8 +134,10 @@ class Observations:
         require_usage_reader(principal)
         scope = (principal.tenant_id, *usage_scope(principal))
         limit = self.db.settings.page_size
+        adapters = SourceHealth(self.db).list(principal)
         with self.db.tenant(principal.tenant_id) as connection:
             return {
+                "adapters": adapters,
                 "sources": connection.execute(_SQL_SOURCES, (*scope, limit)).fetchall(),
                 "references": connection.execute(_SQL_SUMMARY, (*scope, *scope, limit)).fetchall(),
                 "gaps": connection.execute(_SQL_GAPS, (*scope, *scope, limit)).fetchall(),

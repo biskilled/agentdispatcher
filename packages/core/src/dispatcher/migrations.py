@@ -15,6 +15,7 @@ from dispatcher.schema_gateway import SQL_GATEWAY
 from dispatcher.schema_observations import SQL_OBSERVATIONS
 from dispatcher.schema_operations import SQL_OPERATIONS
 from dispatcher.schema_policies import SQL_POLICIES
+from dispatcher.schema_source_health import SQL_SOURCE_HEALTH
 from dispatcher.schema_tools import SQL_TOOLS
 
 _SQL_LOCK = "SELECT pg_advisory_xact_lock(73190521)"
@@ -150,6 +151,7 @@ MIGRATIONS = (
     (11, SQL_TOOLS),
     (12, SQL_CONFIG_MONITORING),
     (13, SQL_OBSERVATIONS),
+    (14, SQL_SOURCE_HEALTH),
 )
 
 

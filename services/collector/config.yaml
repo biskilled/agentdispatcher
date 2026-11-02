@@ -1,22 +1,32 @@
-# Diagnostic-only internal collector. It does not yet export usage to the ledger.
-# Do not expose this receiver publicly or send prompt bodies/secrets to it.
+# Each collector is bound to one app/environment SDK key. The API rechecks its live scope.
 receivers:
   otlp:
     protocols:
       http:
         endpoint: ${env:OTEL_HTTP_ENDPOINT}
+        auth:
+          authenticator: bearertokenauth/receiver
 processors:
-  batch: {}
+  batch:
+    send_batch_size: ${env:OTEL_BATCH_SIZE}
+    send_batch_max_size: ${env:OTEL_BATCH_SIZE}
+    timeout: ${env:OTEL_BATCH_TIMEOUT}
 exporters:
-  debug:
-    verbosity: basic
+  otlp_http/dispatcher:
+    traces_endpoint: ${env:DISPATCHER_OTLP_TRACES_URL}
+    encoding: json
+    compression: none
+    headers:
+      Authorization: Bearer ${env:DISPATCHER_OTLP_SDK_KEY}
 extensions:
   health_check:
     endpoint: ${env:OTEL_HEALTH_ENDPOINT}
+  bearertokenauth/receiver:
+    token: ${env:DISPATCHER_COLLECTOR_TOKEN}
 service:
-  extensions: [health_check]
+  extensions: [health_check, bearertokenauth/receiver]
   pipelines:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [debug]
+      exporters: [otlp_http/dispatcher]

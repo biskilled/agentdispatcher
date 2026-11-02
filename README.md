@@ -116,11 +116,16 @@ does not discover other uninstrumented applications.
 | Migrations | `python scripts/migrate.py` | Sole schema owner, separate deployment credentials |
 | LiteLLM | Compose `gateway` profile | Managed virtual keys, model restrictions, per-attempt callbacks |
 | MCP tools | Compose `mcp` profile or standalone stdio | Session-bound usage/session/experiment reads and consented policy writes |
-| OTel collector | Compose `telemetry` profile | Private diagnostic receiver; ledger export pending |
+| OTel collector | Compose `telemetry` profile | Authenticated app-scoped traces, JSON ledger export and rejection diagnostics |
 
 `docker compose --profile gateway up -d gateway` starts LiteLLM after you supply `LLM_PROVIDER_MODEL` and `LLM_API_KEY`. It is internal-only; connect applications on an authorised service network. Its master key is operator-only. Use **LLM keys** to provision an application/environment key with explicit model aliases. The gateway verifies revocation and scope before each call and exports metadata-only usage using a separate internal callback secret. These calculated prices are not invoices. End-to-end tests use synthetic provider responses inside the real LiteLLM image; paid provider billing and SDK/gateway correlation still need verification. OpenRouter can be configured as a LiteLLM upstream.
 
-The collector's debug exporter reports basic diagnostics, not durable usage; it does not feed the ledger. Do not expose it publicly or count it as complete OTel ingestion coverage.
+The collector forwards authenticated traces to `/api/otlp/v1/traces`. It is bound to
+one tenant/app/environment SDK key and has no debug exporter. The API validates live
+credentials, normalizes supported usage spans, discards body content and reports
+rejected usage under **Connections**. See the [telemetry connection guide](integrations/telemetry/README.md)
+for supported fields, correlation, private receiver credentials and coverage limits.
+Metrics/logs and CLI-specific adapters remain separate work.
 
 The optional [MCP tools service](services/mcp/README.md) has its own dependency lock
 and container. Create a dedicated credential in **Tool access**; SDK keys cannot read

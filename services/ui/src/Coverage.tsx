@@ -20,6 +20,16 @@ type Reference = {
   missing: number;
 };
 type Coverage = {
+  adapters: {
+    service_id: string;
+    app: string;
+    environment: string;
+    source: string;
+    accepted_exports: number;
+    rejected_exports: number;
+    stale: boolean;
+    last_error: string | null;
+  }[];
   sources: Source[];
   references: Reference[];
   coverage: string;
@@ -84,6 +94,48 @@ export function CoverageView({
           </div>
         )}
       </section>
+      {!!data?.adapters.length && (
+        <section className="panel form-panel">
+          <h2>Telemetry delivery</h2>
+          <p>
+            Export counts include replays. They are separate from unique
+            billable attempts. Telemetry reports usage; it does not control
+            model routing.
+          </p>
+          <div className="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Application</th>
+                  <th>Environment</th>
+                  <th>Adapter</th>
+                  <th>Accepted</th>
+                  <th>Rejected</th>
+                  <th>Delivery status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.adapters.map((row) => (
+                  <tr key={`${row.service_id}:${row.source}`}>
+                    <td>{row.app}</td>
+                    <td>{row.environment}</td>
+                    <td>{row.source}</td>
+                    <td>{row.accepted_exports}</td>
+                    <td>{row.rejected_exports}</td>
+                    <td>
+                      {row.stale
+                        ? "No recent exports"
+                        : row.last_error
+                          ? "Some usage was rejected"
+                          : "Receiving exports"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
       <section className="panel form-panel">
         <h2>Correlated observations</h2>
         <p>

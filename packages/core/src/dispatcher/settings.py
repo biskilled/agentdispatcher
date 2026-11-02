@@ -59,6 +59,8 @@ class Settings(BaseSettings):
     config_clock_skew_seconds: int = Field(default=30, ge=0)
     agentdesk_identity_url: str = ""
     identity_max_bytes: int = Field(default=16384, ge=1024, le=65536)
+    telemetry_max_bytes: int = Field(default=1048576, ge=1024)
+    source_stale_seconds: int = Field(default=300, gt=0)
 
     @model_validator(mode="after")
     def validate_security(self):

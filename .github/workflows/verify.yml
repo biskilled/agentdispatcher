@@ -51,8 +51,14 @@ jobs:
         run: docker compose --profile mcp up --build -d mcp
       - name: Verify MCP tenant and session boundary
         run: docker compose exec -T api python scripts/mcp_smoke.py
+      - name: Prepare private collector fixture credentials
+        run: docker compose run --rm --no-deps --user "$(id -u):$(id -g)" -v "$PWD:/workspace" api python scripts/collector_smoke.py --prepare /workspace/.collector-fixture.env
+      - name: Start authenticated collector profile
+        run: docker compose --env-file .env --env-file .collector-fixture.env --profile telemetry up -d collector
+      - name: Verify real collector ingestion and correlation
+        run: docker compose run --rm --no-deps --user "$(id -u):$(id -g)" -v "$PWD/.collector-fixture.env:/app/collector-fixture.env:ro" api python scripts/collector_smoke.py --state /app/collector-fixture.env
       - if: always()
-        run: docker compose logs --tail 100 api worker migrate gateway mcp
+        run: docker compose logs --tail 100 api worker migrate gateway mcp collector
       - if: always()
         run: docker compose down
 
