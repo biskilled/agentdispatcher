@@ -47,9 +47,9 @@ _When one of these rules shapes an action or answer, SAY SO briefly — e.g. “
 - 🏢 **session start checks**: Always check that all hooks are running when you start a session, and make sure you are connected to AgentDesk.
 - 🏢 **node_modules folder**: Always store node_modules under /Users/user/Documents/node_modules folder (linked folder) and venv under /Users/user/Documents/venv
 
-<!-- Last updated: 2026-11-02 10:30 UTC -->
+<!-- Last updated: 2026-11-02 18:57 UTC -->
 # agentdispatcher
-_2026-11-02 10:30 UTC | Memory synced: 2026-11-02_
+_2026-11-02 18:57 UTC | Memory synced: 2026-11-02_
 
 ## Recent Work
 - [task] Responsive React monitoring UI: overview, jobs, sessions and connections (review) — React/TypeScript/Vite web UI primarily for user monitoring on desktop and mobile
@@ -111,9 +111,9 @@ _2026-11-02 10:30 UTC | Memory synced: 2026-11-02_
 
 ## Active Features
 
-- `US10000` `AgentDispatcher — open-source LLM gateway and API usage monitoring` [blocked] — AgentDispatcher is an Apache-2.0 open-source, self-installable app in the AgentDesk ecosystem. A res
+- `US10000` `AgentDispatcher — open-source LLM gateway and API usage monitoring` [review] — AgentDispatcher is an Apache-2.0 open-source, self-installable app in the AgentDesk ecosystem. A res
   _AC: - On a clean checkout, documented Docker Compose setup starts the independent services; the offline demo shows synthetic jobs and usage without provid_
-- `FE10004` `Open-source quality, attribution, security and privacy` [blocked] — Apache-2.0 distribution with minimal dependencies and reusable single-purpose classes/methods/module
+- `FE10004` `Open-source quality, attribution, security and privacy` [review] — Apache-2.0 distribution with minimal dependencies and reusable single-purpose classes/methods/module
 - `FE10003` `AgentDesk, AgentData and application SDK integration` [review] — Integrate with AgentDesk identity, tenant membership, projects/work items and role attribution using
 
 ---
