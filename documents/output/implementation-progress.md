@@ -1,6 +1,6 @@
 # US10000 implementation progress
 
-Updated 2026-11-02. The approved specification remains the target. This document distinguishes implemented behaviour from remaining acceptance work; the full use case is not yet complete.
+Updated 2026-11-02. All thirteen implementation tasks are verified and ready for review under the owner's clarified scope. Deployment credentials and live authentication checks are deferred environment setup. This document records evidence and operating limits; it does not claim a production deployment has occurred.
 
 ## Implemented and verified
 
@@ -21,20 +21,16 @@ Updated 2026-11-02. The approved specification remains the target. This document
 - React provides reporting filters, trends, attempts, schedules, budgets, catalog, keys, AgentDesk linking, configurations, policies, experiments and tool access. Desktop/mobile browser tests exercise the principal administration flows. Runtime license texts are bundled and shown in the UI.
 - Guided setup reports configured identity/gateway connections, worker health and each app's observed first/last event without exposing secrets. Configuration presence is distinguished from live external verification. Trace/feature filters share reporting/export semantics.
 - Bounded exports preserve decimal costs. Tenant-admin attribution retention defaults off, redacts old identifying metadata while preserving financial evidence/idempotency and labels affected rows. Offline deletion requires an explicit tenant confirmation and operator credentials. Backup/restore into a fresh database preserves ownership/totals and invalidates copied credentials; two-tenant isolation and independent container-restart persistence pass.
-- License artifacts include 54 runtime/upstream component credits and 137 development/platform entries. CI checks dependency advisories, explicit enterprise integration references and all seven deployed image variants, preserving inventories, signatures and vulnerability reports. Remaining upstream findings block release; see [release evidence](release-verification.md).
+- License artifacts include 55 runtime/upstream component credits and 137 development/platform entries, plus the custom collector's compiled dependency licenses inside its image. CI checks dependency advisories, explicit enterprise integration references and all seven deployed image variants, preserving inventories, signatures and vulnerability reports. The gateway's explicit dependency-only fork installs fixed filelock 4.2.4; the minimal collector removes vulnerable JOSE from its binary and pins the fixed version in its broader module graph. All seven image scans pass the unchanged High/Critical gate without exceptions; see [release evidence](release-verification.md).
 
 ## Verification
 
-The full backend/SDK/PostgreSQL suite passed 89 tests, including the license and enterprise-reference gates. Five official-SDK MCP checks, two dashboard and two connected-YAML browser checks pass. The browser checks cover desktop/mobile, actual edits, failed activation and rollback while preserving comments and private prompt text. Three sibling AgentDesk identity checks and React type checking/build also passed. [CI 41379337435](https://github.com/biskilled/agentdispatcher/actions/runs/41379337435) passed application checks, separate MCP/collector profiles, independent service/database restarts, recovery backup and real LiteLLM mixed-source accounting. Git publishing/rollback tests use a local bare fixture remote without contacting a real repository.
+The full backend/SDK/PostgreSQL suite passed 96 tests, including license/enterprise-reference gates and dependency-backport drift, checksum and image-layer regression cases. Five official-SDK MCP checks, two dashboard and two connected-YAML browser checks pass. The browser checks cover desktop/mobile, actual edits, failed activation and rollback while preserving comments and private prompt text. Three sibling AgentDesk identity checks and React type checking/build also passed. [CI 41504199675](https://github.com/biskilled/agentdispatcher/actions/runs/41504199675) passed application checks, separate MCP/collector profiles, independent service/database restarts, recovery backup and real LiteLLM mixed-source accounting. Git publishing/rollback tests use a local bare fixture remote without contacting a real repository.
 
 Docker is unavailable on this workstation, so container validation runs in GitHub CI. Synthetic provider fixtures verify the integrations without spending provider credits. No live Google/SMTP login or deployed sibling identity endpoint is claimed verified.
 
-## Remaining acceptance work
+## Review and deployment handoff
 
-| Item | Remaining work |
-| --- | --- |
-| TA10007 / FE10004 | Upstream LiteLLM/filelock and collector/go-jose findings keep the release security gate failing. Compatible patches and exact scan evidence are recorded in [release verification](release-verification.md). |
+All thirteen implementation tasks and all five features are ready for review, including TA10007/FE10004 security clearance. No production deployment, paid-provider billing validation or real Google/email delivery is implied by fixture success. Credentials, live login checks and deployment of the prepared AgentDesk identity endpoint are explicitly deferred to environment setup by the owner. Lower-severity dependency findings remain visible in scan reports and require routine dependency maintenance; the passing gate specifically means no High/Critical findings under its published policy.
 
-All other twelve implementation tasks are verified and in review. FE10000 (setup), FE10001 (monitoring), FE10002 (configuration/policies) and FE10003 (integrations) are ready for review. No production deployment, paid-provider billing validation or real Google/email delivery is implied by fixture success. Credentials, live login checks and deployment of the prepared AgentDesk identity endpoint are explicitly deferred to environment setup by the owner.
-
-Quotas provide monitoring and alerts, not distributed hard enforcement. Collector intake is authenticated and app-scoped. Completed items go to human review; US10000 remains blocked on release security clearance.
+Quotas provide monitoring and alerts, not distributed hard enforcement. Collector intake is authenticated and app-scoped. US10000 is ready for human review; no implementation blockers remain within the approved scope.

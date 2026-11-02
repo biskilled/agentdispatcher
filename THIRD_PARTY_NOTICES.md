@@ -44,6 +44,10 @@ module/checksum inventory and binary module evidence under `/licenses/dispatcher
 The build checks for forbidden, restricted and unknown compiled dependency licenses.
 See [the collector notes](services/collector/README.md). Both derived images require
 Dispatcher's own compatibility/security verification; neither is an upstream release.
+The collector build uses [OpenTelemetry Collector Builder](https://github.com/open-telemetry/opentelemetry-collector/tree/cmd/builder/v0.164.0/cmd/builder)
+v0.164.0 and [Google go-licenses](https://github.com/google/go-licenses/tree/v2.0.1)
+v2.0.1, both Apache-2.0. These build executables are not copied into the runtime image;
+their versions are configured in `.env.example`.
 
 Development and optional platform package attribution is recorded separately in
 [third_party/development.json](third_party/development.json), using the locked npm

@@ -9,7 +9,7 @@ complete workspace deletion is a separate, explicit offline operator action.
 
 React monitoring for application API calls, LLM requests and scheduled work, backed by a tenant-isolated PostgreSQL ledger. One repository contains independently runnable API, worker, UI and Python SDK packages.
 
-**Development preview:** monitoring, administration, SDK integrations and configuration controls are implemented and tested. Production release is blocked by upstream container advisories. Authentication credentials and live sign-in verification are deployment setup, deferred by the project owner. See [implementation status](documents/output/implementation-progress.md) and [release evidence](documents/output/release-verification.md) for the exact remaining work.
+Monitoring, administration, SDK integrations and configuration controls are implemented and tested. The release-security gate passes for the pinned images, including the maintained gateway backport and minimal collector. Authentication credentials, live sign-in verification and deployment remain environment setup, deferred by the project owner. See [implementation status](documents/output/implementation-progress.md) and [release evidence](documents/output/release-verification.md) for verified scope and operating limits.
 
 ## Try the synthetic demo
 

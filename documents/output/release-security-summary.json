@@ -1,52 +1,61 @@
 {
   "checked_at": "2026-11-02",
-  "commit": "22507f2b8232e5773dcfd4e4a4ab8631154b5e8e",
-  "workflow": "https://github.com/biskilled/agentdispatcher/actions/runs/41378952571",
+  "commit": "ea82115",
+  "workflow": "https://github.com/biskilled/agentdispatcher/actions/runs/41504199537",
+  "policy": "Fail on High or Critical; no advisory exceptions",
   "services": [
     {
       "service": "api",
+      "severity_counts": {
+        "Medium": 13,
+        "Low": 2,
+        "Negligible": 1
+      },
       "high_critical": []
     },
     {
       "service": "collector",
-      "high_critical": [
-        {
-          "package": "github.com/go-jose/go-jose/v4",
-          "version": "v4.1.5",
-          "advisory": "GHSA-mgcc-cww5-fp2q",
-          "fix_versions": [
-            "4.1.6"
-          ]
-        }
-      ]
+      "severity_counts": {},
+      "high_critical": []
     },
     {
       "service": "db",
+      "severity_counts": {
+        "Medium": 4
+      },
       "high_critical": []
     },
     {
       "service": "gateway",
-      "high_critical": [
-        {
-          "package": "filelock",
-          "version": "3.32.7",
-          "advisory": "GHSA-v4x8-3wr5-3wq8",
-          "fix_versions": [
-            "4.2.1"
-          ]
-        }
-      ]
+      "severity_counts": {
+        "Medium": 9,
+        "Low": 2
+      },
+      "high_critical": []
     },
     {
       "service": "mcp",
+      "severity_counts": {
+        "Medium": 13,
+        "Low": 2,
+        "Negligible": 1
+      },
       "high_critical": []
     },
     {
       "service": "recovery",
+      "severity_counts": {
+        "Medium": 13,
+        "Low": 2,
+        "Negligible": 1
+      },
       "high_critical": []
     },
     {
       "service": "ui",
+      "severity_counts": {
+        "Medium": 3
+      },
       "high_critical": []
     }
   ]

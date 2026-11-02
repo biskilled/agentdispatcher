@@ -1,23 +1,27 @@
 # Release verification — 2026-11-02
 
-**Release blocked.** Application acceptance fixtures pass, but two upstream container
-findings remain open. Live authentication setup is deferred by the owner. The security workflow
-fails on High/Critical findings, including unfixed ones. No advisory exceptions,
-blanket ignores or changed severity thresholds have been added.
+**Both blocking findings resolved.** Functional CI and the release-security workflow
+pass for the derived gateway and minimal collector. Live authentication setup is
+deferred by the owner. The security workflow still fails on High/Critical findings,
+including unfixed ones. No advisory exceptions, blanket ignores or changed severity
+thresholds have been added. Lower-severity findings remain visible in the reports;
+a passing release gate does not mean every dependency is vulnerability-free.
 
 ## Reproducible evidence
 
-- [Functional CI 41379337435](https://github.com/biskilled/agentdispatcher/actions/runs/41379337435)
-  passed all 89 application tests, five MCP checks, clean Compose/demo, independent database/API/UI/worker
+- [Functional CI 41504199675](https://github.com/biskilled/agentdispatcher/actions/runs/41504199675)
+  passed 96 application tests, five MCP checks, clean Compose/demo, independent database/API/UI/worker
   restarts, persistence, optional backup, real LiteLLM streaming/key/correlation checks
   and authenticated collector trace/log ingestion.
-- [Security CI 41378952571](https://github.com/biskilled/agentdispatcher/actions/runs/41378952571)
-  built/scanned all seven image variants at `22507f2`, passed the Python/npm advisory
-  job and verified the upstream LiteLLM signature. API/worker, UI, MCP, PostgreSQL
-  and recovery scans have no High/Critical matches. Gateway and collector each
-  retain one High match. [Compact results](release-security-summary.json) preserve
-  the package versions and advisory IDs; complete inventories/reports are workflow
+- [Security CI 41504199537](https://github.com/biskilled/agentdispatcher/actions/runs/41504199537)
+  built/scanned all seven image variants at `ea82115`, passed the Python/npm advisory
+  job and verified the upstream LiteLLM signature. All seven images have no
+  High/Critical matches. The collector has no matches at any severity in this scan.
+  [Compact results](release-security-summary.json) preserve per-image severity counts;
+  complete inventories/reports and collector dependency/license evidence are workflow
   artifacts with 30-day retention. Download them before publishing a release.
+  Collector license-policy checks pass and its built Go dependency files exactly
+  match the committed locks.
 - Local PostgreSQL tests cover fresh-database backup/restore, revoked copied
   credentials, tenant deletion/retention, exports, forced RLS and pooled scopes.
   Desktop/mobile dashboard and connected-YAML browser suites pass. Actual AgentTrade
@@ -33,32 +37,42 @@ High/Critical OS findings and passed clean installation/recovery fixtures.
 
 The gateway derives from LiteLLM 1.106.6. CI verifies its upstream base signature
 before building; the derived image is not claimed to be upstream-signed. Its small
-security lock updates pyasn1, ddtrace and its internal dependency, dnspython and
-pypdf, and applies available Wolfi updates. `pip check` must pass. The updated image
-was built and scanned successfully; its remaining finding is listed below.
+security lock updates pyasn1, ddtrace and its internal dependency, dnspython, pypdf
+and filelock, and applies available Wolfi updates. The explicit dependency-only fork
+`1.106.6+dispatcher.1` supports filelock 4.2.4 on Python 3.13, following the Python
+3.11+ constraint in [unmerged upstream PR 48802](https://github.com/BerriAI/litellm/pull/48802).
+Original runtime code and licenses are preserved. `pip check` and a cross-process
+FileLock/Timeout test must pass. The patch rejects upstream version/constraint drift
+and records its provenance and changed metadata checksums. Upstream LiteLLM is also
+audited under its original version so the local label cannot conceal advisories.
+See [gateway maintenance/removal instructions](../../services/gateway/README.md).
+
+The collector is built with official OCB and only the components needed for our
+trace/log pipeline. The compiled binary no longer contains go-jose; the broader
+module graph additionally pins fixed go-jose/v4 4.1.6. The build has checked-in Go
+module/checksum locks and includes dependency license texts and binary module evidence.
+See [collector build instructions](../../services/collector/README.md).
 
 SBOM generation uses Syft JSON with Go symbol capture. This preserves evidence used
 by Grype to exclude unreachable standard-library matches; converting to SPDX had
 discarded that evidence for the PostgreSQL helper binary. This is scanner-supported
 matching, not a vulnerability waiver. See [Anchore's Go scanning guidance](https://oss.anchore.com/docs/capabilities/go/).
 
-## Remaining security acceptance
+## Resolved security findings
 
-| Image | Finding | Why still open | Completion condition |
-| --- | --- | --- | --- |
-| LiteLLM 1.106.6 derivative | filelock 3.32.7, GHSA-v4x8-3wr5-3wq8 | Published fix 4.2.1 conflicts with LiteLLM's declared `filelock<4` dependency. Installing it caused `pip check` to fail. An older compatible candidate, 3.20.3, also has advisories. | Use a compatible, verified fixed upstream dependency set or a maintained reviewed backport, then rerun gateway acceptance and image scans. |
-| Collector Contrib 0.164.0 | go-jose/v4 4.1.5, GHSA-mgcc-cww5-fp2q | The distributed binary embeds the affected module; its fix is 4.1.6. | Use a verified collector image containing the fix, or a separately reviewed minimal distribution, then rerun trace/log/authentication and image scans. |
+| Image | Original finding | Verified resolution |
+| --- | --- | --- |
+| LiteLLM derivative | filelock 3.32.7, GHSA-v4x8-3wr5-3wq8 | Installed filelock 4.2.4; explicit local dependency backport; dependency/locking tests, real gateway fixtures and image scan pass. |
+| Minimal collector | go-jose/v4 4.1.5, GHSA-mgcc-cww5-fp2q | Vulnerable module absent from compiled binary; broader graph replaces it with 4.1.6; authenticated ingestion and image scan pass. |
 
 The [filelock advisory](https://github.com/tox-dev/filelock/security/advisories/GHSA-v4x8-3wr5-3wq8)
 concerns SQLite-backed read/write locks with attacker-controlled filesystem entries.
 The [go-jose advisory](https://github.com/go-jose/go-jose/security/advisories/GHSA-mgcc-cww5-fp2q)
-concerns excessive CPU when parsing crafted RSA JWKs. The shipped collector uses
-literal bearer-token authentication, not JWK/OIDC authentication; that reduces the
-apparent exposed path but is not proof that every upstream path is unreachable.
-Neither finding is suppressed or claimed fixed.
+concerns excessive CPU when parsing crafted RSA JWKs. Both are resolved through
+package/build changes, rather than a reachability waiver.
 
-The core demo does not start these optional gateway/telemetry profiles. They remain
-development-preview integrations pending release clearance.
+The core demo does not start these optional gateway/telemetry profiles. Deployment
+still requires environment-specific credentials, network configuration and live checks.
 
 ## Deferred authentication deployment setup
 
