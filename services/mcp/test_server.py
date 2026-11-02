@@ -65,6 +65,7 @@ class MCPTests(unittest.IsolatedAsyncioTestCase):
             )
             result = await client.call_tool("get_usage", {"filters": {"work_item": "TA1"}})
             self.assertFalse(result.is_error)
+            self.assertEqual(result.structured_content["counts"]["attempts"], 3)
             self.assertEqual(self.calls[-1].url.params["work_item"], "TA1")
             result = await client.call_tool("get_session", {"session_id": "session-a"})
             self.assertFalse(result.is_error)
@@ -101,6 +102,20 @@ class MCPTests(unittest.IsolatedAsyncioTestCase):
                 headers["Authorization"] = "Bearer " + self.token
                 response = await client.post("/mcp", json=payload, headers=headers)
                 self.assertEqual(response.status_code, 200, response.text)
+                called = await client.post(
+                    "/mcp",
+                    headers=headers,
+                    json={
+                        "jsonrpc": "2.0",
+                        "id": 2,
+                        "method": "tools/call",
+                        "params": {"name": "get_usage", "arguments": {}},
+                    },
+                )
+                self.assertEqual(called.status_code, 200, called.text)
+                self.assertEqual(
+                    called.json()["result"]["structuredContent"]["counts"]["attempts"], 3
+                )
                 self.resource = "https://another.fixture.test/mcp"
                 self.assertEqual(
                     (await client.post("/mcp", json=payload, headers=headers)).status_code, 401

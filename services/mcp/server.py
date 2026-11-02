@@ -3,6 +3,7 @@
 import os
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any
 from urllib.parse import quote, urlsplit
 from uuid import UUID
 
@@ -154,27 +155,28 @@ def create_server(settings, *, stdio_token=None, transport=None):
             raise ToolError("Authenticated Dispatcher tool access is required")
         return access.token
 
-    @server.tool(annotations=ToolAnnotations(read_only_hint=True))
-    async def get_usage(filters: dict | None = None) -> dict:
+    @server.tool(structured_output=True, annotations=ToolAnnotations(read_only_hint=True))
+    async def get_usage(filters: dict | None = None) -> dict[str, Any]:
         """Read permitted usage totals and breakdowns. Filters only narrow existing permission."""
         return await api.call(credential(), "usage", params=filters or {})
 
-    @server.tool(annotations=ToolAnnotations(read_only_hint=True))
-    async def get_session(session_id: str) -> dict:
+    @server.tool(structured_output=True, annotations=ToolAnnotations(read_only_hint=True))
+    async def get_session(session_id: str) -> dict[str, Any]:
         """Read permitted work-item costs for one session; its ID never grants access."""
         return await api.call(credential(), "sessions/" + quote(session_id, safe=""))
 
-    @server.tool(annotations=ToolAnnotations(read_only_hint=True))
-    async def list_experiments() -> dict:
+    @server.tool(structured_output=True, annotations=ToolAnnotations(read_only_hint=True))
+    async def list_experiments() -> dict[str, Any]:
         """List experiments in the authorized workspace; administrator permission is required."""
         return {"experiments": await api.call(credential(), "experiments")}
 
     @server.tool(
+        structured_output=True,
         annotations=ToolAnnotations(
             read_only_hint=False, destructive_hint=True, idempotent_hint=False
-        )
+        ),
     )
-    async def set_policy(config: dict, revision: int) -> dict:
+    async def set_policy(config: dict, revision: int) -> dict[str, Any]:
         """Activate a policy with explicit write consent, a live admin role and current revision."""
         return await api.call(
             credential(), "policy", method="PUT", body={"config": config, "revision": revision}
