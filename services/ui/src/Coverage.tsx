@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { api } from "./api";
+import { SourceSetup } from "./SourceSetup";
 
 type Source = {
   app: string;
   environment: string;
   source: string;
+  client_version: string | null;
   attempts: number;
   unknown_cost: number;
   last_seen: string;
@@ -59,6 +61,7 @@ export function CoverageView({
   }, [tenant]);
   return (
     <>
+      <SourceSetup />
       <section className="panel form-panel">
         <h2>Reporting sources</h2>
         <p>{data?.coverage ?? "Loading source coverage…"}</p>
@@ -73,6 +76,7 @@ export function CoverageView({
                   <th>Application</th>
                   <th>Environment</th>
                   <th>Source</th>
+                  <th>Client version</th>
                   <th>Attempts</th>
                   <th>Unknown cost</th>
                   <th>Last report</th>
@@ -80,10 +84,11 @@ export function CoverageView({
               </thead>
               <tbody>
                 {data.sources.map((row) => (
-                  <tr key={`${row.app}:${row.environment}:${row.source}`}>
+                  <tr key={`${row.app}:${row.environment}:${row.source}:${row.client_version}`}>
                     <td>{row.app}</td>
                     <td>{row.environment}</td>
                     <td>{row.source}</td>
+                    <td>{row.client_version ?? "Not reported"}</td>
                     <td>{row.attempts}</td>
                     <td>{row.unknown_cost}</td>
                     <td>{new Date(row.last_seen).toLocaleString()}</td>

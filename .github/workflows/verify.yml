@@ -27,6 +27,8 @@ jobs:
       - run: npm ci
       - run: ruff check packages scripts tests
       - run: pytest -q
+      - run: npm install --global @openai/codex@0.164.0
+      - run: python scripts/verify_codex_telemetry.py
       - run: npm run build
       - run: python scripts/notices.py
 

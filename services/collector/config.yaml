@@ -14,6 +14,7 @@ processors:
 exporters:
   otlp_http/dispatcher:
     traces_endpoint: ${env:DISPATCHER_OTLP_TRACES_URL}
+    logs_endpoint: ${env:DISPATCHER_OTLP_LOGS_URL}
     encoding: json
     compression: none
     headers:
@@ -27,6 +28,10 @@ service:
   extensions: [health_check, bearertokenauth/receiver]
   pipelines:
     traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp_http/dispatcher]
+    logs:
       receivers: [otlp]
       processors: [batch]
       exporters: [otlp_http/dispatcher]

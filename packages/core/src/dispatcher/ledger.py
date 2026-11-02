@@ -107,6 +107,7 @@ class Ledger:
             name
             for name in (
                 "requested_model",
+                "client_version",
                 "policy_version",
                 "experiment_id",
                 "assignment_id",

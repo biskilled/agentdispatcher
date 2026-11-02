@@ -2,7 +2,7 @@
 
 import json
 from datetime import UTC, datetime, timedelta
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from uuid import NAMESPACE_URL, uuid5
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -67,7 +67,7 @@ _CONTEXT = {
 }
 
 
-def attributes(items):
+def attributes(items, extra_scalars=frozenset()):
     """Decode permitted scalars; bodies, events and unknown attributes are dropped."""
     if not isinstance(items, list):
         raise ValueError("Attributes must be a list")
@@ -76,7 +76,7 @@ def attributes(items):
         if not isinstance(item, dict):
             raise ValueError("Invalid attribute")
         name = item.get("key")
-        if not isinstance(name, str) or name not in _ATTRIBUTES:
+        if not isinstance(name, str) or name not in _ATTRIBUTES | extra_scalars:
             continue
         if name in result:
             raise ValueError("Duplicate usage attribute")
@@ -89,14 +89,17 @@ def attributes(items):
         if name == "dispatcher.billable_attempt" and kind != "boolValue":
             raise ValueError("Billable attempt requires boolValue")
         if (
-            name not in _INTEGERS | _NUMBERS | {"dispatcher.billable_attempt"}
+            name not in _INTEGERS | _NUMBERS | {"dispatcher.billable_attempt"} | extra_scalars
             and kind != "stringValue"
         ):
             raise ValueError("Usage labels require stringValue")
         if kind == "intValue" and type(scalar) in (int, str):
             scalar = int(scalar)
         elif kind == "doubleValue" and type(scalar) in (int, float, str):
-            scalar = Decimal(str(scalar))
+            try:
+                scalar = Decimal(str(scalar))
+            except InvalidOperation:
+                raise ValueError("Invalid numeric usage attribute") from None
             if not scalar.is_finite():
                 raise ValueError("Non-finite usage attribute")
         elif kind == "boolValue" and type(scalar) is bool:
@@ -129,6 +132,7 @@ def _scope(principal, values):
         ("service.name", principal.app),
         ("deployment.environment.name", principal.environment),
         ("deployment.environment", principal.environment),
+        ("env", principal.environment),
     ):
         if name in values and values[name] != expected:
             raise HTTPException(403, "Telemetry application/environment is outside the SDK scope")
@@ -207,22 +211,35 @@ class Telemetry:
 
     def export(self, principal, body):
         """Return OTLP partial-success counts without persisting rejected or unsupported content."""
+        return self.export_signal(principal, body, "traces", normalize)
+
+    def export_signal(self, principal, body, signal, normalizer, extra_scalars=frozenset()):
+        """Share envelope validation, pricing, idempotence and diagnostics across OTLP signals."""
         prepared, rejected, count = [], 0, 0
+        resource_key, scope_key, record_key, rejected_key = (
+            ("resourceSpans", "scopeSpans", "spans", "rejectedSpans")
+            if signal == "traces"
+            else ("resourceLogs", "scopeLogs", "logRecords", "rejectedLogRecords")
+        )
         try:
-            for resource in body["resourceSpans"]:
-                resource_attributes = attributes(resource.get("resource", {}).get("attributes", []))
+            for resource in body[resource_key]:
+                resource_attributes = attributes(
+                    resource.get("resource", {}).get("attributes", []), extra_scalars
+                )
                 _scope(principal, resource_attributes)
-                for scope in resource.get("scopeSpans", []):
-                    for span in scope.get("spans", []):
+                for scope in resource.get(scope_key, []):
+                    for span in scope.get(record_key, []):
                         count += 1
                         if count > self.db.settings.request_limit:
                             raise HTTPException(413, "Too many spans in one export")
                         try:
-                            prepared.append(normalize(principal, resource_attributes, span))
+                            item = normalizer(principal, resource_attributes, span)
+                            if item is not None:
+                                prepared.append(item)
                         except (ValueError, TypeError, KeyError, OverflowError, AttributeError):
                             rejected += 1
         except (ValueError, TypeError, KeyError, AttributeError):
-            raise HTTPException(400, "Invalid OTLP trace envelope") from None
+            raise HTTPException(400, "Invalid OTLP envelope") from None
         accepted = 0
         for item in prepared:
             try:
@@ -236,9 +253,9 @@ class Telemetry:
                     raise
                 rejected += 1
         message = "unsupported_invalid_or_conflicting_usage" if rejected else None
-        SourceHealth(self.db).record(principal, "otlp-traces", accepted, rejected, message)
+        SourceHealth(self.db).record(principal, "otlp-" + signal, accepted, rejected, message)
         return (
-            {"partialSuccess": {"rejectedSpans": str(rejected), "errorMessage": message}}
+            {"partialSuccess": {rejected_key: str(rejected), "errorMessage": message}}
             if rejected
             else {}
         )
@@ -249,9 +266,7 @@ def routes(db, service):
     router = APIRouter(prefix="/api/otlp")
     adapter = Telemetry(db)
 
-    @router.post("/v1/traces")
-    async def traces(request: Request, principal=Depends(service)):
-        """Drop all non-allowlisted content before pricing or storage."""
+    async def read_body(request, resource_key):
         if request.headers.get("content-type", "").split(";")[0].strip() != "application/json":
             raise HTTPException(415, "Use OTLP/HTTP JSON encoding")
         if request.headers.get("content-encoding", "identity") != "identity":
@@ -265,8 +280,24 @@ def routes(db, service):
             body = json.loads(content)
         except (ValueError, RecursionError):
             raise HTTPException(400, "Invalid OTLP JSON") from None
-        if not isinstance(body, dict) or not isinstance(body.get("resourceSpans"), list):
-            raise HTTPException(400, "OTLP resourceSpans must be an array")
+        if not isinstance(body, dict) or not isinstance(body.get(resource_key), list):
+            raise HTTPException(400, "OTLP resources must be an array")
+        return body
+
+    @router.post("/v1/traces")
+    async def traces(request: Request, principal=Depends(service)):
+        """Drop all non-allowlisted content before pricing or storage."""
+        body = await read_body(request, "resourceSpans")
         return await run_in_threadpool(adapter.export, principal, body)
+
+    @router.post("/v1/logs")
+    async def logs(request: Request, principal=Depends(service)):
+        """Accept supported CLI usage records; ignore prompts and other non-usage logs."""
+        from dispatcher.cli_telemetry import CLI_FIELDS, normalize_log
+
+        body = await read_body(request, "resourceLogs")
+        return await run_in_threadpool(
+            adapter.export_signal, principal, body, "logs", normalize_log, CLI_FIELDS
+        )
 
     return router

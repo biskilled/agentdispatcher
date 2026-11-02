@@ -134,6 +134,54 @@ def verify(path):
             assert sum(row["cost"] for row in rows) == Decimal("0.12")
             assert "private" not in str(rows)
             assert len({row["payload"]["trace_id"] for row in rows}) == 1
+            log_values = {
+                "event.name": "claude_code.api_request",
+                "model": "fixture-model",
+                "cost_usd": "0.03",
+                "input_tokens": "4",
+                "output_tokens": "2",
+                "duration_ms": "10",
+                "user.email": "private@example.test",
+            }
+            logs = {
+                "resourceLogs": [
+                    {
+                        "resource": payload["resourceSpans"][0]["resource"],
+                        "scopeLogs": [
+                            {
+                                "logRecords": [
+                                    {
+                                        "timeUnixNano": str(time.time_ns()),
+                                        "body": {"stringValue": "private CLI content"},
+                                        "attributes": [
+                                            attribute(key, value)
+                                            for key, value in log_values.items()
+                                        ],
+                                    }
+                                ]
+                            }
+                        ],
+                    }
+                ]
+            }
+            for _ in range(2):
+                client.post(
+                    endpoint.rsplit("/", 1)[0] + "/logs",
+                    json=logs,
+                    headers={"Authorization": "Bearer " + state["DISPATCHER_COLLECTOR_TOKEN"]},
+                ).raise_for_status()
+            deadline = time.monotonic() + 30
+            while time.monotonic() < deadline:
+                log_health = [
+                    row for row in SourceHealth(db).list(owner) if row["source"] == "otlp-logs"
+                ]
+                if log_health and log_health[0]["accepted_exports"] >= 2:
+                    break
+                time.sleep(0.2)
+            assert log_health and log_health[0]["accepted_exports"] >= 2
+            rows = ledger.events(owner)
+            assert len(rows) == 4 and sum(row["cost"] for row in rows) == Decimal("0.15")
+            assert "private" not in str(rows)
             upstream = os.environ["DISPATCHER_API_INTERNAL_URL"] + "/api/otlp/v1/traces"
             authorization = {"Authorization": "Bearer " + state["DISPATCHER_OTLP_SDK_KEY"]}
             payload["resourceSpans"][0]["resource"]["attributes"].append(

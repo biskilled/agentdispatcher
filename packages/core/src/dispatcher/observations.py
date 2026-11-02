@@ -57,12 +57,14 @@ FROM linked WHERE matched_attempts=0 ORDER BY created_at DESC LIMIT %s
 )
 _SQL_SOURCES = (
     """
-SELECT app,environment,payload->>'source' source,count(*) attempts,
+SELECT app,environment,payload->>'source' source,payload->>'client_version' client_version,
+count(*) attempts,
 count(*) FILTER(WHERE cost IS NULL) unknown_cost,max(created_at) last_seen FROM mem_usage
 """
     + _SQL_SCOPE
     + """
-GROUP BY app,environment,payload->>'source' ORDER BY last_seen DESC LIMIT %s
+GROUP BY app,environment,payload->>'source',payload->>'client_version'
+ORDER BY last_seen DESC LIMIT %s
 """
 )
 

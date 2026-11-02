@@ -14,6 +14,7 @@ from urllib.parse import parse_qs, urlsplit
 
 import httpx
 from demo import main as seed_demo
+from dispatcher.settings import get_settings
 from dotenv import load_dotenv
 
 
@@ -24,7 +25,8 @@ def verify_worker(base: str) -> None:
         environment = dict(os.environ, DISPATCHER_WORKER_HEALTH_FILE=str(marker))
         worker = subprocess.Popen([sys.executable, "-m", "dispatcher.worker"], env=environment)
         try:
-            deadline = time.monotonic() + 15
+            # Large fixture databases need a full health tick before readiness is meaningful.
+            deadline = time.monotonic() + get_settings().worker_health_ttl_seconds
             while not marker.exists():
                 if worker.poll() is not None or time.monotonic() > deadline:
                     raise RuntimeError("Worker did not become healthy")

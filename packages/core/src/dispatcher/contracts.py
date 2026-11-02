@@ -27,6 +27,7 @@ class UsageEvent(Contract):
     environment: str = Field(min_length=1, max_length=50)
     resource_kind: Literal["llm", "api", "tool"]
     source: str = Field(min_length=1, max_length=100)
+    client_version: str | None = Field(default=None, max_length=100)
     provider: str = Field(min_length=1, max_length=100)
     operation: str = Field(min_length=1, max_length=150)
     model: str | None = Field(default=None, max_length=100)
@@ -48,7 +49,7 @@ class UsageEvent(Contract):
     config_version: str | None = Field(default=None, max_length=100)
     status: Literal["success", "error", "timeout", "cached"]
     status_code: int | None = Field(default=None, ge=100, le=599)
-    duration_ms: Decimal = Field(ge=0, allow_inf_nan=False)
+    duration_ms: Decimal | None = Field(default=None, ge=0, allow_inf_nan=False)
     input_tokens: int | None = Field(default=None, ge=0)
     output_tokens: int | None = Field(default=None, ge=0)
     units: Decimal = Field(default=Decimal(1), ge=0, allow_inf_nan=False)
