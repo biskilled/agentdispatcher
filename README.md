@@ -9,7 +9,7 @@ complete workspace deletion is a separate, explicit offline operator action.
 
 React monitoring for application API calls, LLM requests and scheduled work, backed by a tenant-isolated PostgreSQL ledger. One repository contains independently runnable API, worker, UI and Python SDK packages.
 
-**Development preview:** the first monitoring flow works. This is not yet the complete approved US10000 use case or a production release. See [implementation status](documents/output/implementation-progress.md) for implemented, verified and outstanding work.
+**Development preview:** monitoring, administration, SDK integrations and configuration controls are implemented and tested. Production release is blocked by live authentication acceptance and upstream container advisories. See [implementation status](documents/output/implementation-progress.md) and [release evidence](documents/output/release-verification.md) for the exact remaining work.
 
 ## Try the synthetic demo
 
@@ -25,7 +25,7 @@ Open the short-lived `sign_in` link printed by the demo command and click **Cont
 
 The UI binds to `127.0.0.1:8088` by default. Change `UI_PORT` and `DISPATCHER_PUBLIC_URL` together in `.env`. PostgreSQL, API, gateway and collector have no published management ports. Data survives service/container restarts in the `database` volume. Do not remove that volume if you need the data.
 
-**Verification note:** local PostgreSQL/API/SDK/browser tests passed. [GitHub CI](https://github.com/biskilled/agentdispatcher/actions/runs/41360357236) passed application checks, Compose startup, synthetic demo, worker restart and real LiteLLM container checks for tenant keys, model restrictions, streaming accounting and revocation. Docker is unavailable locally; container verification runs in CI. Collector ingestion and database backup/restore remain unverified.
+**Verification note:** local PostgreSQL/API/SDK/browser tests passed, including backup/restore and tenant isolation. [GitHub CI](https://github.com/biskilled/agentdispatcher/actions/runs/41378379070) passed clean Compose startup, the synthetic demo, independent service restarts, persistence, collector trace/log intake and real LiteLLM tenant/key/accounting checks. Docker is unavailable locally; container verification runs in CI. The separate security workflow remains a release gate; functional success does not clear security findings.
 
 ## Create a real workspace
 
@@ -125,14 +125,16 @@ does not discover other uninstrumented applications.
 | MCP tools | Compose `mcp` profile or standalone stdio | Session-bound usage/session/experiment reads and consented policy writes |
 | OTel collector | Compose `telemetry` profile | Authenticated app-scoped traces, JSON ledger export and rejection diagnostics |
 
-`docker compose --profile gateway up -d gateway` starts LiteLLM after you supply `LLM_PROVIDER_MODEL` and `LLM_API_KEY`. It is internal-only; connect applications on an authorised service network. Its master key is operator-only. Use **LLM keys** to provision an application/environment key with explicit model aliases. The gateway verifies revocation and scope before each call and exports metadata-only usage using a separate internal callback secret. These calculated prices are not invoices. End-to-end tests use synthetic provider responses inside the real LiteLLM image; paid provider billing and SDK/gateway correlation still need verification. OpenRouter can be configured as a LiteLLM upstream.
+`docker compose --profile gateway up --build -d gateway` builds and starts LiteLLM after you supply `LLM_PROVIDER_MODEL` and `LLM_API_KEY`. It is internal-only; connect applications on an authorised service network. Its master key is operator-only. Use **LLM keys** to provision an application/environment key with explicit model aliases. The gateway verifies revocation and scope before each call and exports metadata-only usage using a separate internal callback secret. These calculated prices are not invoices. End-to-end tests use synthetic provider responses inside the real LiteLLM image and verify SDK/gateway correlation without duplicate charges. Paid provider invoices have not been validated. OpenRouter can be configured as a LiteLLM upstream.
 
-The collector forwards authenticated traces to `/api/otlp/v1/traces`. It is bound to
+The collector forwards authenticated traces to `/api/otlp/v1/traces` and supported
+CLI logs to `/api/otlp/v1/logs`. It is bound to
 one tenant/app/environment SDK key and has no debug exporter. The API validates live
 credentials, normalizes supported usage spans, discards body content and reports
 rejected usage under **Connections**. See the [telemetry connection guide](integrations/telemetry/README.md)
 for supported fields, correlation, private receiver credentials and coverage limits.
-Metrics/logs and CLI-specific adapters remain separate work.
+See [CLI onboarding](integrations/cli/README.md) for Codex/Claude capabilities and
+coverage limits. Generic metrics ingestion is outside the implemented trace/log contract.
 
 The optional [MCP tools service](services/mcp/README.md) has its own dependency lock
 and container. Create a dedicated credential in **Tool access**; SDK keys cannot read

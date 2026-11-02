@@ -6,7 +6,9 @@ The authoritative generated attribution and verbatim package license texts for t
 
 Special attention: Psycopg and its binary package retain LGPL-3.0-only terms. They are used as separate, unmodified Python packages, and their bundled upstream notices are preserved in the artifact. Users can replace/rebuild them from the upstream source. Python, Node, PostgreSQL and Nginx base images retain their own included licenses and notices.
 
-Optional services are distributed as upstream images and are not vendored into the application:
+Optional services use separate upstream images. The gateway derives from the signed
+LiteLLM image and applies compatible dependency/OS updates; upstream license terms
+and notices remain intact:
 
 | Project | Role | Upstream |
 | --- | --- | --- |
@@ -37,9 +39,14 @@ The gate rejects missing/unknown, AGPL, BUSL, SSPL and commercial/proprietary li
 declarations. This is an automated policy check, not a substitute for reviewing
 new dependency terms.
 
-The Release security evidence workflow produces SPDX inventories and vulnerability
+The Release security evidence workflow produces Syft JSON inventories and vulnerability
 reports for every deployed image (API/worker, UI, MCP, recovery, PostgreSQL,
 LiteLLM and collector). Upstream operating-system packages retain the license texts
 and source provisions supplied in their images. CI archives inventories with the
-commit and verifies LiteLLM's signature against its pinned upstream signing key.
+commit and verifies the upstream LiteLLM base signature against its pinned signing key
+before building the derived image. This does not imply the derived image is signed
+by LiteLLM. Syft JSON preserves Go symbol evidence used by the vulnerability matcher.
+The application CI also rejects explicit enterprise imports/callbacks and license
+activation references in owned source/configuration; it does not claim upstream
+image directories contain only community code.
 See `documents/output/release-verification.md` for the evidence and release limits.

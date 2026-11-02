@@ -1,0 +1,53 @@
+{
+  "checked_at": "2026-11-02",
+  "commit": "22507f2b8232e5773dcfd4e4a4ab8631154b5e8e",
+  "workflow": "https://github.com/biskilled/agentdispatcher/actions/runs/41378952571",
+  "services": [
+    {
+      "service": "api",
+      "high_critical": []
+    },
+    {
+      "service": "collector",
+      "high_critical": [
+        {
+          "package": "github.com/go-jose/go-jose/v4",
+          "version": "v4.1.5",
+          "advisory": "GHSA-mgcc-cww5-fp2q",
+          "fix_versions": [
+            "4.1.6"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "db",
+      "high_critical": []
+    },
+    {
+      "service": "gateway",
+      "high_critical": [
+        {
+          "package": "filelock",
+          "version": "3.32.7",
+          "advisory": "GHSA-v4x8-3wr5-3wq8",
+          "fix_versions": [
+            "4.2.1"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "mcp",
+      "high_critical": []
+    },
+    {
+      "service": "recovery",
+      "high_critical": []
+    },
+    {
+      "service": "ui",
+      "high_critical": []
+    }
+  ]
+}

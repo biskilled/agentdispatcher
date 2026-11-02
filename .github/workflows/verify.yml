@@ -43,6 +43,7 @@ jobs:
       - run: npm run build
       - run: python scripts/notices.py
       - run: python scripts/notices.py --development
+      - run: python scripts/check_community.py
 
   compose:
     runs-on: ubuntu-latest
