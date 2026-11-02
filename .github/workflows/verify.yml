@@ -70,7 +70,7 @@ jobs:
       - name: Prepare synthetic LiteLLM profile
         run: docker compose run --rm --no-deps --user 0 -v "$PWD:/workspace" api python scripts/gateway_smoke.py --prepare /workspace/gateway-fixture.yaml --source /workspace/services/gateway/config.yaml
       - name: Start LiteLLM with synthetic provider responses
-        run: GATEWAY_CONFIG_PATH=./gateway-fixture.yaml docker compose --profile gateway up -d gateway
+        run: GATEWAY_CONFIG_PATH=./gateway-fixture.yaml docker compose --profile gateway up --build -d gateway
       - name: Verify real LiteLLM image and callback boundary
         run: docker compose exec -T api python scripts/gateway_smoke.py
       - name: Start optional MCP service

@@ -175,7 +175,12 @@ services:
       api: { condition: service_healthy }
 
   gateway:
-    image: ${LITELLM_IMAGE}
+    build:
+      context: .
+      dockerfile: services/gateway/Dockerfile
+      args:
+        LITELLM_IMAGE: ${LITELLM_IMAGE}
+    image: agentdispatcher-gateway:local
     profiles: [gateway]
     restart: unless-stopped
     environment:

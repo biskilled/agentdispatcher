@@ -4,7 +4,7 @@ ARG INSTALL_GIT=false
 ARG INSTALL_POSTGRES_CLIENT=false
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 WORKDIR /app
-RUN apk upgrade --no-cache && package_list=""; \
+RUN set -eu; apk upgrade --no-cache; package_list=""; \
     if [ "$INSTALL_GIT" = "true" ]; then package_list="$package_list git openssh-client"; fi; \
     if [ "$INSTALL_POSTGRES_CLIENT" = "true" ]; then package_list="$package_list postgresql17-client"; fi; \
     if [ -n "$package_list" ]; then apk add --no-cache $package_list; fi

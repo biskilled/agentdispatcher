@@ -26,16 +26,19 @@ def main():
     parser.add_argument(
         "service", choices=("api", "ui", "mcp", "gateway", "collector", "db", "recovery")
     )
+    parser.add_argument("--resolve-only", action="store_true")
     args = parser.parse_args()
     config = json.loads(subprocess.check_output([*_COMPOSE, "config", "--format", "json"]))
     service = config["services"][args.service]
-    if "build" in service:
+    if not args.resolve_only and "build" in service:
         subprocess.run([*_COMPOSE, "build", args.service], check=True)
-    else:
+    elif not args.resolve_only:
         subprocess.run([*_COMPOSE, "pull", args.service], check=True)
     image = service.get("image") or f"{config['name']}-{args.service}"
     with Path(os.environ["GITHUB_OUTPUT"]).open("a") as output:
         output.write(f"image={image}\n")
+        base = service.get("build", {}).get("args", {}).get("LITELLM_IMAGE", image)
+        output.write(f"base_image={base}\n")
 
 
 if __name__ == "__main__":
