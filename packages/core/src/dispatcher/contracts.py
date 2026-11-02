@@ -161,6 +161,7 @@ class ApiPlan(Contract):
     unit_price: Decimal | None = Field(default=None, ge=0, allow_inf_nan=False)
     unit_name: str = Field(default="request", min_length=1, max_length=50)
     charge_statuses: list[int] = Field(default_factory=lambda: [200], max_length=500)
+    charge_outcomes: list[Literal["success", "error", "timeout", "cached"]] | None = None
     quota_limit: Decimal | None = Field(default=None, gt=0, allow_inf_nan=False)
     quota_window_seconds: int | None = Field(default=None, gt=0)
     threshold_percent: int = Field(default=80, ge=1, le=100)

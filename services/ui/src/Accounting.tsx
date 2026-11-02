@@ -174,6 +174,9 @@ function planFromForm(form: HTMLFormElement) {
     output_token_price:
       data.pricing === "per_token" ? data.output_token_price : null,
     charge_statuses: data.charge_statuses.split(",").map(Number),
+    charge_outcomes: data.charge_outcomes.trim()
+      ? data.charge_outcomes.split(",").map((value) => value.trim())
+      : null,
     quota_rules: Array.from(
       form.querySelectorAll<HTMLFieldSetElement>("fieldset[data-quota]"),
     )
@@ -479,6 +482,11 @@ export function CatalogView({ tenant, plans, refresh, report }: Props) {
           <label>
             Charged HTTP status codes
             <input name="charge_statuses" defaultValue="200" required />
+          </label>
+          <label>
+            Billable outcomes without HTTP status (optional)
+            <input name="charge_outcomes" placeholder="success,error" />
+            <small>For MCP or SDK calls: success, error, timeout, cached. Leave blank when unknown.</small>
           </label>
           {pricing === "per_token" && (
             <>

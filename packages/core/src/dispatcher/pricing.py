@@ -52,6 +52,8 @@ def charged_units(plan: ApiPlan, event: UsageEvent) -> Decimal | None:
     """Use provider outcome rules, independently of quota counting."""
     if event.status == "cached" and not plan.count_cached:
         return ZERO
+    if event.status_code is None and plan.charge_outcomes is not None:
+        return event.units if event.status in plan.charge_outcomes else ZERO
     if event.status == "timeout" or event.status_code is None:
         return None
     return event.units if event.status_code in plan.charge_statuses else ZERO

@@ -79,7 +79,62 @@ CI, exercises the separate MCP container, real PostgreSQL, two tenants, credenti
 tampering and immediate logout. Core PostgreSQL tests cover write consent, role
 changes, hash-only storage, revoked grants and expiry.
 
-This service exposes monitoring/governance tools. It is distinct from instrumenting
-or proxying arbitrary third-party MCP calls; that monitoring adapter remains tracked
-separately. Runtime licenses are preserved in `third_party/notices.json` here and
-included in the application's combined licenses screen.
+Runtime licenses are preserved in `third_party/notices.json` here and included in
+the application's combined licenses screen.
+
+## Monitor an existing local MCP server
+
+`proxy.py` is a separate, tools-only stdio connector for macOS, Windows and Linux.
+The MCP host launches it instead of launching the upstream server directly. Install
+`services/mcp/requirements.lock` and `packages/sdk` into the same isolated environment.
+The connector uses the shared SDK queue, retries, scoped keys and ingestion contract.
+No desktop application is needed. A remote server cannot discover a user's local MCP
+processes: the user explicitly registers and launches each connector.
+
+Create an operator-owned JSON registration, for example:
+
+```json
+{
+  "version": 1,
+  "server_id": "research-tools",
+  "app": "research",
+  "environment": "production",
+  "command": "python",
+  "args": ["/your/authorized/server.py"],
+  "upstream_env": {"PROVIDER_API_KEY": "RESEARCH_PROVIDER_SECRET"},
+  "api_id": "research-tools",
+  "allowed_tools": ["research", "lookup"]
+}
+```
+
+The MCP host runs its environment's Python with `services/mcp/proxy.py --config
+/your/registration.json`. Supply `DISPATCHER_API_URL`, `DISPATCHER_SDK_KEY` and the
+explicit upstream secret environment names through the launcher's secret facility.
+The SDK key must match the registration's app/environment. `upstream_env` maps names
+expected by the upstream to names in the launcher's environment; secret values do
+not belong in this file. The connector does not pass its telemetry key upstream.
+Use a separate SDK key if an owned upstream also exports its nested LLM calls.
+`DISPATCHER_MCP_TOOL_TIMEOUT` controls the upstream deadline (default 120 seconds).
+
+Each call records server/tool, outcome, duration and bounded session/job/work-item
+attribution. Arguments, results, upstream credentials and unknown metadata are not
+exported. An owned upstream can import `agentdispatcher_sdk.mcp.request_context`
+from request `_meta` into `monitor.context(**attributes)` around its provider calls.
+This links distinct tool and LLM charges by trace; it never guesses hidden costs.
+For application-owned MCP clients, call `agentdispatcher_sdk.mcp.call_tool(monitor,
+client, server_id, name, arguments)` directly instead of adding a proxy process.
+
+In the API catalog, associate `api_id` with the tool's actual pricing. A per-unit
+plan can explicitly set billable outcomes without an HTTP status, e.g. `success`.
+MCP outcomes do not fabricate HTTP codes. With no price/evidence the tool cost is
+unknown; configure free only when the service is actually free. Nested provider
+charges remain separate. Use one authoritative observer for each physical attempt.
+
+This connector forwards tool schemas/results and pagination, with an optional tool
+allow-list. Resources, prompts, subscriptions, sampling and interactive elicitation
+are not proxied; servers requiring those capabilities need direct SDK instrumentation.
+Registration versions other than 1 fail at startup. Failed delivery increments the
+shared exporter counters and is reported at shutdown; a disconnected process cannot
+report its own health. Coverage only includes delivered observations, not discovered
+local applications. Run all protocol checks with `python -m unittest discover -s
+services/mcp -p 'test_*.py'`; PostgreSQL tests additionally verify nested cost totals.
