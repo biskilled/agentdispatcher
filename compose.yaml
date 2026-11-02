@@ -198,7 +198,15 @@ services:
     command: [--config, /app/config.yaml, --port, "${LITELLM_PORT}"]
 
   collector:
-    image: ${OTEL_IMAGE}
+    build:
+      context: .
+      dockerfile: services/collector/Dockerfile
+      args:
+        OTEL_IMAGE: ${OTEL_IMAGE}
+        GO_IMAGE: ${GO_IMAGE}
+        COLLECTOR_BUILDER_VERSION: ${COLLECTOR_BUILDER_VERSION}
+        GO_LICENSES_VERSION: ${GO_LICENSES_VERSION}
+    image: agentdispatcher-collector:local
     profiles: [telemetry]
     restart: unless-stopped
     environment:

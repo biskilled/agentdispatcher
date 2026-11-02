@@ -1,0 +1,10 @@
+{
+  "distribution": "litellm",
+  "upstream_version": "1.106.6",
+  "local_version": "1.106.6+dispatcher.1",
+  "dependency": "filelock",
+  "expected_specifiers": ["<4.0", ">=3.16.1"],
+  "replacement": "filelock>=4.2.1,<5.0",
+  "upstream_proposal": "https://github.com/BerriAI/litellm/pull/48802",
+  "description": "Dispatcher-maintained Python 3.11+ dependency-constraint backport; upstream PR is unmerged. Runtime code is unchanged. Remove when a verified upstream release includes the fix."
+}

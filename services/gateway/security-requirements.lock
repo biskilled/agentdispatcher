@@ -4,4 +4,4 @@ ddtrace==4.15.6
 ddtrace-internal==0.1.0
 dnspython==2.9.0
 pypdf==6.21.4
-# filelock 4.2.1 conflicts with LiteLLM's <4 requirement; the release scan stays blocking.
+filelock==4.2.4

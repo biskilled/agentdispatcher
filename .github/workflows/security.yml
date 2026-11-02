@@ -41,6 +41,14 @@ jobs:
         run: cosign verify --key https://raw.githubusercontent.com/BerriAI/litellm/e82a3c646908ba0a6ee0beddc4310d7a6cac4065/cosign.pub "$GATEWAY_IMAGE" > gateway-signature.json
       - name: Build or pull verified service
         run: python3 scripts/container_inventory.py ${{ matrix.service }}
+      - name: Preserve collector dependency and license evidence
+        if: matrix.service == 'collector'
+        env:
+          COLLECTOR_IMAGE: ${{ steps.image.outputs.image }}
+        run: |
+          evidence_container=$(docker create "$COLLECTOR_IMAGE")
+          trap 'docker rm "$evidence_container" >/dev/null' EXIT
+          docker cp "$evidence_container:/licenses/dispatcher" collector-build-evidence
       - uses: anchore/sbom-action@43a17d6e7add2b5535efe4dcae9952337c479a93
         env:
           SYFT_GOLANG_CAPTURE_SYMBOLS: all
@@ -67,4 +75,5 @@ jobs:
             inventory.syft.json
             vulnerabilities.json
             gateway-signature.json
+            collector-build-evidence/
           retention-days: 30
