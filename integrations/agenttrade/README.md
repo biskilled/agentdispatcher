@@ -50,16 +50,24 @@ outside this adapter's coverage. Do not treat the dashboard as a complete invoic
 Verification: 59 existing/new AgentTrade provider, scheduler and research tests pass.
 The synthetic end-to-end harness exercises real scheduler and provider-meter code,
 thread-pool calls, HTTP ingestion, PostgreSQL and the dashboard API for two tenants:
-each has five attempts, 14 input tokens and USD 0.036 using explicit fixture prices.
+each has eight attempts, 28 input tokens and USD 0.082 in known charges using explicit
+fixture prices; the timed-out request retains unknown cost. Concurrent jobs remain
+separate. A serialized queue message crosses a new worker process, which invokes a
+real official-SDK MCP client/server pair with two nested LLM attempts and one tool fee.
 It checks timeouts, rejected requests, failed jobs, config attribution and privacy.
 Provider responses and the scheduler's business database are mocked; no trade or
 paid provider call runs. Run it with explicit local environment/interpreter paths:
 
 ```sh
 python integrations/agenttrade/verify.py --env-file /path/to/dispatcher.env \
-  --agenttrade /path/to/agentTrade --python /path/to/advisor/venv/bin/python
+  --agenttrade /path/to/agentTrade --python /path/to/advisor/venv/bin/python \
+  --mcp-python /path/to/mcp/venv/bin/python
 ```
 
 The harness creates isolated synthetic Dispatcher tenants and revokes its keys at
-the end. Automatic source coverage discovery, MCP steps, durable queue handoff and
-SDK/LiteLLM overlap correlation still need their own integration verification.
+the end. The MCP interpreter needs the pinned optional MCP dependencies and the
+monitoring SDK. Queue messages contain attribution, not credentials; the worker
+resolves its own environment bindings. The fixture models delivery across a process
+boundary, not a production queue broker. SDK/LiteLLM overlap is separately verified
+by the real gateway container fixture. Applications must explicitly register sources;
+Dispatcher cannot automatically discover uninstrumented calls.

@@ -2,9 +2,12 @@
 
 import json
 import os
+import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
+from pathlib import Path
+from threading import Barrier
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -36,7 +39,10 @@ def main():
     def timeout():
         raise httpx.ReadTimeout("Synthetic timeout")
 
+    barrier = Barrier(len(setup["organisations"]) * 2)
+
     def runner(config, organisation_id=None):
+        barrier.wait(timeout=30)
         if config.get("fail"):
             llm()
             raise ValueError("Synthetic business failure")
@@ -57,6 +63,15 @@ def main():
             meter_provider("fixture-llm", timeout)
         except httpx.ReadTimeout:
             pass  # This fixture explicitly models an app recovering from a provider timeout.
+        with _registry().scope(organisation_id) as monitor:
+            message = {"organisation": organisation_id, "context": monitor.export_context()}
+        subprocess.run(
+            [setup["mcp_python"], str(Path(__file__).with_name("exercise_worker.py"))],
+            input=json.dumps(message),
+            text=True,
+            check=True,
+            timeout=30,
+        )
         return {"assets_updated": 0}
 
     recorded = []
@@ -69,9 +84,10 @@ def main():
         patch.object(scheduler_tasks, "db", database),
         patch.object(scheduler_tasks, "TASK_REGISTRY", {"dispatcher-fixture": {"runner": runner}}),
     ):
-        for organisation in setup["organisations"]:
-            for fail in (False, True):
-                scheduler_tasks._execute_task(
+        with ThreadPoolExecutor(max_workers=len(setup["organisations"]) * 2) as pool:
+            futures = [
+                pool.submit(
+                    scheduler_tasks._execute_task,
                     {
                         "id": "synthetic-task",
                         "name": "Synthetic monitoring",
@@ -81,9 +97,14 @@ def main():
                     },
                     get_logger(),
                 )
+                for organisation in setup["organisations"]
+                for fail in (False, True)
+            ]
+            for future in futures:
+                future.result(timeout=45)
     counters = _registry().close()
     assert len(recorded) == 4
-    assert [row[6] for row in recorded] == ["completed", "failed", "completed", "failed"]
+    assert sorted(row[6] for row in recorded) == ["completed", "completed", "failed", "failed"]
     assert all(
         row["flushed"] and not row["failed"] and not row["dropped"] for row in counters.values()
     )

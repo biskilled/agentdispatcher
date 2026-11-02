@@ -25,6 +25,9 @@ def main():
     parser.add_argument("--env-file", required=True)
     parser.add_argument("--agenttrade", required=True, type=Path)
     parser.add_argument("--python", required=True)
+    parser.add_argument(
+        "--mcp-python", required=True, help="Interpreter with official MCP SDK and monitoring SDK"
+    )
     args = parser.parse_args()
     load_dotenv(args.env_file, override=True)
     settings = get_settings()
@@ -64,6 +67,10 @@ def main():
                 },
             ),
             ("fixture-market", {"pricing": "per_unit", "unit_price": "0.01"}),
+            (
+                "fixture-tool",
+                {"pricing": "per_unit", "unit_price": "0.02", "charge_outcomes": ["success"]},
+            ),
         ]:
             ledger.add_plan(
                 owner,
@@ -82,7 +89,13 @@ def main():
     try:
         subprocess.run(
             [args.python, str(script)],
-            input=json.dumps({"environment": environment, "organisations": list(bindings)}),
+            input=json.dumps(
+                {
+                    "environment": environment,
+                    "organisations": list(bindings),
+                    "mcp_python": args.mcp_python,
+                }
+            ),
             text=True,
             env=child_environment,
             check=True,
@@ -90,16 +103,23 @@ def main():
         )
         for owner, email, _ in tenants:
             overview = ledger.overview(owner)
-            assert overview["counts"]["attempts"] == 5
+            assert overview["counts"]["attempts"] == 8
             assert overview["counts"]["failures"] == 2
-            assert overview["counts"]["input_tokens"] == 14
-            assert sum(row["cost"] or Decimal(0) for row in overview["totals"]) == Decimal("0.036")
+            assert overview["counts"]["input_tokens"] == 28
+            assert sum(row["cost"] or Decimal(0) for row in overview["totals"]) == Decimal("0.082")
             rows = ledger.events(owner)
             assert all(
                 row["payload"]["config_version"] == "synthetic-configuration-version"
                 for row in rows
             )
             assert "Synthetic private" not in str(rows)
+            runs = ledger.jobs(owner)
+            assert len({row["trace_id"] for row in runs}) == 2
+            completed = next(row for row in runs if row["state"] == "completed")
+            children = [row for row in rows if row["payload"]["trace_id"] == completed["trace_id"]]
+            assert len(children) == 7
+            assert {str(row["job_run_id"]) for row in children} == {str(completed["run_id"])}
+            assert len([row for row in children if row["resource_kind"] == "tool"]) == 1
             assert {row["state"] for row in ledger.jobs(owner)} == {"completed", "failed"}
             token = auth.request_login(email, "agenttrade-synthetic-verification")
             session = auth.consume_login(token)
@@ -111,14 +131,14 @@ def main():
                 try:
                     response = client.get("/api/overview")
                     response.raise_for_status()
-                    assert response.json()["counts"]["attempts"] == 5
+                    assert response.json()["counts"]["attempts"] == 8
                     assert sum(
                         Decimal(row["cost"] or "0") for row in response.json()["totals"]
-                    ) == Decimal("0.036")
+                    ) == Decimal("0.082")
                 finally:
                     client.post("/api/auth/logout").raise_for_status()
         print(
-            "Verified two tenant ledgers: 5 attempts, 14 input tokens and USD 0.036 each; "
+            "Verified two tenant ledgers: 8 attempts, 28 input tokens and USD 0.082 each; "
             "dashboard matches."
         )
     finally:
