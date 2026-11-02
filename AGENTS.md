@@ -47,17 +47,17 @@ _When one of these rules shapes an action or answer, SAY SO briefly — e.g. “
 - 🏢 **session start checks**: Always check that all hooks are running when you start a session, and make sure you are connected to AgentDesk.
 - 🏢 **node_modules folder**: Always store node_modules under /Users/user/Documents/node_modules folder (linked folder) and venv under /Users/user/Documents/venv
 
-<!-- Last updated: 2026-11-02 02:45 UTC -->
+<!-- Last updated: 2026-11-02 10:30 UTC -->
 # agentdispatcher
-_2026-11-02 02:45 UTC | Memory synced: 2026-11-01_
+_2026-11-02 10:30 UTC | Memory synced: 2026-11-02_
 
 ## Recent Work
-- [feature] Responsive React monitoring UI: overview, jobs, sessions and connections (in-progress)
-- [feature] Tenant-isolated PostgreSQL ledger, execution context and pricing (in-progress)
-- [feature] Google/email authentication, tenant SDK keys and AgentDesk attribution (in-progress)
-- [task] Shared API quota and pricing engine with mixed-workload fixtures (in-progress)
-- [task] Admin API catalog and versioned provider plans (in-progress)
-- [task] Reusable LLM/API monitoring SDK and AgentTrade integration (in-progress)
+- [task] Responsive React monitoring UI: overview, jobs, sessions and connections (review) — React/TypeScript/Vite web UI primarily for user monitoring on desktop and mobile
+- [task] Tenant-isolated PostgreSQL ledger, execution context and pricing (review) — Store all durable product data in PostgreSQL: tenants/memberships/apps, connections and usage events
+- [task] Shared API quota and pricing engine with mixed-workload fixtures (review) — Extend shared accounting behind LLM/API adapters to distinguish logical operations
+- [task] Admin API catalog and versioned provider plans (review) — Create tenant-scoped catalog/connection and plan CRUD endpoints with React admin interface
+- [task] Reusable LLM/API monitoring SDK and AgentTrade integration (review) — Build a minimal OpenTelemetry-based monitoring SDK, initially for AgentTrade's scheduled jobs
+- [task] Background job health, coverage and billing reconciliation (review) — Implement the independent Dispatcher worker using shared application contracts
 
 ## Structure
 
@@ -88,8 +88,8 @@ _2026-11-02 02:45 UTC | Memory synced: 2026-11-01_
 - **monitoring_sources**: OTEL_RESOURCE_ATTRIBUTES for project/work-item/job attribution
 - **api_spec**: usage_event schema (ts, user, key, team, project, work_item, client, provider, model, api_id, quota, cost)
 - **ci_checks**: pip-licenses/license-checker blocking AGPL and commercial dependencies
-- **monorepo_services**: UI (React/Vite), API (FastAPI), background worker, independent deployable containers
-- **api_catalog**: Tenant-scoped API registry with plans, quotas, pricing and alert thresholds
+- **monorepo_services**: UI (React/Vite), API (FastAPI), background worker, independently deployable containers
+- **scheduler**: Dedicated Python / FastAPI service
 
 ## Key Architectural Decisions
 
@@ -104,7 +104,7 @@ _2026-11-02 02:45 UTC | Memory synced: 2026-11-01_
 - Mobile-first monitoring: React web app usable on desktop and mobile, shared design tokens with AgentDesk
 - Agent instrumentation: small agents (e.g., AgentTrade) integrate via OTEL_RESOURCE_ATTRIBUTES to tag scheduled/hard-to-monitor LLM jobs
 - API monitoring: general-purpose SDK for tracking any API usage (LLM, CoinGecko, Yahoo Finance, paid/free) with tenant-scoped catalog and pricing configuration
-- Authentication: AgentDesk token (identity/session/membership), Google OAuth, user email, SDK dedicated hash keys per tenant
+- Authentication: AgentDesk token (identity/session/membership), Google OAuth, user email, SDK dedicated hash keys per tenant; credentials via environment variables for deployment
 - A/B experiments: routing policies support weighted model variants for experimentation
 - Deployment: single docker-compose stack with LiteLLM, OTel collector, Postgres, Dispatcher core, and optional UI components
 - Security hardening: pip-licenses/license-checker CI step, OTEL attribute validation, read-only AgentData role, least-privilege tenant isolation
@@ -114,7 +114,7 @@ _2026-11-02 02:45 UTC | Memory synced: 2026-11-01_
 - `US10000` `AgentDispatcher — open-source LLM gateway and API usage monitoring` [blocked] — AgentDispatcher is an Apache-2.0 open-source, self-installable app in the AgentDesk ecosystem. A res
   _AC: - On a clean checkout, documented Docker Compose setup starts the independent services; the offline demo shows synthetic jobs and usage without provid_
 - `FE10004` `Open-source quality, attribution, security and privacy` [blocked] — Apache-2.0 distribution with minimal dependencies and reusable single-purpose classes/methods/module
-- `FE10003` `AgentDesk, AgentData and application SDK integration` [blocked] — Integrate with AgentDesk identity, tenant membership, projects/work items and role attribution using
+- `FE10003` `AgentDesk, AgentData and application SDK integration` [review] — Integrate with AgentDesk identity, tenant membership, projects/work items and role attribution using
 
 ---
 _Auto-generated by AgentDesk memory system. Run `/memory` to refresh._

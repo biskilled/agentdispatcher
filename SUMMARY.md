@@ -1,12 +1,12 @@
 # agentdispatcher — Summary
 
 ## Recent Work
-- [feature] Responsive React monitoring UI: overview, jobs, sessions and connections (in-progress)
-- [feature] Tenant-isolated PostgreSQL ledger, execution context and pricing (in-progress)
-- [feature] Google/email authentication, tenant SDK keys and AgentDesk attribution (in-progress)
-- [task] Shared API quota and pricing engine with mixed-workload fixtures (in-progress)
-- [task] Admin API catalog and versioned provider plans (in-progress)
-- [task] Reusable LLM/API monitoring SDK and AgentTrade integration (in-progress)
+- [task] Responsive React monitoring UI: overview, jobs, sessions and connections (review) — React/TypeScript/Vite web UI primarily for user monitoring on desktop and mobile
+- [task] Tenant-isolated PostgreSQL ledger, execution context and pricing (review) — Store all durable product data in PostgreSQL: tenants/memberships/apps, connections and usage events
+- [task] Shared API quota and pricing engine with mixed-workload fixtures (review) — Extend shared accounting behind LLM/API adapters to distinguish logical operations
+- [task] Admin API catalog and versioned provider plans (review) — Create tenant-scoped catalog/connection and plan CRUD endpoints with React admin interface
+- [task] Reusable LLM/API monitoring SDK and AgentTrade integration (review) — Build a minimal OpenTelemetry-based monitoring SDK, initially for AgentTrade's scheduled jobs
+- [task] Background job health, coverage and billing reconciliation (review) — Implement the independent Dispatcher worker using shared application contracts
 
 ## Stack & Architecture
 
@@ -23,8 +23,8 @@
 - **monitoring_sources**: OTEL_RESOURCE_ATTRIBUTES for project/work-item/job attribution
 - **api_spec**: usage_event schema (ts, user, key, team, project, work_item, client, provider, model, api_id, quota, cost)
 - **ci_checks**: pip-licenses/license-checker blocking AGPL and commercial dependencies
-- **monorepo_services**: UI (React/Vite), API (FastAPI), background worker, independent deployable containers
-- **api_catalog**: Tenant-scoped API registry with plans, quotas, pricing and alert thresholds
+- **monorepo_services**: UI (React/Vite), API (FastAPI), background worker, independently deployable containers
+- **scheduler**: Dedicated Python / FastAPI service
 
 ## Key Architectural Decisions
 
@@ -39,7 +39,7 @@
 - Mobile-first monitoring: React web app usable on desktop and mobile, shared design tokens with AgentDesk
 - Agent instrumentation: small agents (e.g., AgentTrade) integrate via OTEL_RESOURCE_ATTRIBUTES to tag scheduled/hard-to-monitor LLM jobs
 - API monitoring: general-purpose SDK for tracking any API usage (LLM, CoinGecko, Yahoo Finance, paid/free) with tenant-scoped catalog and pricing configuration
-- Authentication: AgentDesk token (identity/session/membership), Google OAuth, user email, SDK dedicated hash keys per tenant
+- Authentication: AgentDesk token (identity/session/membership), Google OAuth, user email, SDK dedicated hash keys per tenant; credentials via environment variables for deployment
 - A/B experiments: routing policies support weighted model variants for experimentation
 - Deployment: single docker-compose stack with LiteLLM, OTel collector, Postgres, Dispatcher core, and optional UI components
 - Security hardening: pip-licenses/license-checker CI step, OTEL attribute validation, read-only AgentData role, least-privilege tenant isolation
