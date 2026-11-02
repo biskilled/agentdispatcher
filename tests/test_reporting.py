@@ -16,6 +16,7 @@ def test_filter_breakdowns_drilldown_and_unknown_dimensions(system):
         source="scheduler",
         session_id="first",
         trace_id="shared-trace",
+        feature="portfolio-summary",
         work_item="TA1",
         occurred_at=(now - timedelta(hours=2)).isoformat(),
     )
@@ -35,6 +36,11 @@ def test_filter_breakdowns_drilldown_and_unknown_dimensions(system):
         ).status_code
         == 403
     )
+    feature = client.get(
+        "/api/overview", params={"group_by": "feature", "feature": "portfolio-summary"}
+    ).json()
+    assert feature["groups"][0]["label"] == "portfolio-summary"
+    assert feature["counts"]["attempts"] == 1
     trace = {"trace_id": "shared-trace", "group_by": "trace_id"}
     assert client.get("/api/overview", params=trace).json()["groups"][0]["label"] == "shared-trace"
     assert len(client.get("/api/export/events", params=trace).json()["events"]) == 1

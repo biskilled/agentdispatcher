@@ -45,3 +45,8 @@ cubes:
       - { name: work_item, type: string, sql: "{CUBE}.work_item" }
       - { name: config_version, type: string, sql: "{CUBE}.config_version" }
       - { name: status, type: string, sql: "{CUBE}.status" }
+      - { name: feature, type: string, sql: "{CUBE}.feature" }
+      - { name: pipeline_role, type: string, sql: "{CUBE}.pipeline_role" }
+      - { name: experiment_id, type: string, sql: "{CUBE}.experiment_id" }
+      - { name: variant, type: string, sql: "{CUBE}.variant" }
+      - { name: usage_category, type: string, sql: "{CUBE}.usage_category" }

@@ -102,6 +102,8 @@ class Ledger:
         payload = canonical.model_dump(mode="json")
         # New optional evidence fields must not change hashes for pre-upgrade replays.
         omitted = {"reported_cost", "reported_currency"} if event.reported_cost is None else set()
+        if event.feature is None:
+            omitted.add("feature")
         if event.pipeline_role is None:
             omitted.add("pipeline_role")
         omitted.update(

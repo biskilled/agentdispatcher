@@ -13,6 +13,7 @@ const dimensions = [
   "project",
   "work_item",
   "pipeline_role",
+  "feature",
   "experiment_id",
   "variant",
   "requested_model",

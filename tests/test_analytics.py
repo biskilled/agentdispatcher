@@ -14,6 +14,7 @@ from test_integration import event, ingest
 _SQL_COUNTS = "SELECT count(*) attempts,sum(input_tokens) input_tokens FROM llm_usage"
 _SQL_COST = "SELECT currency,cost_kind,sum(cost) cost FROM llm_usage GROUP BY currency,cost_kind"
 _SQL_GROUPS = "SELECT provider,count(*) attempts FROM llm_usage GROUP BY provider"
+_SQL_FEATURE = "SELECT feature FROM llm_usage WHERE feature IS NOT NULL"
 _SQL_SCOPE = "SELECT DISTINCT tenant_id FROM llm_usage"
 _SQL_FORGED = "SELECT * FROM llm_usage WHERE tenant_id=%s"
 _SQL_SETTING = "SELECT set_config('dispatcher.tenant_id',%s,false)"
@@ -29,7 +30,9 @@ def test_analytics_totals_isolation_rotation_and_revocation(system):
         ingest(
             system,
             [
-                event(input_tokens=7, reported_cost="1.25", reported_currency="USD"),
+                event(
+                    input_tokens=7, reported_cost="1.25", reported_currency="USD", feature="summary"
+                ),
                 event(input_tokens=11, provider="second"),
             ],
         ).status_code
@@ -44,6 +47,7 @@ def test_analytics_totals_isolation_rotation_and_revocation(system):
     with psycopg.connect(
         make_conninfo(dsn, user=role, password=password), row_factory=dict_row, autocommit=True
     ) as connection:
+        assert connection.execute(_SQL_FEATURE).fetchall() == [{"feature": "summary"}]
         counts = connection.execute(_SQL_COUNTS).fetchone()
         assert counts["attempts"] == overview["counts"]["attempts"] == 2
         assert counts["input_tokens"] == int(overview["counts"]["input_tokens"]) == 18

@@ -92,7 +92,11 @@ def verify():
                 "model": "configured-model",
                 "messages": [{"role": "user", "content": "Synthetic fixture only"}],
                 "metadata": {
-                    "dispatcher_context": {"project": "fixture", "work_item": "TA10008"},
+                    "dispatcher_context": {
+                        "project": "fixture",
+                        "work_item": "TA10008",
+                        "feature": "fixture-summary",
+                    },
                     "_dispatcher": {"scope": {"app": "forged"}},
                 },
             }
@@ -140,6 +144,7 @@ def verify():
             rows = wait_events(ledger, owner, 3)
             assert all(row["app"] == "fixture-app" for row in rows)
             upstream = [row for row in rows if row["payload"]["source"] == "litellm"]
+            assert all(row["payload"]["feature"] == "fixture-summary" for row in upstream)
             assert len(upstream) == 2
             assert all(row["cost_kind"] == "gateway_calculated" for row in upstream), rows
             assert not Observations(db).coverage(owner)["gaps"]

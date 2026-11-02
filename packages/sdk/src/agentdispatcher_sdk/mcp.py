@@ -9,6 +9,7 @@ _CONTEXT = frozenset(
         "project",
         "work_item",
         "pipeline_role",
+        "feature",
         "session_id",
         "trace_id",
         "job_run_id",

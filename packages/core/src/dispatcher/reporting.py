@@ -20,6 +20,7 @@ _FILTER_COLUMNS = {
     "session_id": "payload->>'session_id'",
     "project": "payload->>'project'",
     "work_item": "payload->>'work_item'",
+    "feature": "payload->>'feature'",
     "pipeline_role": "payload->>'pipeline_role'",
     "experiment_id": "payload->>'experiment_id'",
     "variant": "payload->>'variant'",
@@ -106,6 +107,7 @@ class UsageFilter(Contract):
     session_id: str | None = None
     project: str | None = None
     work_item: str | None = None
+    feature: str | None = None
     pipeline_role: str | None = None
     experiment_id: str | None = None
     variant: str | None = None
@@ -128,6 +130,7 @@ class UsageFilter(Contract):
         "project",
         "work_item",
         "pipeline_role",
+        "feature",
         "experiment_id",
         "variant",
         "requested_model",
