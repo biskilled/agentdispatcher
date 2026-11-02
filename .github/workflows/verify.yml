@@ -16,8 +16,8 @@ jobs:
           --health-timeout 5s --health-retries 10
     env:
       TEST_DATABASE_URL: postgresql://postgres@127.0.0.1:5432/postgres
-      DISPATCHER_PG_DUMP: /usr/lib/postgresql/17/bin/pg_dump
-      DISPATCHER_PG_RESTORE: /usr/lib/postgresql/17/bin/pg_restore
+      DISPATCHER_PG_DUMP: pg_dump
+      DISPATCHER_PG_RESTORE: pg_restore
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -28,12 +28,14 @@ jobs:
       - run: pip install -e '.[dev]'
       - run: npm ci
       - run: ruff check packages scripts tests
-      - name: Ensure matching PostgreSQL recovery clients
+      - name: Ensure PostgreSQL recovery clients
         run: |
-          if [ ! -x "$DISPATCHER_PG_DUMP" ]; then
+          if ! command -v "$DISPATCHER_PG_DUMP"; then
             sudo apt-get update
-            sudo apt-get install -y postgresql-client-17
+            sudo apt-get install -y postgresql-client
           fi
+          pg_dump --version
+          pg_restore --version
       - run: pytest -q
       - run: npm install --global @openai/codex@0.164.0
       - run: python scripts/verify_codex_telemetry.py
