@@ -17,6 +17,7 @@ _run = contextvars.ContextVar("dispatcher_run", default=None)
 _context = contextvars.ContextVar("dispatcher_context", default=None)
 _delegation = contextvars.ContextVar("dispatcher_user_delegation", default=None)
 _attempts = contextvars.ContextVar("dispatcher_attempts", default=())
+_authority = contextvars.ContextVar("dispatcher_authority", default=None)
 _CONTEXT_FIELDS = frozenset(
     {
         "project",
@@ -96,10 +97,11 @@ class Monitor:
         resource_kind: str,
         status: str,
         duration_ms: float,
+        canonical_source: str | None = None,
+        correlation_kind: str = "attempt",
         **metadata,
     ) -> str:
         """Record one physical attempt; retrying export preserves its original identifiers."""
-        event_id = str(uuid4())
         frames = [frame for frame in _attempts.get() if frame["monitor"] is self]
         for frame in frames:
             frame["observed"] = True
@@ -108,6 +110,13 @@ class Monitor:
                 key: value for key, value in frames[-1]["measurements"].items() if key != "status"
             }
             metadata = {**inherited, **metadata}
+        canonical_source = metadata.pop("canonical_source", canonical_source)
+        correlation_kind = metadata.pop("correlation_kind", correlation_kind)
+        authority = _authority.get()
+        if authority and authority["monitor"] is self:
+            canonical_source, correlation_kind = authority["source"], "operation"
+            metadata["operation_id"] = authority["operation_id"]
+        event_id = metadata.pop("event_id", str(uuid4()))
         span = trace.get_current_span().get_span_context()
         run = _run.get()
         payload = {
@@ -131,8 +140,50 @@ class Monitor:
             payload.setdefault("trace_id", run["trace_id"])
         if span.is_valid:
             payload["trace_id"] = format(span.trace_id, "032x")
-        self._enqueue("api/ingest", {"events": [payload]})
+        if canonical_source:
+            self._enqueue(
+                "api/observations",
+                {
+                    "observations": [
+                        {
+                            "event": payload,
+                            "expected_source": canonical_source,
+                            "correlation_kind": correlation_kind,
+                        }
+                    ]
+                },
+            )
+        else:
+            self._enqueue("api/ingest", {"events": [payload]})
         return event_id
+
+    @contextmanager
+    def gateway(self):
+        """Yield LiteLLM dispatcher_context; local hooks become references to upstream attempts."""
+        operation_id = str(uuid4())
+        context = self.export_context()
+        allowed = {
+            "project",
+            "work_item",
+            "pipeline_role",
+            "session_id",
+            "trace_id",
+            "job_run_id",
+            "config_version",
+            "user_id",
+        }
+        attributes = {key: value for key, value in context.items() if key in allowed}
+        token = _authority.set({"monitor": self, "source": "litellm", "operation_id": operation_id})
+        try:
+            with self.operation(
+                provider="litellm",
+                operation="completion",
+                resource_kind="llm",
+                operation_id=operation_id,
+            ):
+                yield {**attributes, "operation_id": operation_id}
+        finally:
+            _authority.reset(token)
 
     @contextmanager
     def context(self, **attributes):

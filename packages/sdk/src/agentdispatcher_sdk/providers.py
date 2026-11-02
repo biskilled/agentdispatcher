@@ -25,6 +25,19 @@ class ProviderObserver:
         status_code = getattr(response, "status_code", None)
         kind = config.get("resource_kind", "api")
         metadata = {"api_id": config.get("api_id", provider), "source": "provider-observer"}
+        extensions = getattr(response, "extensions", {}) or {}
+        correlation = extensions.get("dispatcher_correlation") or getattr(
+            error, "dispatcher_correlation", None
+        )
+        if correlation:
+            metadata.update(
+                {key: correlation[key] for key in ("attempt_id", "operation_id", "occurred_at")}
+            )
+            metadata["event_id"] = correlation["attempt_id"]
+            if correlation.get("canonical_source") != "provider-observer":
+                metadata["canonical_source"] = (
+                    correlation.get("canonical_source") or correlation["source"]
+                )
         if isinstance(status_code, int) and 100 <= status_code <= 599:
             metadata["status_code"] = status_code
         if config.get("connection_id"):

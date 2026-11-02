@@ -65,16 +65,43 @@ with monitor.job("scheduled-analysis"):
 flushed = monitor.close()
 ```
 
-Wrap each physical request attempt, including each retry/page. Reuse `operation_id` for a shared logical operation. Use `monitor.record(resource_kind="llm", ...)` for measured provider token counts. Use `heartbeat()` for long-running jobs. The SDK carries current OpenTelemetry trace IDs when available and separates concurrent job contexts. Use `monitor.context(project=..., work_item=..., config_version=...)` for attribution, and explicitly pass `monitor.export_context()` through queue messages into the receiving worker's context. Exported context excludes credentials. Gateway correlation remains pending.
+Wrap each physical request attempt, including each retry/page. Reuse `operation_id` for a shared logical operation. Use `monitor.record(resource_kind="llm", ...)` for measured provider token counts. Use `heartbeat()` for long-running jobs. The SDK carries current OpenTelemetry trace IDs when available and separates concurrent job contexts. Use `monitor.context(project=..., work_item=..., config_version=...)` for attribution, and explicitly pass `monitor.export_context()` through queue messages into the receiving worker's context. Exported context excludes credentials.
 
 Export runs in a bounded background queue. Delivery retries retain event IDs; business requests are never retried by the monitoring SDK. `delivered`, `failed`, `dropped` and the result of `close()` expose loss. Abrupt process termination can lose queued telemetry. Optional `MonitoredTransport` and `AsyncMonitoredTransport` from `agentdispatcher_sdk.http` wrap HTTPX transports without inspecting bodies/URLs; supply an operation template and provider/API/connection IDs. They measure time to response headers, not streaming body duration. Additional language SDKs remain pending.
+
+### Avoid overlapping charges
+
+For a LiteLLM call, use `with monitor.gateway() as context:` and send `context` as
+the request's `metadata.dispatcher_context`. Local manual/HTTP/provider hooks inside
+that block become non-billable observations. LiteLLM's deployment callbacks own the
+physical attempts, including retries/fallbacks, and carry the same logical operation
+ID. Keep the block around the complete client operation. The SDK key and LiteLLM key
+must belong to the same tenant/app/environment. Context contains no credentials.
+
+When combining the HTTPX transport and `ProviderObserver` directly, choose one
+billable source. Set `canonical_source="provider-observer"` on the transport when
+the provider observer will supply final token usage. Pass the original response or
+exception to the observer so it can reuse the attached physical-attempt identifiers.
+Without this setting the HTTP transport owns the attempt, and the provider observer
+adds a reference. Do not discard the correlation extension by converting the response
+to a plain dictionary before observing it. A missing provider callback stays visible
+as missing evidence; it is not substituted with an invented zero cost.
+
+Other adapters may send `POST /api/observations` with an `observations` list containing
+`event` (the usage contract), `expected_source`, and `correlation_kind` (`attempt` or
+`operation`). These records never consume quotas or add charges. **Connections** shows
+which references have matching billable evidence. Matching is scoped to tenant,
+app/environment and the exact attempt or operation ID. References may arrive before
+or after the upstream record; original prices remain immutable. Uncorrelated events
+with unrelated IDs cannot safely be guessed into one charge. Instrumenting one app
+does not discover other uninstrumented applications.
 
 ## Accounting and security boundaries
 
 - Runtime PostgreSQL roles cannot bypass RLS. Tenant context is transaction-local and comes from authenticated credentials. A separate narrowly granted auth connection owns identity, membership and credential lookups; no public route exposes those tables directly.
 - Human access and service ingestion are separate. SDK keys cannot read reports or administer tenants. Key verifiers are SHA-256 hashes of high-entropy random secrets; secrets are shown once. Expiry/revocation and membership changes are checked on each request.
 - Owner/admin can see tenant-wide usage. Members see their own verified usage and explicit app grants; viewers see granted apps only. An empty viewer grant grants no usage access. A service may attach a short-lived token issued by `POST /api/auth/delegate` through `monitor.user(token)`. The token is bound to the user's current session, tenant and app; logout/removal invalidates it. SDK-reported user IDs never confer read permission.
-- Identical event replays are idempotent; altered evidence with the same event/attempt ID is rejected. Separate SDK/gateway representations need the forthcoming correlation adapter and must not be blindly submitted with different attempt IDs.
+- Identical event replays are idempotent; altered evidence with the same event/attempt ID is rejected. Use the correlation modes above when multiple observers see one request; submit billable physical attempts from one selected source.
 - Pricing supports explicit unknown/free, per-unit, per-token, subscription/overage, graduated and volume tiers. Historic events retain their plan and original cost. Fixed fees appear separately once per observed pool/billing period; unobserved subscription periods are not inferred. Cumulative marginal charges allocate in ingestion order within the event-time billing period, so late-arriving calls can consume the remaining allowance. Volume discounts can produce negative marginal charges. A revised plan does not silently re-rate history. Monetary values are PostgreSQL decimals and JSON strings.
 - Account/connection/API/operation pools support independent quota status rules, unit weights, unknown timeout consumption, rolling/fixed/daily/monthly windows, time zones and deduplicated worker alerts. Calendar resets use the first occurrence of ambiguous wall time; monthly reset days are 1–28. Remaining amounts are local estimates with explicit unknown counters, not provider guarantees or hard enforcement. **Budgets** accepts provider statements for comparison and signed refunds/corrections linked to original events. Importing a statement never adds its amount to the ledger; external refresh integrations remain pending.
 - No request/response body fields exist in the ingestion contract. Unknown fields are rejected. Applications must still avoid putting secrets in allowed labels. OIDC access logging is disabled in the provided server/proxy configuration.

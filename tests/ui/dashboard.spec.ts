@@ -31,6 +31,21 @@ test("authenticated monitoring, catalog and scoped keys work at this viewport", 
   ).toBeTruthy();
   await page.getByRole("button", { name: "Job runs", exact: true }).click();
   await expect(page.getByText("Market scan")).toBeVisible();
+  await page.getByRole("button", { name: "Connections", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Reporting sources", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Correlated observations", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("python-sdk", { exact: true }).first(),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBeTruthy();
   await page.getByRole("button", { name: "AgentDesk", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Connect AgentDesk", exact: true }),

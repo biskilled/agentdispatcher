@@ -34,6 +34,7 @@ import { ToolsView } from "./Tools";
 import { UsageControls, UsageCharts, AttemptDetail } from "./UsageControls";
 import { OperationsView } from "./Operations";
 import { ConfigurationsView } from "./Configurations";
+import { CoverageView } from "./Coverage";
 import { repository as sourceUrl } from "../../../package.json";
 
 type Tab =
@@ -43,6 +44,7 @@ type Tab =
   | "SDK keys"
   | "LLM keys"
   | "Configuration"
+  | "Connections"
   | "Access"
   | "AgentDesk"
   | "Model policies"
@@ -57,6 +59,7 @@ const navigation = [
   { label: "SDK keys", icon: KeyRound },
   { label: "LLM keys", icon: KeyRound },
   { label: "Configuration", icon: Layers },
+  { label: "Connections", icon: Activity },
   { label: "Access", icon: Shield },
   { label: "AgentDesk", icon: Workflow },
   { label: "Model policies", icon: Layers },
@@ -74,6 +77,7 @@ const descriptions: Record<Tab, string> = {
   "SDK keys": "Manage scoped monitoring credentials for your applications.",
   "LLM keys": "Control which model aliases each application can call.",
   Configuration: "Review application settings and track their activation.",
+  Connections: "Check reporting sources and missing usage evidence.",
   Access: "Manage workspace membership and application views.",
   AgentDesk: "Connect a tenant and link your own account.",
   "Model policies":
@@ -731,9 +735,13 @@ function App() {
             .filter(
               ({ label }) =>
                 admin ||
-                ["Overview", "Job runs", "AgentDesk", "Tool access"].includes(
-                  label,
-                ),
+                [
+                  "Overview",
+                  "Job runs",
+                  "AgentDesk",
+                  "Tool access",
+                  "Connections",
+                ].includes(label),
             )
             .map(({ label, icon: Icon }) => (
               <button
@@ -896,6 +904,13 @@ function App() {
               )}
               {tab === "Configuration" && admin && (
                 <ConfigurationsView tenant={tenant} report={setMessage} />
+              )}
+              {tab === "Connections" && (
+                <CoverageView
+                  key={tenant}
+                  tenant={tenant}
+                  report={setMessage}
+                />
               )}
               {tab === "API catalog" && admin && (
                 <CatalogView

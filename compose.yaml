@@ -1,6 +1,7 @@
 name: agentdispatcher
 
 x-runtime: &runtime
+  DISPATCHER_API_INTERNAL_URL: http://api:${API_PORT}
   DISPATCHER_DATABASE_URL: ${DISPATCHER_DATABASE_URL:?Run scripts/configure.py}
   DISPATCHER_AUTH_DATABASE_URL: ${DISPATCHER_AUTH_DATABASE_URL:?Run scripts/configure.py}
   DISPATCHER_PUBLIC_URL: ${DISPATCHER_PUBLIC_URL}

@@ -28,6 +28,7 @@ from dispatcher.gateway import Gateway
 from dispatcher.ledger import Ledger
 from dispatcher.mail import Mailer
 from dispatcher.membership import MembershipService
+from dispatcher.observations import ObservationBatch, Observations
 from dispatcher.operations_api import routes as operations_routes
 from dispatcher.policies import Policies
 from dispatcher.policies_api import routes as policy_routes
@@ -511,6 +512,16 @@ def create_app(settings: Settings | None = None, mailer=None, oauth_transport=No
     def gateway_ingest(body: GatewayObservation):
         """Store one proxy observation; its reported cost is gateway-calculated, not invoiced."""
         return ledger.ingest(gateway.principal(body.service_id), [body.event])
+
+    @app.post("/api/observations", status_code=202)
+    def observations(body: ObservationBatch, principal=Depends(service)):
+        """Keep overlapping SDK/transport evidence separate from upstream billable attempts."""
+        return Observations(db).ingest(principal, body.observations)
+
+    @app.get("/api/coverage")
+    def coverage(principal=Depends(human)):
+        """Show correlation and missing upstream evidence within current usage permissions."""
+        return Observations(db).coverage(principal)
 
     app.include_router(operations_routes(ledger.operations, human))
     app.include_router(

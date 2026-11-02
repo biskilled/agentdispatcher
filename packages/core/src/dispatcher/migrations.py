@@ -12,6 +12,7 @@ from dispatcher.schema_config_monitoring import SQL_CONFIG_MONITORING
 from dispatcher.schema_configuration import SQL_CONFIGURATION
 from dispatcher.schema_context import SQL_CONTEXT
 from dispatcher.schema_gateway import SQL_GATEWAY
+from dispatcher.schema_observations import SQL_OBSERVATIONS
 from dispatcher.schema_operations import SQL_OPERATIONS
 from dispatcher.schema_policies import SQL_POLICIES
 from dispatcher.schema_tools import SQL_TOOLS
@@ -148,6 +149,7 @@ MIGRATIONS = (
     (10, SQL_POLICIES),
     (11, SQL_TOOLS),
     (12, SQL_CONFIG_MONITORING),
+    (13, SQL_OBSERVATIONS),
 )
 
 
