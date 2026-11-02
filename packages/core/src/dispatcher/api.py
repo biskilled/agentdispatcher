@@ -35,6 +35,7 @@ from dispatcher.policies_api import routes as policy_routes
 from dispatcher.pricing import calculate_price
 from dispatcher.reconciliation import Adjustment, ProviderSnapshot, Reconciliation
 from dispatcher.reporting import Reporter, UsageFilter
+from dispatcher.retention import routes as retention_routes
 from dispatcher.session_context import SessionContext, SessionContexts
 from dispatcher.settings import Settings, get_settings
 from dispatcher.telemetry import routes as telemetry_routes
@@ -534,6 +535,7 @@ def create_app(settings: Settings | None = None, mailer=None, oauth_transport=No
 
     app.include_router(operations_routes(ledger.operations, human))
     app.include_router(telemetry_routes(db, service))
+    app.include_router(retention_routes(db, human))
     app.include_router(
         tool_routes(
             ToolAccess(auth),

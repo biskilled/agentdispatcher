@@ -64,7 +64,8 @@ FROM mem_usage
 _SQL_EVENTS = (
     """
 SELECT event_id,occurred_at,app,environment,resource_kind,provider,model,api_id,status,
-cost,currency,cost_kind,job_run_id,payload,verified_user_id,plan_id FROM mem_usage
+cost,currency,cost_kind,job_run_id,payload,verified_user_id,plan_id,attribution_expired_at
+FROM mem_usage
 """
     + _SQL_WHERE
 )
@@ -218,7 +219,9 @@ class Reporter:
 
     def _attribution(self, row):
         row["user_attribution"] = (
-            "verified"
+            "expired"
+            if row.get("attribution_expired_at")
+            else "verified"
             if row["verified_user_id"]
             else "app_reported"
             if row["payload"]["user_id"]

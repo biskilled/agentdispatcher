@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { api } from "./api";
+import { RetentionSettings } from "./Retention";
 
 type Member = { id: string; email: string; role: string; apps: string[] };
 type Invitation = {
@@ -90,6 +91,7 @@ export function AccessView({ tenant, role, report }: Props) {
   }
   return (
     <>
+      <RetentionSettings tenant={tenant} report={report} />
       <section className="panel form-panel">
         <h2>Invite to this workspace</h2>
         <p>The invited person must also sign in with their email account.</p>

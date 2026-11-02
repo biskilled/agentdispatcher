@@ -268,6 +268,17 @@ test("authenticated monitoring, catalog and scoped keys work at this viewport", 
   await expect(
     page.getByLabel("Allowed model names", { exact: false }),
   ).toBeVisible();
+  await page.getByRole("button", { name: "Access", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Attribution retention" })).toBeVisible();
+  if (test.info().project.name === "desktop") {
+    const horizon = page.getByLabel("Keep attribution for days (blank disables expiry)");
+    await horizon.fill("30");
+    await page.getByRole("button", { name: "Apply retention policy" }).click();
+    await expect(page.getByText("Attribution expiry enabled for future worker runs.")).toBeVisible();
+    await horizon.fill("");
+    await page.getByRole("button", { name: "Apply retention policy" }).click();
+    await expect(page.getByText("Automatic attribution expiry disabled.")).toBeVisible();
+  }
   await page
     .getByRole("button", { name: "Open-source licenses", exact: true })
     .click();

@@ -4,6 +4,8 @@ Operators can use the optional [PostgreSQL backup/recovery profile](documents/ou
 to restore into a new database with fresh credentials. The monitoring dashboard also
 exports the selected authorized usage as JSON, preserving exact decimal costs and
 rejecting oversized selections instead of silently truncating them.
+Tenant administrators can also configure [attribution retention](documents/output/retention.md);
+complete workspace deletion is a separate, explicit offline operator action.
 
 React monitoring for application API calls, LLM requests and scheduled work, backed by a tenant-isolated PostgreSQL ledger. One repository contains independently runnable API, worker, UI and Python SDK packages.
 

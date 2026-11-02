@@ -15,6 +15,7 @@ from dispatcher.experiments import validate_assignment
 from dispatcher.operations import Operations
 from dispatcher.pricing import calculate_price
 from dispatcher.reporting import Reporter, UsageFilter
+from dispatcher.retention import Retention
 from dispatcher.session_context import attributes_at
 
 _SQL_PLAN_INSERT = """
@@ -256,6 +257,7 @@ class Ledger:
                     _SQL_STALE, (tenant["id"], self.db.settings.heartbeat_grace_seconds)
                 )
                 connection.execute(_SQL_HEARTBEAT, (tenant["id"],))
+                Retention(self.db).tick(connection, tenant["id"], datetime.now(UTC))
             self.accounting.tick(tenant["id"], datetime.now(UTC))
             self.operations.tick(tenant["id"])
         return len(tenants)
