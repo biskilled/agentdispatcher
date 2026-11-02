@@ -118,6 +118,19 @@ def main() -> None:
     notices = python_notices(root)
     if not args.python_only_root:
         notices.extend(node_notices(root))
+        images = dict(
+            line.split("=", 1)
+            for line in (root / ".env.example").read_text().splitlines()
+            if line and not line.startswith("#") and "=" in line
+        )
+        for item in json.loads((root / "third_party/services.json").read_text()):
+            reference = images[item["image_variable"]]
+            tag = reference.split("@", 1)[0].rsplit(":", 1)[-1]
+            if tag.removeprefix("v").split("-", 1)[0] != item["version"]:
+                raise RuntimeError(
+                    f"Upstream notice version does not match {item['image_variable']}"
+                )
+            notices.append(item)
         optional = root / "services/mcp/third_party/notices.json"
         if optional.exists():
             notices.extend(json.loads(optional.read_text()))

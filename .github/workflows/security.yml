@@ -40,15 +40,18 @@ jobs:
           GATEWAY_IMAGE: ${{ steps.image.outputs.image }}
         run: cosign verify --key https://raw.githubusercontent.com/BerriAI/litellm/e82a3c646908ba0a6ee0beddc4310d7a6cac4065/cosign.pub "$GATEWAY_IMAGE" > gateway-signature.json
       - uses: anchore/sbom-action@43a17d6e7add2b5535efe4dcae9952337c479a93
+        env:
+          SYFT_GOLANG_CAPTURE_SYMBOLS: all
         with:
           image: ${{ steps.image.outputs.image }}
           syft-version: v1.55.0
-          output-file: inventory.spdx.json
+          format: syft-json
+          output-file: inventory.syft.json
           upload-artifact: false
           upload-release-assets: false
       - uses: anchore/scan-action@8576240a41341d866dbd7ebc72cd9fc0ef023f54
         with:
-          sbom: inventory.spdx.json
+          sbom: inventory.syft.json
           grype-version: v0.121.0
           output-format: json
           output-file: vulnerabilities.json
@@ -59,7 +62,7 @@ jobs:
         with:
           name: container-${{ matrix.service }}
           path: |
-            inventory.spdx.json
+            inventory.syft.json
             vulnerabilities.json
             gateway-signature.json
           retention-days: 30
