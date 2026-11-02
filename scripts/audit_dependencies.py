@@ -8,7 +8,7 @@ from pathlib import Path
 import httpx
 
 
-def packages(paths):
+def packages(paths, backports=()):
     """Read exact version locks and deduplicate shared packages across isolated services."""
     result = set()
     for path in paths:
@@ -18,6 +18,10 @@ def packages(paths):
                 continue
             name, version = line.split("==")
             result.add((name.lower().replace("_", "-"), version))
+    # A local version must not hide advisories against unchanged upstream runtime code.
+    for path in backports:
+        config = json.loads(path.read_text())
+        result.add((config["distribution"], config["upstream_version"]))
     return sorted(result)
 
 
@@ -62,8 +66,9 @@ def main():
     parser.add_argument("--endpoint", required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--timeout", type=float, default=30)
+    parser.add_argument("--backport", type=Path, action="append", default=[])
     args = parser.parse_args()
-    entries = packages(args.locks)
+    entries = packages(args.locks, args.backport)
     findings = audit(entries, args.endpoint, args.timeout)
     args.output.write_text(
         json.dumps(

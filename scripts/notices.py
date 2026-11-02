@@ -126,7 +126,9 @@ def main() -> None:
         for item in json.loads((root / "third_party/services.json").read_text()):
             reference = images[item["image_variable"]]
             tag = reference.split("@", 1)[0].rsplit(":", 1)[-1]
-            if tag.removeprefix("v").split("-", 1)[0] != item["version"]:
+            if tag.removeprefix("v").split("-", 1)[0] != item.get(
+                "upstream_version", item["version"]
+            ):
                 raise RuntimeError(
                     f"Upstream notice version does not match {item['image_variable']}"
                 )

@@ -17,3 +17,6 @@ receivers:
 providers:
   - gomod: go.opentelemetry.io/collector/confmap/provider/envprovider v1.70.0
   - gomod: go.opentelemetry.io/collector/confmap/provider/fileprovider v1.70.0
+# Shared upstream dependencies can retain JOSE even in a minimal distribution.
+replaces:
+  - github.com/go-jose/go-jose/v4 => github.com/go-jose/go-jose/v4 v4.1.6

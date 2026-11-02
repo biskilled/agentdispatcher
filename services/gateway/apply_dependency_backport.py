@@ -6,6 +6,7 @@ import hashlib
 import importlib.metadata
 import json
 import re
+import shutil
 import sys
 from pathlib import Path
 
@@ -40,7 +41,8 @@ def apply_backport(metadata_path: Path, config: dict) -> None:
     patched = patch_metadata(metadata_path.read_text(), config)
     with (original / "RECORD").open(newline="") as source:
         records = list(csv.reader(source))
-    original.rename(destination)
+    # Overlay-backed image layers cannot always rename an upstream directory directly.
+    shutil.move(str(original), str(destination))
     (destination / "METADATA").write_text(patched)
     (destination / "DISPATCHER-BACKPORT.json").write_text(json.dumps(config, indent=2) + "\n")
     changed = {"METADATA", "DISPATCHER-BACKPORT.json"}

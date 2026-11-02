@@ -2,9 +2,11 @@
 
 import base64
 import csv
+import errno
 import hashlib
 import importlib.util
 import json
+import runpy
 from pathlib import Path
 
 import pytest
@@ -23,7 +25,16 @@ _METADATA = (
 )
 
 
-def test_backport_preserves_code_and_licenses_and_rehashes_changed_metadata(tmp_path):
+@pytest.mark.parametrize("overlay", [False, True])
+def test_backport_preserves_code_and_licenses_and_rehashes_changed_metadata(
+    tmp_path, monkeypatch, overlay
+):
+    if overlay:
+
+        def cross_layer_rename(*args):
+            raise OSError(errno.EXDEV, "Invalid cross-device link")
+
+        monkeypatch.setattr(_BACKPORT.shutil.os, "rename", cross_layer_rename)
     original = tmp_path / "litellm-1.106.6.dist-info"
     original.mkdir()
     (original / "METADATA").write_text(_METADATA)
@@ -66,3 +77,11 @@ def test_upstream_drift_aborts_before_mutation(tmp_path, source):
     with pytest.raises(ValueError):
         _BACKPORT.apply_backport(metadata, _CONFIG)
     assert metadata.read_text() == source
+
+
+def test_advisory_inventory_checks_original_upstream_code_despite_local_version(tmp_path):
+    audit = runpy.run_path(str(_ROOT.parents[1] / "scripts/audit_dependencies.py"))
+    lock = tmp_path / "requirements.lock"
+    lock.write_text("filelock==4.2.4\n")
+    entries = audit["packages"]([lock], [_ROOT / "dependency-backport.json"])
+    assert entries == [("filelock", "4.2.4"), ("litellm", "1.106.6")]

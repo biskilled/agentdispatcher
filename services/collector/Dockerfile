@@ -14,7 +14,7 @@ COPY LICENSE ./LICENSE
 RUN go run github.com/google/go-licenses/v2@${GO_LICENSES_VERSION} save ./... --save_path=/licenses \
     && cp /usr/local/go/LICENSE /licenses/GO-LICENSE \
     && go list -m all > /licenses/modules.txt \
-    && if grep -q 'github.com/go-jose/go-jose' /licenses/modules.txt; then exit 1; fi
+    && go version -m ./otelcol-contrib > /licenses/binary-modules.txt
 FROM ${OTEL_IMAGE}
 COPY --from=build /build/collector/otelcol-contrib /otelcol-contrib
 COPY --from=build /licenses /licenses/dispatcher

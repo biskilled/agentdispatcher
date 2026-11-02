@@ -12,7 +12,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "24" }
       - run: pip install -r requirements.lock
-      - run: python scripts/audit_dependencies.py requirements.lock services/mcp/requirements.lock requirements-dev.lock services/gateway/security-requirements.lock --endpoint https://api.osv.dev/v1/querybatch --output python-advisories.json
+      - run: python scripts/audit_dependencies.py requirements.lock services/mcp/requirements.lock requirements-dev.lock services/gateway/security-requirements.lock --backport services/gateway/dependency-backport.json --endpoint https://api.osv.dev/v1/querybatch --output python-advisories.json
       - run: npm audit --json > npm-advisories.json
       - uses: actions/upload-artifact@v4
         if: always()
