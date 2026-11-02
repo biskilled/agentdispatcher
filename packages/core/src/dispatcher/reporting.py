@@ -16,6 +16,7 @@ _FILTER_COLUMNS = {
     "model": "model",
     "source": "payload->>'source'",
     "user_id": "coalesce(verified_user_id::text,payload->>'user_id')",
+    "trace_id": "payload->>'trace_id'",
     "session_id": "payload->>'session_id'",
     "project": "payload->>'project'",
     "work_item": "payload->>'work_item'",
@@ -101,6 +102,7 @@ class UsageFilter(Contract):
     model: str | None = None
     source: str | None = None
     user_id: str | None = None
+    trace_id: str | None = None
     session_id: str | None = None
     project: str | None = None
     work_item: str | None = None
@@ -121,6 +123,7 @@ class UsageFilter(Contract):
         "model",
         "source",
         "user_id",
+        "trace_id",
         "session_id",
         "project",
         "work_item",

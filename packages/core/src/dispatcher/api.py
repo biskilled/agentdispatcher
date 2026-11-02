@@ -38,6 +38,7 @@ from dispatcher.reporting import Reporter, UsageFilter
 from dispatcher.retention import routes as retention_routes
 from dispatcher.session_context import SessionContext, SessionContexts
 from dispatcher.settings import Settings, get_settings
+from dispatcher.setup import routes as setup_routes
 from dispatcher.telemetry import routes as telemetry_routes
 from dispatcher.tool_access import ToolAccess
 from dispatcher.tools_api import routes as tool_routes
@@ -536,6 +537,7 @@ def create_app(settings: Settings | None = None, mailer=None, oauth_transport=No
     app.include_router(operations_routes(ledger.operations, human))
     app.include_router(telemetry_routes(db, service))
     app.include_router(retention_routes(db, human))
+    app.include_router(setup_routes(db, human))
     app.include_router(
         tool_routes(
             ToolAccess(auth),

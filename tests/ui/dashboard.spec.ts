@@ -268,7 +268,11 @@ test("authenticated monitoring, catalog and scoped keys work at this viewport", 
   await expect(
     page.getByLabel("Allowed model names", { exact: false }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Access", exact: true }).click();
+  await page.getByRole("button", { name: "Setup", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Set up your workspace" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "First-event evidence" })).toBeVisible();
+  await expect(page.getByText("Database: Ready.", { exact: false })).toBeVisible();
+  await page.getByRole("button", { name: "Open Access", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Attribution retention" })).toBeVisible();
   if (test.info().project.name === "desktop") {
     const horizon = page.getByLabel("Keep attribution for days (blank disables expiry)");

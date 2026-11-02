@@ -17,7 +17,7 @@ export function SourceSetup() {
         </select>
       </label>
       <p>
-        Create a dedicated key for the application and environment in Access.
+        Create a dedicated key for the application and environment in SDK keys (or LLM keys for gateway routing).
         Keep the secret in the source application's secret store. Send a test
         request, then check the source and delivery tables below.
       </p>

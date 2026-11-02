@@ -15,6 +15,7 @@ def test_filter_breakdowns_drilldown_and_unknown_dimensions(system):
         model="model-a",
         source="scheduler",
         session_id="first",
+        trace_id="shared-trace",
         work_item="TA1",
         occurred_at=(now - timedelta(hours=2)).isoformat(),
     )
@@ -34,6 +35,9 @@ def test_filter_breakdowns_drilldown_and_unknown_dimensions(system):
         ).status_code
         == 403
     )
+    trace = {"trace_id": "shared-trace", "group_by": "trace_id"}
+    assert client.get("/api/overview", params=trace).json()["groups"][0]["label"] == "shared-trace"
+    assert len(client.get("/api/export/events", params=trace).json()["events"]) == 1
     params = {"from_time": (now - timedelta(hours=1)).isoformat()}
     assert client.get("/api/overview", params=params).json()["counts"]["attempts"] == 1
     assert (

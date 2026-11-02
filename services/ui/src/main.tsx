@@ -34,10 +34,12 @@ import { ToolsView } from "./Tools";
 import { UsageControls, UsageCharts, AttemptDetail, UsageExport } from "./UsageControls";
 import { OperationsView } from "./Operations";
 import { ConfigurationsView } from "./Configurations";
+import { SetupView } from "./Setup";
 import { CoverageView } from "./Coverage";
 import { repository as sourceUrl } from "../../../package.json";
 
 type Tab =
+  | "Setup"
   | "Overview"
   | "Job runs"
   | "API catalog"
@@ -53,6 +55,7 @@ type Tab =
   | "Schedules"
   | "Budgets";
 const navigation = [
+  { label: "Setup", icon: Check },
   { label: "Overview", icon: Activity },
   { label: "Job runs", icon: Workflow },
   { label: "API catalog", icon: Database },
@@ -70,6 +73,7 @@ const navigation = [
 ] as const;
 
 const descriptions: Record<Tab, string> = {
+  Setup: "Connect your workspace and verify its first usage events.",
   Overview: "Follow the calls and background work across your applications.",
   "Job runs": "See what ran, what failed, and what stopped reporting.",
   "API catalog":
@@ -906,6 +910,7 @@ function App() {
               {tab === "Configuration" && admin && (
                 <ConfigurationsView tenant={tenant} report={setMessage} />
               )}
+              {tab === "Setup" && admin && <SetupView key={tenant} tenant={tenant} navigate={setTab} report={setMessage} />}
               {tab === "Connections" && (
                 <CoverageView
                   key={tenant}

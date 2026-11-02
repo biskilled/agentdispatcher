@@ -51,6 +51,16 @@ jobs:
       - run: python3 scripts/configure.py
       - run: docker compose up --build -d --wait
       - run: docker compose --profile demo run --rm demo > /tmp/demo.json
+      - name: Capture tenant persistence evidence
+        run: docker compose exec -T api python scripts/persistence_smoke.py capture --state /tmp/restart-fixture.json
+      - name: Restart database and application services independently
+        run: |
+          docker compose restart --no-deps db
+          docker compose up -d --wait db
+          docker compose restart --no-deps api ui
+          docker compose up -d --wait api ui
+      - name: Verify persistence and tenant boundaries after restart
+        run: docker compose exec -T api python scripts/persistence_smoke.py verify --state /tmp/restart-fixture.json
       - run: docker compose restart worker
       - run: curl --fail http://127.0.0.1:8088/health/ready
       - name: Build and exercise optional private backup profile
