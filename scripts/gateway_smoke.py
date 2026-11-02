@@ -32,6 +32,7 @@ def prepare(destination: Path, source: Path):
             "litellm_params": {
                 **config["model_list"][0]["litellm_params"],
                 "model": "openai/gpt-4o",
+                "mock_response": "Alternative model fixture response.",
             },
         }
     )
@@ -113,14 +114,20 @@ def verify():
             policies.put(owner, config.model_copy(update={"primary": "alternative-model"}), 1)
             routed = client.post("/v1/chat/completions", json=body)
             routed.raise_for_status()
-            assert "gpt-4o" in routed.json()["model"] and "mini" not in routed.json()["model"]
+            # LiteLLM deliberately stamps the public response model with a routing alias.
+            assert routed.json()["choices"][0]["message"]["content"] == (
+                "Alternative model fixture response."
+            )
             rows = wait_events(ledger, owner, 3)
+            assert rows[0]["model"] != rows[-1]["model"]
             assert rows[0]["payload"]["requested_model"] == "configured-model"
             assert rows[0]["payload"]["policy_version"] == "fixture-routing:2"
             policies.rollback(owner, config.id, 2, 1)
             restored = client.post("/v1/chat/completions", json=body)
             restored.raise_for_status()
-            assert "mini" in restored.json()["model"]
+            assert restored.json()["choices"][0]["message"]["content"] == (
+                "Synthetic response for AgentDispatcher integration verification."
+            )
             assert (
                 wait_events(ledger, owner, 4)[0]["payload"]["policy_version"] == "fixture-routing:3"
             )
