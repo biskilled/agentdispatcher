@@ -1,12 +1,12 @@
 # agentdispatcher — Summary
 
 ## Recent Work
+- [ui] Navigation and menu structure redesign: consolidating Setup→Settings (last in menu), removing duplicate SDK/LLM/catalog shortcuts, moving retention controls to Settings
+- [ui] Simplification of dashboard sections: reducing feature surface area, evaluating necessity of Access (user management), AgentDesk connectivity, Experiments, and Tool Access sections
+- [ui] Testing temporary email authentication (tal@biskilled.com / adminadmin) for Railway production instance
 - [deployment] Railway production instance running with PostgreSQL 17.11+pgvector 0.8.7; six services deployed and operational
-- [task] Environment variable configuration documentation for each service (UI, API, worker, scheduler, LiteLLM, OTel)
-- [task] Service health checks, billing reconciliation and background job coverage validation
-- [feature] Live authentication integration (Google OAuth, email sign-in) awaiting Railway credential configuration
-- [bug] Upstream security vulnerabilities in LiteLLM and collector resolved via dependency backport and minimal collector rebuild
-- [testing] 96+ tests and full integration CI passing; zero High/Critical security findings in container scans
+- [feature] Live authentication integration (Google OAuth, email sign-in) with Railway credential configuration
+- [bug] Upstream security vulnerabilities in LiteLLM and collector remain unresolved
 
 ## Stack & Architecture
 
@@ -37,9 +37,9 @@
 - UI monitoring dimensions: breakdown by client, provider, model, source, with Overview KPIs and per-session drill-down
 - Multi-tenant support: isolated usage ledgers per tenant with team-level key management and budget policies
 - Mobile-first monitoring: React web app usable on desktop and mobile, shared design tokens with AgentDesk
-- Agent instrumentation: small agents (e.g., AgentTrade) integrate via OTEL_RESOURCE_ATTRIBUTES to tag scheduled/hard-to-monitor LLM jobs
-- API monitoring: general-purpose SDK for tracking any API usage (LLM, CoinGecko, Yahoo Finance, paid/free) with tenant-scoped catalog and pricing configuration
-- Authentication: AgentDesk token (identity/session/membership), Google OAuth, user email, SDK dedicated hash keys per tenant; credentials via environment variables for deployment
+- Authentication: AgentDesk token (identity/session/membership), Google OAuth, user email, SDK dedicated hash keys per tenant; credentials via environment variables
 - Deployment: six independently deployable services (UI, API, background worker, scheduler, LiteLLM proxy, OTel collector) in single docker-compose stack with PostgreSQL 17.11+pgvector
 - Security hardening: pip-licenses/license-checker CI step, OTEL attribute validation, read-only AgentData role, least-privilege tenant isolation
+- Agent instrumentation: small agents (e.g., AgentTrade) integrate via OTEL_RESOURCE_ATTRIBUTES to tag scheduled/hard-to-monitor LLM jobs
+- API monitoring: general-purpose SDK for tracking any API usage (LLM, CoinGecko, Yahoo Finance, paid/free) with tenant-scoped catalog and pricing configuration
 - A/B experiments: routing policies support weighted model variants for experimentation
