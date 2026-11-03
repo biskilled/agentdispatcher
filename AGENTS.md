@@ -47,9 +47,9 @@ _When one of these rules shapes an action or answer, SAY SO briefly — e.g. “
 - 🏢 **session start checks**: Always check that all hooks are running when you start a session, and make sure you are connected to AgentDesk.
 - 🏢 **node_modules folder**: Always store node_modules under /Users/user/Documents/node_modules folder (linked folder) and venv under /Users/user/Documents/venv
 
-<!-- Last updated: 2026-11-03 21:15 UTC -->
+<!-- Last updated: 2026-11-03 21:44 UTC -->
 # agentdispatcher
-_2026-11-03 21:15 UTC | Memory synced: 2026-11-03_
+_2026-11-03 21:44 UTC | Memory synced: 2026-11-03_
 
 ## Recent Work
 - [ui] Navigation and menu structure redesign: consolidating Setup→Settings (last in menu), removing duplicate SDK/LLM/catalog shortcuts, moving retention controls to Settings
