@@ -47,9 +47,9 @@ _When one of these rules shapes an action or answer, SAY SO briefly — e.g. “
 - 🏢 **session start checks**: Always check that all hooks are running when you start a session, and make sure you are connected to AgentDesk.
 - 🏢 **node_modules folder**: Always store node_modules under /Users/user/Documents/node_modules folder (linked folder) and venv under /Users/user/Documents/venv
 
-<!-- Last updated: 2026-11-03 18:34 UTC -->
+<!-- Last updated: 2026-11-03 19:39 UTC -->
 # agentdispatcher
-_2026-11-03 18:34 UTC | Memory synced: 2026-11-03_
+_2026-11-03 19:39 UTC | Memory synced: 2026-11-03_
 
 ## Recent Work
 - [deployment] Railway production instance running with PostgreSQL 17.11+pgvector 0.8.7; six services deployed and operational
