@@ -6,6 +6,8 @@ Dashboard: https://agentdispatcher-production.up.railway.app
 
 Authenticated MCP resource: https://mcp-production-5562.up.railway.app/mcp
 
+The dashboard resolves the API hostname again as its DNS cache expires, using the container resolver and IPv4 records. This supports replacing the API without restarting the dashboard.
+
 The dashboard serves the React build and proxies `/api/` to the private API. SDK clients use the dashboard URL as their endpoint. Database, worker, gateway, collector and operator jobs have no public domain or TCP proxy. MCP requires a dedicated session-bound tool token; an SDK ingestion key does not authorize MCP tools.
 
 ## Services
@@ -18,7 +20,7 @@ All builds use the repository root as their context and the `DOCKERFILE` builder
 | `migrate` | `services/api/Dockerfile` | `python scripts/migrate.py`; restart `NEVER` |
 | `api` | `services/api/Dockerfile` | `python scripts/start_service.py api`; `API_HOST=0.0.0.0`, `PORT=8080`; readiness `/health/ready` |
 | `worker` | `services/api/Dockerfile` | `python scripts/start_service.py worker`; verify with `dispatcher-worker --health` |
-| `agentdispatcher` | `services/ui/Dockerfile` | Image default; `PORT=80`; public target port 80; readiness `/health/ready` |
+| `agentdispatcher` | `services/ui/Dockerfile` | Image default; `PORT=80`; `NGINX_ENTRYPOINT_LOCAL_RESOLVERS=1`, `BACKEND_DNS_IPV6=off`, `BACKEND_DNS_VALID_SECONDS=10`; public target port 80; readiness `/health/ready` |
 | `gateway` | `services/gateway/Dockerfile` | `python /app/start.py`; `GATEWAY_HOST=0.0.0.0`, `PORT=4000`; health `/health/liveliness` |
 | `collector` | `services/collector/Dockerfile` | Image default; `OTEL_HTTP_ENDPOINT=[::]:4318`, `OTEL_HEALTH_ENDPOINT=[::]:13133` |
 | `mcp` | `services/mcp/Dockerfile` | Image default; `DISPATCHER_MCP_TRANSPORT=http`, `DISPATCHER_MCP_HOST=0.0.0.0`, `DISPATCHER_MCP_PORT=8090`, `PORT=8090` |
@@ -68,6 +70,8 @@ Database DSNs use Railway references such as `${{postgres.RAILWAY_PRIVATE_DOMAIN
 
 MCP has `DISPATCHER_MCP_ALLOW_HTTP=true` only to permit its configured private API connection; the advertised MCP resource and issuer use HTTPS.
 
+The initial `Dispatcher` workspace owner is `tal@biskilled.com` (the authenticated Railway account). Its collector key is scoped to `dispatcher-collector` / `production`; additional apps should create their own keys in the admin UI. Mailbox ownership still has to be verified at sign-in. Matching Google and email identities are deliberately not merged automatically: use email sign-in and then link Google, or explicitly provision membership for the verified Google identity.
+
 ### Credentials to supply when ready
 
 Set these in Railway's **API service → Variables**:
@@ -84,6 +88,8 @@ Set these in **gateway → Variables** when enabling real LLM routing:
 Both provider fields must be configured together. Leaving both blank starts an authenticated gateway with no model routes. YAML configuration sources and provider access are never discovered from other apps automatically; authorize those explicitly through `DISPATCHER_CONFIG_SOURCES` and app-specific credentials.
 
 ## Redeployment
+
+The initial UI service retains its GitHub source and waits for CI checks before automatic deployment. The other services were deployed explicitly with `railway up`; no automatic database upgrade or coordinated backend release pipeline is enabled.
 
 Use explicit service selectors. Deploy PostgreSQL first, then run `migrate` successfully before API/worker; deploy UI once API readiness passes. Deploy gateway, collector and MCP after their settings are present. Deploy recovery on demand with a fresh archive name. Database upgrades and migration jobs are operator-controlled; do not indiscriminately redeploy every service after a commit.
 

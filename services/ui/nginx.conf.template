@@ -2,16 +2,19 @@ server {
     listen 80;
     server_name _;
     root /usr/share/nginx/html;
+    # Resolve on requests so an API replacement cannot leave a stale upstream address.
+    resolver ${NGINX_LOCAL_RESOLVERS} ipv6=${BACKEND_DNS_IPV6} valid=${BACKEND_DNS_VALID_SECONDS}s;
+    set $dispatcher_backend ${BACKEND_URL};
     client_max_body_size 2m;
     add_header X-Content-Type-Options nosniff always;
     add_header Referrer-Policy no-referrer always;
     location /api/ {
         # OAuth callback query strings contain short-lived codes; keep them out of access logs.
         access_log off;
-        proxy_pass ${BACKEND_URL};
+        proxy_pass $dispatcher_backend;
         proxy_set_header Host $host;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
-    location /health/ { proxy_pass ${BACKEND_URL}; }
+    location /health/ { proxy_pass $dispatcher_backend; }
     location / { try_files $uri $uri/ /index.html; }
 }
