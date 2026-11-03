@@ -1,5 +1,5 @@
 # agentdispatcher
-_Last updated: 2026-11-02_
+_Last updated: 2026-11-03_
 
 Self-installable, open-source (Apache 2.0) LLM gateway + usage ledger. Captures every LLM request and tool call across Claude Code, Codex, web chat and own apps (AgentData, AgentDesk) via two collectors — LiteLLM proxy for traffic we can route (metered) and an OpenTelemetry collector for CLI subscription logins (reported) — plus an optional browser extension (estimated). Normalises everything into one usage_event ledger in Postgres. Goal 1: monitoring per user/session/project/model/provider/tool. Goal 2: improvement via model policies, routing/fallbacks, A/B experiments with a quality signal, and savings suggestions. Ships with a local desktop UI (AgentDesk theme), an MCP server, AgentDesk work-item attribution, and an AgentData connector + semantic model. Full source attribution for all reused open-source components. Full stories: docs/USER_STORIES.md (DSP-01..DSP-50). Mockups: mockups/agentdispatcher-mockups.html.
 
@@ -61,9 +61,9 @@ _Born as a design-mode export; review and refine — this file is the project's 
 
 ## Open Items
 
-- `US10000` **AgentDispatcher — open-source LLM gateway and API usage monitoring** (use_case · blocked)
-- `FE10004` **Open-source quality, attribution, security and privacy** (feature · blocked)
-- `FE10003` **AgentDesk, AgentData and application SDK integration** (feature · blocked)
+- `US10000` **AgentDispatcher — open-source LLM gateway and API usage monitoring** (use_case · review)
+- `FE10004` **Open-source quality, attribution, security and privacy** (feature · review)
+- `FE10003` **AgentDesk, AgentData and application SDK integration** (feature · review)
 - `FE10002` **Control & improvement: YAML configuration, policies and experiments** (feature · review)
 - `FE10001` **Monitoring: overview, jobs, sessions, users and budgets** (feature · review)
 - `FE10000` **Install & first-run setup** (feature · review)
@@ -73,9 +73,9 @@ _Born as a design-mode export; review and refine — this file is the project's 
 - `TA10009` **YAML configuration connectors, version tracking and reversible updates** (task · review)
 - `TA10008` **MCP gateway and external CLI monitoring adapters** (task · review)
 - `TA10012` **Reusable LLM/API monitoring SDK and AgentTrade integration** (task · review)
-- `TA10007` **License checks, privacy and minimal-release verification** (task · blocked)
+- `TA10007` **License checks, privacy and minimal-release verification** (task · review)
 - `TA10006` **Evidence-backed model policies and first A/B experiment** (task · review)
-- `TA10003` **Google/email authentication, tenant SDK keys and AgentDesk attribution** (task · blocked)
+- `TA10003` **Google/email authentication, tenant SDK keys and AgentDesk attribution** (task · review)
 - `TA10005` **Tenant-scoped AgentData connector and usage semantic model** (task · review)
 - `TA10010` **Responsive React monitoring UI: overview, jobs, sessions and connections** (task · review)
 - `TA10011` **Tenant-isolated PostgreSQL ledger, execution context and pricing** (task · review)
@@ -83,12 +83,12 @@ _Born as a design-mode export; review and refine — this file is the project's 
 
 ## Recent Work
 
-- [task] Responsive React monitoring UI: overview, jobs, sessions and connections (review) — React/TypeScript/Vite web UI primarily for user monitoring on desktop and mobile
-- [task] Tenant-isolated PostgreSQL ledger, execution context and pricing (review) — Store all durable product data in PostgreSQL: tenants/memberships/apps, connections and usage events
-- [task] Shared API quota and pricing engine with mixed-workload fixtures (review) — Extend shared accounting behind LLM/API adapters to distinguish logical operations
-- [task] Admin API catalog and versioned provider plans (review) — Create tenant-scoped catalog/connection and plan CRUD endpoints with React admin interface
-- [task] Reusable LLM/API monitoring SDK and AgentTrade integration (review) — Build a minimal OpenTelemetry-based monitoring SDK, initially for AgentTrade's scheduled jobs
-- [task] Background job health, coverage and billing reconciliation (review) — Implement the independent Dispatcher worker using shared application contracts
+- [task] Responsive React monitoring UI: overview, jobs, sessions and connections (review) — React/TypeScript/Vite web UI for desktop and mobile monitoring
+- [task] Tenant-isolated PostgreSQL ledger, execution context and pricing (review) — Durable storage for tenants, memberships, apps, connections and usage events
+- [task] Shared API quota and pricing engine with mixed-workload fixtures (review) — Extended accounting for LLM/API adapters with logical operation support
+- [task] Admin API catalog and versioned provider plans (review) — Tenant-scoped catalog/connection and plan CRUD endpoints with React admin interface
+- [task] Reusable LLM/API monitoring SDK and AgentTrade integration (review) — OpenTelemetry-based monitoring SDK for scheduled jobs
+- [task] Background job health, coverage and billing reconciliation (review) — Independent Dispatcher worker with shared application contracts
 
 ## Project Facts
 

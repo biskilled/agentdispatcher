@@ -40,24 +40,17 @@ _Auto-filled from the tenant's available skills._
 - **DietrichGebert/ponytail** (cli) — Makes your AI agent think like the laziest senior dev. The best code is the code you never wrote. · https://github.com/DietrichGebert/ponytail
 - **pragmar/mcp-server-webcrawl** (backend) — web crawl MCP · https://github.com/pragmar/mcp-server-webcrawl
 
-## Org rules — always apply
-_🌐 = all tenants (platform) · 🏢 = this tenant. Managed in Settings/Admin._
-_When one of these rules shapes an action or answer, SAY SO briefly — e.g. “per org rule ‘session start checks’ …” — so rule usage is visible._
-
-- 🏢 **session start checks**: Always check that all hooks are running when you start a session, and make sure you are connected to AgentDesk.
-- 🏢 **node_modules folder**: Always store node_modules under /Users/user/Documents/node_modules folder (linked folder) and venv under /Users/user/Documents/venv
-
-<!-- Last updated: 2026-11-02 19:03 UTC -->
+<!-- Last updated: 2026-11-03 00:13 UTC -->
 # agentdispatcher
-_2026-11-02 19:03 UTC | Memory synced: 2026-11-02_
+_2026-11-03 00:13 UTC | Memory synced: 2026-11-02_
 
 ## Recent Work
-- [task] Responsive React monitoring UI: overview, jobs, sessions and connections (review) — React/TypeScript/Vite web UI primarily for user monitoring on desktop and mobile
-- [task] Tenant-isolated PostgreSQL ledger, execution context and pricing (review) — Store all durable product data in PostgreSQL: tenants/memberships/apps, connections and usage events
-- [task] Shared API quota and pricing engine with mixed-workload fixtures (review) — Extend shared accounting behind LLM/API adapters to distinguish logical operations
-- [task] Admin API catalog and versioned provider plans (review) — Create tenant-scoped catalog/connection and plan CRUD endpoints with React admin interface
-- [task] Reusable LLM/API monitoring SDK and AgentTrade integration (review) — Build a minimal OpenTelemetry-based monitoring SDK, initially for AgentTrade's scheduled jobs
-- [task] Background job health, coverage and billing reconciliation (review) — Implement the independent Dispatcher worker using shared application contracts
+- [task] Responsive React monitoring UI: overview, jobs, sessions and connections (review) — React/TypeScript/Vite web UI for desktop and mobile monitoring
+- [task] Tenant-isolated PostgreSQL ledger, execution context and pricing (review) — Durable storage for tenants, memberships, apps, connections and usage events
+- [task] Shared API quota and pricing engine with mixed-workload fixtures (review) — Extended accounting for LLM/API adapters with logical operation support
+- [task] Admin API catalog and versioned provider plans (review) — Tenant-scoped catalog/connection and plan CRUD endpoints with React admin interface
+- [task] Reusable LLM/API monitoring SDK and AgentTrade integration (review) — OpenTelemetry-based monitoring SDK for scheduled jobs
+- [task] Background job health, coverage and billing reconciliation (review) — Independent Dispatcher worker with shared application contracts
 
 ## Structure
 
@@ -78,7 +71,7 @@ _2026-11-02 19:03 UTC | Memory synced: 2026-11-02_
 - **gateway**: LiteLLM proxy
 - **observability**: OpenTelemetry collector
 - **database**: PostgreSQL
-- **backend_runtime**: Python with FastAPI
+- **backend_runtime**: Python 3.12 with FastAPI
 - **ui_framework**: React + TypeScript + Vite
 - **auth_integration**: AgentDesk token, Google OAuth, email, SDK hash keys per tenant
 - **deployment**: Docker Compose
@@ -89,7 +82,7 @@ _2026-11-02 19:03 UTC | Memory synced: 2026-11-02_
 - **api_spec**: usage_event schema (ts, user, key, team, project, work_item, client, provider, model, api_id, quota, cost)
 - **ci_checks**: pip-licenses/license-checker blocking AGPL and commercial dependencies
 - **monorepo_services**: UI (React/Vite), API (FastAPI), background worker, independently deployable containers
-- **scheduler**: Dedicated Python / FastAPI service
+- **email**: SMTP via Python smtplib
 
 ## Key Architectural Decisions
 
