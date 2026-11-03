@@ -195,6 +195,18 @@ small {
   background: #f8fafc;
   border-color: var(--line);
 }
+.sidebar > * {
+  flex-shrink: 0;
+}
+.sidebar nav {
+  /* Long admin menus scroll independently so sign-out stays reachable. */
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.sidebar nav button {
+  flex-shrink: 0;
+}
 nav {
   display: flex;
   flex-direction: column;
