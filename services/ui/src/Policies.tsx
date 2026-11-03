@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { api, money } from "./api";
+import { api } from "./api";
 
 type PolicyConfig = {
   id: string;
@@ -13,32 +13,9 @@ type PolicyConfig = {
   experiment_id: string | null;
 };
 type Policy = { id: string; revision: number; config: PolicyConfig };
-type Experiment = {
-  id: string;
-  config: { name: string; app: string; environment: string };
-};
 type Version = { revision: number; action: string; created_at: string };
-type VariantResult = {
-  variant: string;
-  model: string;
-  assigned: number;
-  completed?: number;
-  attempts?: number;
-  quality?: string;
-  task_cost?: string;
-  cost_per_success?: string | null;
-  evaluation_cost?: string;
-  eligible: boolean;
-  reasons: string[];
-};
-type Results = {
-  experiment: { id: string; currency: string };
-  evidence: string;
-  variants: VariantResult[];
-};
 type Props = {
   tenant: string;
-  section: string;
   report: (message: string) => void;
 };
 const csv = (value: FormDataEntryValue | null) =>
@@ -48,27 +25,18 @@ const csv = (value: FormDataEntryValue | null) =>
     .filter(Boolean);
 
 /** Model aliases and capability requirements remain installation-specific configuration. */
-export function PoliciesView({ tenant, section, report }: Props) {
+export function PoliciesView({ tenant, report }: Props) {
   const [policies, setPolicies] = useState<Policy[]>([]);
-  const [experiments, setExperiments] = useState<Experiment[]>([]);
   const [selected, setSelected] = useState("");
-  const [experimentId, setExperimentId] = useState("");
   const [history, setHistory] = useState<Version[]>([]);
-  const [results, setResults] = useState<Results | null>(null);
   const [revision, setRevision] = useState(0);
   const [busy, setBusy] = useState(false);
   const policy = policies.find((row) => row.id === selected);
   useEffect(() => {
     let active = true;
-    Promise.all([
-      api<Policy[]>("/policies", tenant),
-      api<Experiment[]>("/experiments", tenant),
-    ])
-      .then(([p, e]) => {
-        if (active) {
-          setPolicies(p);
-          setExperiments(e);
-        }
+    api<Policy[]>("/policies", tenant)
+      .then((value) => {
+        if (active) setPolicies(value);
       })
       .catch((error) => {
         if (active) report(error.message);
@@ -95,22 +63,6 @@ export function PoliciesView({ tenant, section, report }: Props) {
       active = false;
     };
   }, [tenant, selected, revision, report]);
-  useEffect(() => {
-    let active = true;
-    setResults(null);
-    if (experimentId)
-      api<Results>(`/experiments/${experimentId}`, tenant)
-        .then((value) => {
-          if (active) setResults(value);
-        })
-        .catch((error) => {
-          if (active) report(error.message);
-        });
-    return () => {
-      active = false;
-    };
-  }, [tenant, experimentId, revision, report]);
-
   async function mutate(
     path: string,
     body: unknown,
@@ -143,7 +95,8 @@ export function PoliciesView({ tenant, section, report }: Props) {
         model_capabilities: JSON.parse(
           String(data.get("model_capabilities") || "{}"),
         ),
-        experiment_id: data.get("experiment_id") || null,
+        // Preserve any existing assignment managed through the API.
+        experiment_id: policy?.config.experiment_id || null,
       };
       void mutate(
         "/policies",
@@ -157,36 +110,7 @@ export function PoliciesView({ tenant, section, report }: Props) {
       );
     }
   }
-  function createExperiment(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    void mutate(
-      "/experiments",
-      {
-        name: data.get("name"),
-        app: data.get("app"),
-        environment: data.get("environment"),
-        seed: crypto.randomUUID(),
-        baseline: "baseline",
-        currency: data.get("currency"),
-        minimum_tasks: Number(data.get("minimum_tasks")),
-        minimum_quality: data.get("minimum_quality"),
-        quality_margin: data.get("quality_margin"),
-        maximum_latency_ms: data.get("maximum_latency_ms"),
-        configuration_source: data.get("configuration_source") || null,
-        configuration_digest: data.get("configuration_digest") || null,
-        variants: [
-          { name: "baseline", model: data.get("baseline_model"), weight: 1 },
-          { name: "candidate", model: data.get("candidate_model"), weight: 1 },
-        ],
-      },
-      "Experiment created. Assign it to a compatible model policy to start routing tasks.",
-    );
-  }
-  const promotingPolicy = policies.find(
-    (row) => row.config.experiment_id === experimentId,
-  );
-  return section === "Model policies" ? (
+  return (
     <>
       <section className="panel form-panel">
         <h2>Model routing policy</h2>
@@ -277,20 +201,6 @@ export function PoliciesView({ tenant, section, report }: Props) {
               )}
             />
           </label>
-          <label>
-            Active experiment
-            <select
-              name="experiment_id"
-              defaultValue={policy?.config.experiment_id || ""}
-            >
-              <option value="">No experiment</option>
-              {experiments.map((row) => (
-                <option key={row.id} value={row.id}>
-                  {row.config.name} · {row.config.app}/{row.config.environment}
-                </option>
-              ))}
-            </select>
-          </label>
           <button className="primary" disabled={busy}>
             Activate policy
           </button>
@@ -326,169 +236,6 @@ export function PoliciesView({ tenant, section, report }: Props) {
           ))}
         </section>
       )}
-    </>
-  ) : (
-    <>
-      <section className="panel form-panel">
-        <h2>Compare model candidates</h2>
-        <p>
-          Assignments stay stable for a whole task. Quality feedback and
-          complete cost coverage are required before promotion. Evaluation
-          calls, failed attempts and declared fee allocations count toward cost.
-        </p>
-        <form className="catalog-form" onSubmit={createExperiment}>
-          <label>
-            Experiment name
-            <input name="name" required />
-          </label>
-          <label>
-            Application
-            <input name="app" required />
-          </label>
-          <label>
-            Environment
-            <input name="environment" required />
-          </label>
-          <label>
-            Baseline model alias
-            <input name="baseline_model" required />
-          </label>
-          <label>
-            Candidate model alias
-            <input name="candidate_model" required />
-          </label>
-          <label>
-            Currency
-            <input
-              name="currency"
-              required
-              pattern="[A-Z]{3}"
-              defaultValue="USD"
-            />
-          </label>
-          <label>
-            Minimum tasks per variant
-            <input
-              name="minimum_tasks"
-              type="number"
-              min="2"
-              defaultValue="30"
-              required
-            />
-          </label>
-          <label>
-            Minimum quality (0–1)
-            <input
-              name="minimum_quality"
-              type="number"
-              min="0"
-              max="1"
-              step="0.01"
-              defaultValue="0.9"
-              required
-            />
-          </label>
-          <label>
-            Allowed quality difference from baseline
-            <input
-              name="quality_margin"
-              type="number"
-              min="0"
-              max="1"
-              step="0.01"
-              defaultValue="0.05"
-              required
-            />
-          </label>
-          <label>
-            Maximum average task latency (ms)
-            <input name="maximum_latency_ms" type="number" min="1" required />
-          </label>
-          <label>
-            Configuration source (optional)
-            <input name="configuration_source" />
-          </label>
-          <label>
-            Configuration SHA-256 (required with source)
-            <input name="configuration_digest" pattern="[0-9a-f]{64}" />
-          </label>
-          <button className="primary" disabled={busy}>
-            Create experiment
-          </button>
-        </form>
-      </section>
-      <section className="panel form-panel">
-        <h2>Experiment results</h2>
-        <label>
-          Experiment
-          <select
-            value={experimentId}
-            onChange={(event) => setExperimentId(event.target.value)}
-          >
-            <option value="">Select an experiment</option>
-            {experiments.map((row) => (
-              <option key={row.id} value={row.id}>
-                {row.config.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        {results && (
-          <>
-            <p>{results.evidence}</p>
-            {results.variants.map((row) => (
-              <article className="notice" key={row.variant}>
-                <h3>
-                  {row.variant}: {row.model}
-                </h3>
-                <p>
-                  {row.assigned} assigned tasks · {row.completed || 0} completed
-                  · {row.attempts || 0} attempts
-                </p>
-                <p>
-                  Quality: {row.quality ?? "Pending"} · Cost per successful
-                  task:{" "}
-                  {money(
-                    row.cost_per_success ?? null,
-                    results.experiment.currency,
-                  )}
-                </p>
-                {row.reasons.length > 0 && (
-                  <ul>
-                    {row.reasons.map((reason) => (
-                      <li key={reason}>{reason}</li>
-                    ))}
-                  </ul>
-                )}
-                {row.eligible && (
-                  <>
-                    <p>
-                      This candidate meets your configured promotion gates.
-                      Observations do not prove future savings or quality.
-                    </p>
-                    <button
-                      disabled={busy || !promotingPolicy}
-                      onClick={() =>
-                        mutate(
-                          `/experiments/${experimentId}/promote`,
-                          {
-                            variant: row.variant,
-                            policy_id: promotingPolicy?.id,
-                            revision: promotingPolicy?.revision,
-                          },
-                          "Candidate activated. Restore an earlier revision in Model policies to roll back.",
-                        )
-                      }
-                    >
-                      Promote {row.variant}
-                    </button>
-                  </>
-                )}
-              </article>
-            ))}
-          </>
-        )}
-      </section>
     </>
   );
 }

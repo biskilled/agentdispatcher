@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { openSettings } from "./navigation";
 
 test("invite link, direct acceptance and workspace switching", async ({
   page,
@@ -12,16 +13,14 @@ test("invite link, direct acceptance and workspace switching", async ({
     "Requires isolated recipient fixtures",
   );
   const recipient = JSON.parse(accounts!)[test.info().project.name];
-  await page
-    .context()
-    .addCookies([
-      {
-        name: "dispatcher_session",
-        value: session!,
-        url: base!,
-        httpOnly: true,
-      },
-    ]);
+  await page.context().addCookies([
+    {
+      name: "dispatcher_session",
+      value: session!,
+      url: base!,
+      httpOnly: true,
+    },
+  ]);
   await page.goto("/");
   const targetTenant = await page
     .getByLabel("Workspace", { exact: true })
@@ -30,7 +29,7 @@ test("invite link, direct acceptance and workspace switching", async ({
     .getByLabel("Workspace", { exact: true })
     .locator("option:checked")
     .textContent();
-  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await openSettings(page, "Workspace");
   await expect(
     page
       .getByRole("navigation", { name: "Main navigation" })
@@ -48,7 +47,7 @@ test("invite link, direct acceptance and workspace switching", async ({
       name: /^Open (SDK keys|LLM keys|API catalog)$/,
     }),
   ).toHaveCount(0);
-  await page.getByRole("button", { name: "Access", exact: true }).click();
+  await openSettings(page, "Access");
   await expect(
     page.getByRole("heading", { name: "Attribution retention" }),
   ).toHaveCount(0);
@@ -80,6 +79,12 @@ test("invite link, direct acceptance and workspace switching", async ({
     ]);
     await invitedPage.reload();
     await expect(
+      invitedPage
+        .getByRole("navigation", { name: "Main navigation" })
+        .getByRole("button"),
+    ).toHaveText(["Overview", "Job runs", "Sources", "Settings"]);
+
+    await expect(
       invitedPage.getByLabel("Invitation token", { exact: true }),
     ).toHaveCount(0);
     await invitedPage
@@ -106,6 +111,10 @@ test("invite link, direct acceptance and workspace switching", async ({
       path: `test-results/invitation-${test.info().project.name}.png`,
       fullPage: true,
     });
+    await openSettings(invitedPage, "Account");
+    await expect(invitedPage.getByRole("heading", { name: "Your account", exact: true })).toBeVisible();
+    await expect(invitedPage.getByLabel("Settings section", { exact: true }).locator("option")).toHaveText(["Your account", "AgentDesk", "MCP tool access"]);
+
   } finally {
     await context.close();
   }

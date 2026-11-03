@@ -84,7 +84,9 @@ FROM mem_usage
     + " GROUP BY day,currency,cost_kind ORDER BY day DESC LIMIT %s"
 )
 _SQL_GROUPS = {
-    key: f"SELECT {column} label,currency,cost_kind,count(*) attempts,sum(cost) cost "
+    key: f"SELECT {column} label,currency,cost_kind,count(*) attempts,sum(cost) cost, "
+    "sum((payload->>'input_tokens')::bigint) input_tokens, "
+    "sum((payload->>'output_tokens')::bigint) output_tokens "
     "FROM mem_usage "
     + _SQL_WHERE
     + f" GROUP BY {column},currency,cost_kind ORDER BY attempts DESC LIMIT %s"

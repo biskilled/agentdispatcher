@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { api, apiResponse, money, type Overview, type Usage } from "./api";
 
 const dimensions = [
@@ -14,8 +14,6 @@ const dimensions = [
   "work_item",
   "pipeline_role",
   "feature",
-  "experiment_id",
-  "variant",
   "requested_model",
   "policy_version",
   "job_run_id",
@@ -24,7 +22,7 @@ const dimensions = [
 ];
 const labels: Record<string, string> = {
   app_name: "Application",
-  user_id: "User ID",
+  user_id: "Person / user ID",
   session_id: "Session ID",
   trace_id: "Trace ID",
   work_item: "Work item",
@@ -37,10 +35,11 @@ const label = (field: string) => labels[field] || field.replaceAll("_", " ");
 
 /** Apply one filter set to totals, charts and the paginated attempt table. */
 export function UsageControls({ apply }: { apply: (query: string) => void }) {
-  function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  const form = useRef<HTMLFormElement>(null);
+  const [groupBy, setGroupBy] = useState("app");
+  function applyForm(target: HTMLFormElement, group = groupBy) {
     const params = new URLSearchParams();
-    for (const [key, value] of new FormData(event.currentTarget)) {
+    for (const [key, value] of new FormData(target)) {
       if (typeof value === "string" && value)
         params.set(
           key,
@@ -49,51 +48,112 @@ export function UsageControls({ apply }: { apply: (query: string) => void }) {
             : value,
         );
     }
+    params.set("group_by", group);
+    setGroupBy(group);
     apply(params.toString());
   }
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    applyForm(event.currentTarget);
+  }
+  function fields(names: string[]) {
+    return names.map((field) => (
+      <label key={field}>
+        {label(field)}
+        <input name={field} />
+      </label>
+    ));
+  }
   return (
-    <details className="panel form-panel">
-      <summary>Filter and group usage</summary>
-      <form className="catalog-form" onSubmit={submit}>
-        <label>
-          From (local time)
-          <input name="from_time" type="datetime-local" />
-        </label>
-        <label>
-          Until (local time)
-          <input name="to_time" type="datetime-local" />
-        </label>
-        {dimensions
-          .filter((d) => d !== "app")
-          .concat("app_name")
-          .map((field) => (
-            <label key={field}>
-              {label(field)}
-              <input name={field} />
-            </label>
-          ))}
-        <label>
-          Group by
-          <select name="group_by">
-            {dimensions.map((d) => (
-              <option key={d} value={d}>
-                {d.replaceAll("_", " ")}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button className="primary">Apply filters</button>
-        <button className="secondary" type="reset" onClick={() => apply("")}>
-          Clear filters
-        </button>
-      </form>
-    </details>
+    <>
+      <div className="inline-form" role="group" aria-label="Usage views">
+        {[
+          { id: "app", name: "By application" },
+          { id: "source", name: "By CLI / source" },
+          { id: "user_id", name: "By person" },
+        ].map((item) => (
+          <button
+            key={item.id}
+            className={groupBy === item.id ? "primary" : "secondary"}
+            onClick={() => {
+              if (form.current) applyForm(form.current, item.id);
+            }}
+          >
+            {item.name}
+          </button>
+        ))}
+      </div>
+      {groupBy === "user_id" && (
+        <p>
+          People are identified by the calling app. App-reported IDs are not
+          verified identities; open a request's details to see its attribution.
+          Unattributed usage includes background services. Shared provider keys
+          cannot identify a person on their own.
+        </p>
+      )}
+      <details className="panel form-panel">
+        <summary>Filter and group usage</summary>
+        <form ref={form} className="catalog-form" onSubmit={submit}>
+          <label>
+            From (local time)
+            <input name="from_time" type="datetime-local" />
+          </label>
+          <label>
+            Until (local time)
+            <input name="to_time" type="datetime-local" />
+          </label>
+          {fields(["app_name", "source", "provider", "model", "user_id"])}
+          <details className="advanced-filters">
+            <summary>Advanced filters</summary>
+            {fields(
+              dimensions.filter(
+                (field) =>
+                  !["app", "source", "provider", "model", "user_id"].includes(
+                    field,
+                  ),
+              ),
+            )}
+          </details>
+          <label>
+            Group by
+            <select
+              name="group_by"
+              value={groupBy}
+              onChange={(event) => setGroupBy(event.target.value)}
+            >
+              {dimensions.map((d) => (
+                <option key={d} value={d}>
+                  {d.replaceAll("_", " ")}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button className="primary">Apply filters</button>
+          <button
+            className="secondary"
+            type="reset"
+            onClick={() => {
+              setGroupBy("app");
+              apply("");
+            }}
+          >
+            Clear filters
+          </button>
+        </form>
+      </details>
+    </>
   );
 }
 
 /** Download the selected visible attempts; the backend rejects oversized exports explicitly. */
-export function UsageExport({ tenant, query, report }: {
-  tenant: string; query: string; report: (message: string) => void;
+export function UsageExport({
+  tenant,
+  query,
+  report,
+}: {
+  tenant: string;
+  query: string;
+  report: (message: string) => void;
 }) {
   const [busy, setBusy] = useState(false);
   async function download() {
@@ -112,9 +172,11 @@ export function UsageExport({ tenant, query, report }: {
       setBusy(false);
     }
   }
-  return <button className="secondary" disabled={busy} onClick={download}>
-    {busy ? "Preparing export…" : "Export selected usage"}
-  </button>;
+  return (
+    <button className="secondary" disabled={busy} onClick={download}>
+      {busy ? "Preparing export…" : "Export selected usage"}
+    </button>
+  );
 }
 
 /** Keep currencies/provenance separate while showing trend and selected dimension totals. */
@@ -151,6 +213,8 @@ export function UsageCharts({ overview }: { overview: Overview }) {
               <tr>
                 <th>Dimension</th>
                 <th>Attempts</th>
+                <th>Input tokens</th>
+                <th>Output tokens</th>
                 <th>Cost</th>
               </tr>
             </thead>
@@ -159,6 +223,16 @@ export function UsageCharts({ overview }: { overview: Overview }) {
                 <tr key={i}>
                   <td>{row.label || "Unattributed"}</td>
                   <td>{row.attempts}</td>
+                  <td>
+                    {row.input_tokens == null
+                      ? "Unknown"
+                      : Number(row.input_tokens).toLocaleString()}
+                  </td>
+                  <td>
+                    {row.output_tokens == null
+                      ? "Unknown"
+                      : Number(row.output_tokens).toLocaleString()}
+                  </td>
                   <td>
                     {money(row.cost, row.currency)}
                     <small>{row.cost_kind}</small>

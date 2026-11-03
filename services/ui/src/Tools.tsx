@@ -60,6 +60,7 @@ export function ToolsView({
   return (
     <section className="panel form-panel">
       <h2>Delegate access to monitoring tools</h2>
+      <p>Optional. Let an AI assistant query your usage through MCP. This is not required to collect usage from applications, Codex or Claude Code.</p>
       <p>
         Use this credential with the optional MCP service. Tools retain your
         current workspace and app permissions. Signing out, membership removal

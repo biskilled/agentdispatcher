@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { openSettings } from "./navigation";
 
 test("authenticated monitoring, catalog and scoped keys work at this viewport", async ({
   page,
@@ -19,6 +20,25 @@ test("authenticated monitoring, catalog and scoped keys work at this viewport", 
     page.getByRole("heading", { name: "Usage overview" }),
   ).toBeVisible();
   await expect(page.getByText("Observed attempts")).toBeVisible();
+  await expect(
+    page
+      .getByRole("navigation", { name: "Main navigation" })
+      .getByRole("button"),
+  ).toHaveText(["Overview", "Job runs", "Sources", "Settings"]);
+  await expect(
+    page.getByRole("heading", { name: "Reported LLM tokens" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "By person", exact: true }).click();
+  await expect(
+    page.getByRole("columnheader", { name: "Input tokens", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("columnheader", { name: "Output tokens", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "By application", exact: true })
+    .click();
+
   await expect(page.getByText("Synthetic market API").first()).toBeVisible();
   const downloaded = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export selected usage" }).click();
@@ -51,7 +71,7 @@ test("authenticated monitoring, catalog and scoped keys work at this viewport", 
       () => document.documentElement.scrollWidth <= window.innerWidth,
     ),
   ).toBeTruthy();
-  await page.getByRole("button", { name: "AgentDesk", exact: true }).click();
+  await openSettings(page, "AgentDesk");
   await expect(
     page.getByRole("heading", { name: "Connect AgentDesk", exact: true }),
   ).toBeVisible();
@@ -60,9 +80,7 @@ test("authenticated monitoring, catalog and scoped keys work at this viewport", 
       "An operator must configure the AgentDesk identity connection for this installation.",
     ),
   ).toBeVisible();
-  await page
-    .getByRole("button", { name: "Model policies", exact: true })
-    .click();
+  await openSettings(page, "Model policies");
   const policyId = `policy-${test.info().project.name}-${Date.now()}`;
   await page.getByLabel("Policy ID", { exact: true }).fill(policyId);
   await page.getByLabel("Application", { exact: true }).fill(policyId);
@@ -82,30 +100,7 @@ test("authenticated monitoring, catalog and scoped keys work at this viewport", 
   await expect(
     page.getByRole("heading", { name: "Routing history", exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Experiments", exact: true }).click();
-  await page.getByLabel("Experiment name", { exact: true }).fill(policyId);
-  await page.getByLabel("Application", { exact: true }).fill(policyId);
-  await page.getByLabel("Environment", { exact: true }).fill("test");
-  await page
-    .getByLabel("Baseline model alias", { exact: true })
-    .fill("fixture-a");
-  await page
-    .getByLabel("Candidate model alias", { exact: true })
-    .fill("fixture-b");
-  await page.getByLabel("Maximum average task latency (ms)").fill("1000");
-  await page
-    .getByRole("button", { name: "Create experiment", exact: true })
-    .click();
-  await expect(
-    page.getByText(
-      "Experiment created. Assign it to a compatible model policy to start routing tasks.",
-    ),
-  ).toBeVisible();
-  await page
-    .getByRole("combobox", { name: "Experiment", exact: true })
-    .selectOption({ label: policyId });
-  await expect(page.getByText("No assignments").first()).toBeVisible();
-  await page.getByRole("button", { name: "Tool access", exact: true }).click();
+  await openSettings(page, "Tool access");
   const toolIssued = page.waitForResponse(
     (response) =>
       response.url().endsWith("/api/tools/access") &&
@@ -136,7 +131,7 @@ test("authenticated monitoring, catalog and scoped keys work at this viewport", 
       () => document.documentElement.scrollWidth <= window.innerWidth,
     ),
   ).toBeTruthy();
-  await page.getByRole("button", { name: "API catalog", exact: true }).click();
+  await openSettings(page, "API catalog");
   await expect(
     page.getByText("Synthetic market data", { exact: true }),
   ).toBeVisible();
@@ -193,7 +188,7 @@ test("authenticated monitoring, catalog and scoped keys work at this viewport", 
   await expect(
     page.getByRole("heading", { name: "Configuration audit", exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "SDK keys", exact: true }).click();
+  await openSettings(page, "SDK keys");
   const keyName = `Browser fixture ${test.info().project.name} ${Date.now()}`;
   await page.getByLabel("Key name", { exact: true }).fill(keyName);
   await page.getByLabel("Application", { exact: true }).fill("browser-fixture");
@@ -211,7 +206,7 @@ test("authenticated monitoring, catalog and scoped keys work at this viewport", 
   await expect(
     page.getByRole("row").filter({ hasText: keyName }).getByText("revoked"),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Schedules", exact: true }).click();
+  await openSettings(page, "Schedules");
   const scheduleId = `schedule-${test.info().project.name}-${Date.now()}`;
   await page.getByLabel("Configuration ID", { exact: true }).fill(scheduleId);
   await page
@@ -241,7 +236,7 @@ test("authenticated monitoring, catalog and scoped keys work at this viewport", 
   await expect(
     schedule.getByRole("button", { name: "Enable", exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Budgets", exact: true }).click();
+  await openSettings(page, "Budgets");
   const budgetId = `budget-${test.info().project.name}-${Date.now()}`;
   await page.getByLabel("Configuration ID", { exact: true }).fill(budgetId);
   await page.getByLabel("Budget amount", { exact: true }).fill("25");
@@ -252,9 +247,7 @@ test("authenticated monitoring, catalog and scoped keys work at this viewport", 
     page.getByText("Budgets configuration saved.", { exact: true }),
   ).toBeVisible();
   await expect(page.getByText(budgetId, { exact: true }).first()).toBeVisible();
-  await page
-    .getByRole("button", { name: "Configuration", exact: true })
-    .click();
+  await openSettings(page, "Configuration");
   await expect(
     page.getByRole("heading", {
       name: "Application configuration",
@@ -264,24 +257,45 @@ test("authenticated monitoring, catalog and scoped keys work at this viewport", 
   await expect(
     page.getByText(/No configuration sources are connected/),
   ).toBeVisible();
-  await page.getByRole("button", { name: "LLM keys", exact: true }).click();
+  await openSettings(page, "LLM keys");
   await expect(
     page.getByLabel("Allowed model names", { exact: false }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Settings", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Installation status" })).toBeVisible();
-  await expect(page.getByRole("navigation", { name: "Main navigation" }).getByRole("button").last()).toHaveText("Settings");
-  await expect(page.getByRole("button", { name: /^Open (SDK keys|LLM keys|API catalog)$/ })).toHaveCount(0);
-  await expect(page.getByText("Database: Ready.", { exact: false })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Attribution retention" })).toBeVisible();
+  await openSettings(page, "Workspace");
+  await expect(
+    page.getByRole("heading", { name: "Installation status" }),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByRole("navigation", { name: "Main navigation" })
+      .getByRole("button")
+      .last(),
+  ).toHaveText("Settings");
+  await expect(
+    page.getByRole("button", {
+      name: /^Open (SDK keys|LLM keys|API catalog)$/,
+    }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByText("Database: Ready.", { exact: false }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Attribution retention" }),
+  ).toBeVisible();
   if (test.info().project.name === "desktop") {
-    const horizon = page.getByLabel("Keep attribution for days (blank disables expiry)");
+    const horizon = page.getByLabel(
+      "Keep attribution for days (blank disables expiry)",
+    );
     await horizon.fill("30");
     await page.getByRole("button", { name: "Apply retention policy" }).click();
-    await expect(page.getByText("Attribution expiry enabled for future worker runs.")).toBeVisible();
+    await expect(
+      page.getByText("Attribution expiry enabled for future worker runs."),
+    ).toBeVisible();
     await horizon.fill("");
     await page.getByRole("button", { name: "Apply retention policy" }).click();
-    await expect(page.getByText("Automatic attribution expiry disabled.")).toBeVisible();
+    await expect(
+      page.getByText("Automatic attribution expiry disabled."),
+    ).toBeVisible();
   }
   await page
     .getByRole("button", { name: "Open-source licenses", exact: true })

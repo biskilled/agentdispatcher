@@ -73,6 +73,7 @@ export function AgentDeskView({
   return (
     <section className="panel form-panel">
       <h2>Connect AgentDesk</h2>
+      <p>Optional. Link usage to AgentDesk projects and work items and let linked accounts read permitted usage from AgentDesk. Application and CLI monitoring work without this integration.</p>
       <p>
         Keep your existing workspace permissions when reading usage from
         AgentDesk. Sign in again before connecting if your last sign-in is no

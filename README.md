@@ -52,7 +52,7 @@ be deployed before enabling that optional identity integration.
 docker compose exec api dispatcher create-tenant --name "My workspace" --email "owner@example.com"
 ```
 
-The email address alone is not proof of identity. The owner signs in using a single-use email link before receiving dashboard access. Use **Access** to invite members, assign roles/app views, and revoke invitations. Invitations are emailed when SMTP is configured; otherwise Access provides a shareable link. The recipient signs in independently with the invited email and selects **Accept invitation** in **Workspace invitations**. Acceptance switches to that workspace; no invitation token needs to be entered. Google identities must first be explicitly linked to the email identity; matching addresses do not merge accounts. Concurrent membership changes cannot remove the last owner. Tenant creation remains operator-controlled.
+The email address alone is not proof of identity. The owner signs in using a single-use email link before receiving dashboard access. Use **Settings → Users & access** to invite members, assign roles/app views, and revoke invitations. Invitations are emailed when SMTP is configured; otherwise Access provides a shareable link. The recipient signs in independently with the invited email and selects **Accept invitation** in **Workspace invitations**. Acceptance switches to that workspace; no invitation token needs to be entered. Google identities must first be explicitly linked to the email identity; matching addresses do not merge accounts. Concurrent membership changes cannot remove the last owner. Tenant creation remains operator-controlled.
 
 For Google sign-in, configure `DISPATCHER_GOOGLE_CLIENT_ID` and `DISPATCHER_GOOGLE_CLIENT_SECRET`. Register the exact `${DISPATCHER_PUBLIC_URL}/api/auth/google/callback` redirect URI in Google. Accounts use the OIDC issuer and subject; matching email addresses are **not** automatically linked. **Link a Google account** requires a recent sign-in (`DISPATCHER_REAUTH_SECONDS`) and an unchanged browser session throughout linking. OAuth state is single-use in PostgreSQL. A newly created Google account has no workspace access until membership is provisioned.
 
@@ -168,18 +168,32 @@ binding, personal account linking, live identity checks, authorized session/usag
 and effective-time work-item/pipeline-role attribution. It requires the included
 AgentDesk identity endpoint to be deployed; matching email addresses never grant access.
 
+## Daily monitoring
+
+The main menu has four sections: **Overview**, **Job runs**, **Sources** and **Settings**.
+Overview has application, CLI/source and person views with reported input/output token
+counts. Missing measurements remain unknown; reasoning tokens and reasoning effort
+are not collected separately yet. Background jobs belong to their application/service;
+interactive calls need app-reported user context or verified user delegation. A shared
+provider key does not identify individual people. Sources checks reporting coverage
+and provides instrumentation guidance; it does not discover applications automatically.
+
+Settings contains users, application credentials/pricing, expected schedules and budgets.
+AgentDesk, MCP tool access, gateway routing and YAML editing are optional controls there.
+They are not prerequisites for basic SDK/CLI usage monitoring.
+
 ## Model policies and experiments
 
-Use **Model policies** to allow model aliases, select a primary route and ordered
+Use **Settings → Model routing** to allow model aliases, select a primary route and ordered
 fallbacks, and declare required capabilities. Every selected alias must also be
 allowed by the application's LiteLLM virtual key. Policies apply to an app/environment;
 new gateway requests read the current revision. Provider URLs and secrets remain in
 the operator's LiteLLM configuration. Capability lists are operator declarations,
 not automatic proof that a provider implements a feature correctly.
 
-**Experiments** creates immutable weighted variants, a seed and quality/latency/sample
-gates. The browser starts with two equally weighted variants; the API accepts up to
-ten configurable weights. Attach the experiment to a compatible policy. Use the same
+Experiments are excluded from the monitoring UI. The optional experiments API retains
+immutable weighted variants and quality/latency/sample gates for existing integrations;
+it accepts up to ten configurable weights. Attach the experiment to a compatible policy. Use the same
 job-run UUID (or logical operation UUID for a single-call task) in every gateway request's
 `metadata.dispatcher_context`. Assignment is deterministic for the entire task.
 

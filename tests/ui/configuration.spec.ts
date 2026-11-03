@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { openSettings } from "./navigation";
 
 test("connected YAML review, failed activation and rollback", async ({
   page,
@@ -19,9 +20,7 @@ test("connected YAML review, failed activation and rollback", async ({
     },
   ]);
   await page.goto(base!);
-  await page
-    .getByRole("button", { name: "Configuration", exact: true })
-    .click();
+  await openSettings(page, "Configuration");
   await page
     .getByRole("combobox", { name: "Configuration source", exact: true })
     .selectOption(source);

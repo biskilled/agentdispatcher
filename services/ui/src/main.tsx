@@ -6,12 +6,12 @@ import {
   Box,
   Check,
   ChevronRight,
-  Database,
   KeyRound,
   Layers,
   LogOut,
   RefreshCw,
   Shield,
+  Settings2,
   Workflow,
 } from "lucide-react";
 import {
@@ -34,62 +34,23 @@ import { ToolsView } from "./Tools";
 import { UsageControls, UsageCharts, AttemptDetail, UsageExport } from "./UsageControls";
 import { OperationsView } from "./Operations";
 import { ConfigurationsView } from "./Configurations";
-import { SettingsView } from "./Settings";
+import { SettingsView, SettingsNavigation, type SettingsSection } from "./Settings";
 import { CoverageView } from "./Coverage";
 import { repository as sourceUrl } from "../../../package.json";
 
-type Tab =
-  | "Settings"
-  | "Overview"
-  | "Job runs"
-  | "API catalog"
-  | "SDK keys"
-  | "LLM keys"
-  | "Configuration"
-  | "Sources"
-  | "Access"
-  | "AgentDesk"
-  | "Model policies"
-  | "Experiments"
-  | "Tool access"
-  | "Schedules"
-  | "Budgets";
+type Tab = "Overview" | "Job runs" | "Sources" | "Settings";
 const navigation = [
   { label: "Overview", icon: Activity },
   { label: "Job runs", icon: Workflow },
-  { label: "API catalog", icon: Database },
-  { label: "SDK keys", icon: KeyRound },
-  { label: "LLM keys", icon: KeyRound },
-  { label: "Configuration", icon: Layers },
-  { label: "Sources", icon: Activity },
-  { label: "Access", icon: Shield },
-  { label: "AgentDesk", icon: Workflow },
-  { label: "Model policies", icon: Layers },
-  { label: "Experiments", icon: Activity },
-  { label: "Tool access", icon: KeyRound },
-  { label: "Schedules", icon: Workflow },
-  { label: "Budgets", icon: Database },
-  { label: "Settings", icon: Check },
+  { label: "Sources", icon: Layers },
+  { label: "Settings", icon: Settings2 },
 ] as const;
 
 const descriptions: Record<Tab, string> = {
-  Settings: "Manage workspace retention and check installation configuration.",
-  Overview: "Follow the calls and background work across your applications.",
-  "Job runs": "See what ran, what failed, and what stopped reporting.",
-  "API catalog":
-    "Define the services, prices and quotas your applications use.",
-  "SDK keys": "Manage scoped monitoring credentials for your applications.",
-  "LLM keys": "Control which model aliases each application can call.",
-  Configuration: "Review application settings and track their activation.",
-  Sources: "Check reporting sources and missing usage evidence.",
-  Access: "Manage workspace membership and application views.",
-  AgentDesk: "Connect a tenant and link your own account.",
-  "Model policies":
-    "Configure compatible model routes and restore previous versions.",
-  Experiments: "Compare whole-task cost, quality and latency before promotion.",
-  "Tool access": "Delegate short-lived access to monitoring and policy tools.",
-  Schedules: "Monitor expected background runs and missing reports.",
-  Budgets: "Follow spending, provider statements and budget alerts.",
+  Overview: "Follow usage and costs by application, CLI source or person.",
+  "Job runs": "See which background jobs ran, failed or stopped reporting.",
+  Sources: "Connect applications and CLIs, then check that their usage arrives.",
+  Settings: "Manage people, application connections and optional integrations.",
 };
 
 function Login({ onLogin }: { onLogin: () => void }) {
@@ -335,6 +296,11 @@ function OverviewView({
           <small>Errors and timeouts</small>
         </div>
       </div>
+      <section className="panel form-panel">
+        <h2>Reported LLM tokens</h2>
+        <p>Input: {counts.input_tokens == null ? "Unknown" : Number(counts.input_tokens).toLocaleString()} · Output: {counts.output_tokens == null ? "Unknown" : Number(counts.output_tokens).toLocaleString()}</p>
+        <p className="muted">Only reported token counts are included. Missing measurements are unknown. Reasoning tokens and effort are not collected separately yet.</p>
+      </section>
       <div className="overview-grid">
         <section className="panel">
           <div className="section-heading">
@@ -680,6 +646,8 @@ function App() {
   const [checking, setChecking] = useState(true);
   const [tenant, setTenant] = useState("");
   const [tab, setTab] = useState<Tab>("Overview");
+  const [settingsSection, setSettingsSection] = useState<SettingsSection>("Workspace");
+  const view = tab === "Settings" ? settingsSection : tab;
   const [overview, setOverview] = useState<Overview | null>(null);
   const [events, setEvents] = useState<Usage[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -751,8 +719,8 @@ function App() {
     setFilters("");
   }, [tenant]);
   useEffect(() => {
-    if (!admin) setTab("Overview");
-  }, [admin]);
+    setSettingsSection(admin ? "Workspace" : "Account");
+  }, [tenant, admin]);
   if (checking)
     return <div className="loading">Connecting to your workspace…</div>;
   if (!user) return <Login onLogin={loadUser} />;
@@ -784,17 +752,6 @@ function App() {
         </select>
         <nav aria-label="Main navigation">
           {navigation
-            .filter(
-              ({ label }) =>
-                admin ||
-                [
-                  "Overview",
-                  "Job runs",
-                  "AgentDesk",
-                  "Tool access",
-                  "Sources",
-                ].includes(label),
-            )
             .map(({ label, icon: Icon }) => (
               <button
                 key={label}
@@ -862,7 +819,6 @@ function App() {
             </div>
           )}
           <JoinWorkspace key={user.user_id} joined={loadUser} report={setMessage} />
-          <LinkGoogle report={setMessage} />
           {!tenant ? (
             <Empty>
               Your account is signed in but has no workspace membership. Ask an
@@ -870,7 +826,12 @@ function App() {
             </Empty>
           ) : (
             <div key={tenant}>
-              {tab === "Overview" && (
+              {tab === "Settings" && <SettingsNavigation section={settingsSection} select={setSettingsSection} admin={admin} />}
+              {view === "Account" && <section className="panel form-panel">
+                <h2>Your account</h2><p>Signed in as {user.email}. Workspace role: {current?.role}.</p>
+                <LinkGoogle report={setMessage} />
+              </section>}
+              {view === "Overview" && (
                 <>
                   <UsageControls
                     apply={(query) => {
@@ -917,29 +878,29 @@ function App() {
                   </div>
                 </>
               )}{" "}
-              {tab === "Job runs" && <JobsView jobs={jobs} />}{" "}
-              {admin && (tab === "Schedules" || tab === "Budgets") && (
+              {view === "Job runs" && <JobsView jobs={jobs} />}{" "}
+              {admin && (view === "Schedules" || view === "Budgets") && (
                 <OperationsView
                   tenant={tenant}
-                  section={tab}
+                  section={view}
                   report={setMessage}
                 />
               )}
-              {tab === "Access" && admin && (
+              {view === "Access" && admin && (
                 <AccessView
                   tenant={tenant}
                   role={current?.role || ""}
                   report={setMessage}
                 />
               )}
-              {tab === "AgentDesk" && (
+              {view === "AgentDesk" && (
                 <AgentDeskView
                   tenant={tenant}
                   role={current?.role || ""}
                   report={setMessage}
                 />
               )}
-              {tab === "Tool access" && (
+              {view === "Tool access" && (
                 <ToolsView
                   key={tenant}
                   tenant={tenant}
@@ -947,26 +908,25 @@ function App() {
                   report={setMessage}
                 />
               )}
-              {admin && (tab === "Model policies" || tab === "Experiments") && (
+              {admin && view === "Model policies" && (
                 <PoliciesView
-                  key={`${tenant}-${tab}`}
+                  key={tenant}
                   tenant={tenant}
-                  section={tab}
                   report={setMessage}
                 />
               )}
-              {tab === "Configuration" && admin && (
+              {view === "Configuration" && admin && (
                 <ConfigurationsView tenant={tenant} report={setMessage} />
               )}
-              {tab === "Settings" && admin && <SettingsView key={tenant} tenant={tenant} report={setMessage} />}
-              {tab === "Sources" && (
+              {view === "Workspace" && admin && <SettingsView key={tenant} tenant={tenant} report={setMessage} />}
+              {view === "Sources" && (
                 <CoverageView
                   key={tenant}
                   tenant={tenant}
                   report={setMessage}
                 />
               )}
-              {tab === "API catalog" && admin && (
+              {view === "API catalog" && admin && (
                 <CatalogView
                   tenant={tenant}
                   plans={plans}
@@ -974,12 +934,12 @@ function App() {
                   report={setMessage}
                 />
               )}{" "}
-              {(tab === "SDK keys" || tab === "LLM keys") && admin && (
+              {(view === "SDK keys" || view === "LLM keys") && admin && (
                 <KeyView
-                  key={tab}
+                  key={view}
                   tenant={tenant}
-                  keys={tab === "LLM keys" ? gatewayKeys : keys}
-                  gateway={tab === "LLM keys"}
+                  keys={view === "LLM keys" ? gatewayKeys : keys}
+                  gateway={view === "LLM keys"}
                   refresh={refresh}
                   report={setMessage}
                 />

@@ -8,6 +8,27 @@ from test_access import invite_user
 from test_integration import event, ingest
 
 
+def test_person_token_breakdown_preserves_unknowns_and_filters(system):
+    assert ingest(system, [
+        event(user_id="alice", input_tokens=100, output_tokens=20, source="cli"),
+        event(user_id="alice", input_tokens=40, output_tokens=10, source="scheduler"),
+        event(user_id="bob", source="cli"),
+    ]).status_code == 202
+    client = system["client"]
+    result = client.get("/api/overview", params={"group_by": "user_id"}).json()
+    groups = {row["label"]: row for row in result["groups"]}
+    assert int(groups["alice"]["input_tokens"]) == 140
+    assert int(groups["alice"]["output_tokens"]) == 30
+    assert groups["bob"]["input_tokens"] is None
+    assert groups["bob"]["output_tokens"] is None
+    filtered = client.get("/api/overview", params={
+        "group_by": "user_id", "user_id": "alice", "source": "cli",
+    }).json()
+    assert len(filtered["groups"]) == 1
+    assert int(filtered["groups"][0]["input_tokens"]) == 100
+    assert int(filtered["counts"]["output_tokens"]) == 20
+
+
 def test_filter_breakdowns_drilldown_and_unknown_dimensions(system):
     client = system["client"]
     now = datetime.now(UTC)

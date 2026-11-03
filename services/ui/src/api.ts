@@ -12,6 +12,8 @@ export type Overview = {
     unknown_cost: number;
     failures: number;
     last_received_at: string | null;
+    input_tokens: number | string | null;
+    output_tokens: number | string | null;
   };
   totals: Cost[];
   breakdown: (Cost & {
@@ -19,7 +21,7 @@ export type Overview = {
     provider: string;
     resource_kind: string;
   })[];
-  groups: (Cost & { label: string | null })[];
+  groups: (Cost & { label: string | null; input_tokens: number | string | null; output_tokens: number | string | null })[];
   trend: (Cost & { day: string; unknown_cost: number })[];
   chart_row_limit: number;
 };
