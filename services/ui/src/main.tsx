@@ -94,9 +94,16 @@ const descriptions: Record<Tab, string> = {
 
 function Login({ onLogin }: { onLogin: () => void }) {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [emailLink, setEmailLink] = useState(false);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
-  const [providers, setProviders] = useState({ google: false, email: false });
+  const [providers, setProviders] = useState({
+    google: false,
+    email: false,
+    password: false,
+  });
+  const passwordMode = providers.password && !emailLink;
   const [token] = useState(() =>
     new URLSearchParams(location.hash.slice(1)).get("signin"),
   );
@@ -116,6 +123,13 @@ function Login({ onLogin }: { onLogin: () => void }) {
           method: "POST",
           body: JSON.stringify({ token }),
         });
+        onLogin();
+      } else if (passwordMode) {
+        await api("/auth/password", undefined, {
+          method: "POST",
+          body: JSON.stringify({ email, password }),
+        });
+        setPassword("");
         onLogin();
       } else {
         const result = await api<{ message: string }>(
@@ -170,28 +184,60 @@ function Login({ onLogin }: { onLogin: () => void }) {
               />
             </label>
           )}
+          {!token && passwordMode && (
+            <label>
+              Password
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                required
+                maxLength={1024}
+              />
+            </label>
+          )}
           <button
             className="primary"
-            disabled={busy || (!token && !providers.email)}
+            disabled={busy || (!token && !passwordMode && !providers.email)}
           >
             {busy
               ? "Please wait…"
               : token
                 ? "Continue to workspace"
-                : "Email me a sign-in link"}
+                : passwordMode
+                  ? "Sign in"
+                  : "Email me a sign-in link"}
           </button>
         </form>
+        {!token && providers.password && providers.email && (
+          <button
+            className="secondary"
+            type="button"
+            disabled={busy}
+            onClick={() => {
+              setEmailLink(!emailLink);
+              setPassword("");
+              setMessage("");
+            }}
+          >
+            {emailLink ? "Use password" : "Use email sign-in link"}
+          </button>
+        )}
         {providers.google && (
           <a className="secondary google" href="/api/auth/google/start">
             Continue with Google
           </a>
         )}
-        {!providers.email && !token && (
-          <p className="muted">
-            Email sign-in is not configured. Ask your installation administrator
-            to enable it.
-          </p>
-        )}
+        {!providers.email &&
+          !providers.password &&
+          !providers.google &&
+          !token && (
+            <p className="muted">
+              Sign-in is not configured. Ask your installation administrator to
+              enable it.
+            </p>
+          )}
         {message && (
           <p role="status" className="notice">
             {message}

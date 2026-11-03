@@ -12,7 +12,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, Res
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse, RedirectResponse
 from joserfc.errors import JoseError
-from pydantic import Field
+from pydantic import Field, SecretStr
 from starlette.concurrency import run_in_threadpool
 from starlette.middleware.sessions import SessionMiddleware
 
@@ -61,6 +61,12 @@ class LoginToken(Contract):
     """A single-use emailed bearer token."""
 
     token: str = Field(min_length=32, max_length=256)
+
+
+class PasswordLogin(EmailRequest):
+    """Bound password input and redact it from model representations."""
+
+    password: SecretStr = Field(min_length=1, max_length=1024)
 
 
 class KeyRequest(Contract):
@@ -226,7 +232,21 @@ def create_app(settings: Settings | None = None, mailer=None, oauth_transport=No
     @app.get("/api/auth/providers")
     def providers():
         """Expose configured login methods without exposing secrets."""
-        return {"google": bool(settings.google_client_id), "email": bool(settings.smtp_host)}
+        return {
+            "google": bool(settings.google_client_id), "email": bool(settings.smtp_host),
+            "password": settings.test_login_enabled,
+        }
+
+    @app.post("/api/auth/password")
+    def password_login(body: PasswordLogin, request: Request, response: Response):
+        """Use the normal secure session and live membership boundary for the test account."""
+        check_origin(request)
+        token = auth.password_login(
+            body.email.lower(), body.password.get_secret_value(),
+            request.client.host if request.client else "",
+        )
+        set_session(response, token)
+        return {"authenticated": True}
 
     @app.post("/api/auth/email/request", status_code=202)
     def email_request(body: EmailRequest, request: Request):

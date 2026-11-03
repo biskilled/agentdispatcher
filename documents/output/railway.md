@@ -122,3 +122,15 @@ Live Railway checks passed:
 [Application and Compose CI](https://github.com/biskilled/agentdispatcher/actions/runs/41691754957) verifies the runtime revision, including 100 backend/SDK/PostgreSQL tests and five MCP checks. [Security CI](https://github.com/biskilled/agentdispatcher/actions/runs/41691754792) passes all seven image variants and dependency gates without High/Critical exceptions. Local unit-only execution passed 38 tests and skipped 62 database tests; the full database evidence comes from CI, not those skips.
 
 Synthetic verification data is clearly labelled and costs zero in the initial workspace. Two separate `Synthetic restart fixture` tenants contain only persistence test data and are not memberships of the initial owner. Other applications are not yet instrumented by this deployment: connect each application through its own SDK key or an authorized gateway/collector route.
+
+## Optional temporary password sign-in
+
+For an operator-requested test account, configure these three variables on **API only**:
+
+- `DISPATCHER_TEST_LOGIN_EMAIL`: an already-provisioned email identity. No user or membership is created by a password login.
+- `DISPATCHER_TEST_LOGIN_PASSWORD_HASH`: a salted Argon2id PHC value generated with `.venv/bin/python scripts/password_hash.py`. Store it as a Railway secret; never commit a password or its hash. The implementation uses the existing cryptography package with [OWASP's Argon2id profile](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html).
+- `DISPATCHER_TEST_LOGIN_EXPIRES_AT`: an explicit timezone-aware ISO timestamp. Password sign-in disappears and new attempts fail after this time. Sessions issued by this method cannot outlive the cutoff.
+
+All three are empty by default. Clearing all three and redeploying disables new password sign-ins; already-issued sessions retain their normal lifetime, bounded by the original cutoff, and can be revoked through normal logout/operator session revocation. Changing the hash also affects new sign-ins only.
+
+The browser shows a password field only while this method is enabled. Google and email links remain available when configured. Password attempts use the shared PostgreSQL account/IP throttle, CSRF Origin check and HttpOnly session cookie; tenant roles are loaded from current memberships on every request. No credentials are bundled in the React build.

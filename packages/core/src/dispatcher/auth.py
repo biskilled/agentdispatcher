@@ -9,6 +9,7 @@ from fastapi import HTTPException
 
 from dispatcher.contracts import Principal
 from dispatcher.db import Database
+from dispatcher.passwords import verify_password
 
 _SQL_LOGIN_IDENTITY = "SELECT user_id FROM mng_identities WHERE issuer=%s AND subject=%s"
 _SQL_LOGIN_LIMIT = """
@@ -133,8 +134,8 @@ class AuthService:
         """Generate a cryptographically random bearer token."""
         return secrets.token_urlsafe(self.settings.secret_bytes)
 
-    def request_login(self, email: str, requester: str) -> str | None:
-        """Create a short-lived email token only for an existing email identity."""
+    def login_allowed(self, email: str, requester: str) -> bool:
+        """Commit shared account/IP attempt counters even when authentication later fails."""
         with self.db.auth() as connection:
             allowed = True
             for identifier in ("email:" + email, "ip:" + requester):
@@ -143,8 +144,15 @@ class AuthService:
                     _SQL_LOGIN_LIMIT, (verifier(identifier), window, window)
                 ).fetchone()
                 allowed &= row["requests"] <= self.settings.login_requests_per_window
+        return allowed
+
+    def request_login(self, email: str, requester: str) -> str | None:
+        """Create a short-lived email token only for an existing email identity."""
+        if not self.login_allowed(email, requester):
+            return None
+        with self.db.auth() as connection:
             row = connection.execute(_SQL_LOGIN_IDENTITY, ("email", email)).fetchone()
-            if not allowed or row is None:
+            if row is None:
                 return None
             token = self.new_secret()
             expires = datetime.now(UTC) + timedelta(seconds=self.settings.login_seconds)
@@ -159,9 +167,27 @@ class AuthService:
                 raise HTTPException(401, "Invalid or expired sign-in link")
             return self._session(connection, row["user_id"])
 
-    def _session(self, connection, user_id: UUID) -> str:
+    def password_login(self, email: str, password: str, requester: str) -> str:
+        """Authenticate only the configured existing identity; never create users or roles."""
+        if not self.settings.test_login_enabled:
+            raise HTTPException(503, "Password sign-in is not enabled")
+        configured_email = self.settings.test_login_email
+        if not self.login_allowed(configured_email, requester):
+            raise HTTPException(429, "Too many sign-in attempts; try again later")
+        valid = verify_password(password, self.settings.test_login_password_hash.get_secret_value())
+        if not valid or email != configured_email:
+            raise HTTPException(401, "Invalid email or password")
+        with self.db.auth() as connection:
+            row = connection.execute(_SQL_LOGIN_IDENTITY, ("email", email)).fetchone()
+            if row is None:
+                raise HTTPException(401, "Invalid email or password")
+            return self._session(connection, row["user_id"], self.settings.test_login_expires_at)
+
+    def _session(self, connection, user_id: UUID, expires_at: datetime | None = None) -> str:
         token = self.new_secret()
         expires = datetime.now(UTC) + timedelta(seconds=self.settings.session_seconds)
+        if expires_at is not None:
+            expires = min(expires, expires_at)
         connection.execute(_SQL_SESSION_ADD, (verifier(token), user_id, expires))
         return token
 

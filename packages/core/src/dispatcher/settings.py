@@ -1,13 +1,15 @@
 """Deployment configuration; secrets are never read from tracked files."""
 
+from datetime import UTC, datetime
 from functools import lru_cache
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from pydantic import Field, SecretStr, model_validator
+from pydantic import AwareDatetime, Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from dispatcher.configuration_document import ConfigSource
+from dispatcher.passwords import validate_password_hash
 
 
 class Settings(BaseSettings):
@@ -49,6 +51,9 @@ class Settings(BaseSettings):
     smtp_starttls: bool = True
     google_client_id: str = ""
     google_client_secret: SecretStr = SecretStr("")
+    test_login_email: str = ""
+    test_login_password_hash: SecretStr = SecretStr("")
+    test_login_expires_at: AwareDatetime | None = None
     google_metadata_url: str = "https://accounts.google.com/.well-known/openid-configuration"
     http_timeout: float = 10
     gateway_url: str = ""
@@ -66,9 +71,30 @@ class Settings(BaseSettings):
     export_rows: int = Field(default=10000, ge=1, le=100000)
     retention_batch_rows: int = Field(default=1000, gt=0)
 
+    @field_validator("test_login_expires_at", mode="before")
+    @classmethod
+    def empty_test_expiry(cls, value):
+        """Allow the empty opt-in setting in the distributed environment template."""
+        return None if value == "" else value
+
+    @property
+    def test_login_enabled(self) -> bool:
+        """Expired configuration disables new password sign-ins without a restart."""
+        return bool(self.test_login_expires_at and self.test_login_expires_at > datetime.now(UTC))
+
     @model_validator(mode="after")
     def validate_security(self):
         """Reject unsafe credentials and invalid policy values at startup."""
+        test_fields = (
+            self.test_login_email,
+            self.test_login_password_hash.get_secret_value(),
+            self.test_login_expires_at,
+        )
+        if any(test_fields):
+            if not all(test_fields):
+                raise ValueError("Test login requires email, password hash and expiry together")
+            validate_password_hash(self.test_login_password_hash.get_secret_value())
+            self.test_login_email = self.test_login_email.strip().lower()
         if len(self.session_secret.get_secret_value()) < self.secret_bytes:
             raise ValueError("session_secret must contain at least secret_bytes characters")
         if not self.public_url.startswith(("https://", "http://")):
