@@ -4,6 +4,13 @@ import { type Page } from "@playwright/test";
 export async function openSettings(page: Page, section: string) {
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page
-    .getByLabel("Settings section", { exact: true })
-    .selectOption(section);
+    .getByRole("navigation", { name: "Settings navigation" })
+    .locator(`button[data-settings-section="${section}"]`)
+    .click();
+}
+
+/** Source setup and connection management share one tabbed workspace. */
+export async function openSource(page: Page, section: string) {
+  await page.getByRole("button", { name: "Sources", exact: true }).click();
+  await page.locator(`#source-tab-${section}`).click();
 }

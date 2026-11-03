@@ -289,14 +289,11 @@ export function JoinWorkspace({
           Joined {accepted}.
         </p>
       )}
-      <details
-        className="panel form-panel"
-        open={invitations.length > 0 || !!requested}
-      >
-        <summary>
+      <section className="panel form-panel">
+        <h2>
           Workspace invitations
           {invitations.length ? ` (${invitations.length})` : ""}
-        </summary>
+        </h2>
         <p>
           Invitations are matched to your signed-in email. Accept to join and
           open that workspace.
@@ -330,7 +327,7 @@ export function JoinWorkspace({
         >
           Refresh invitations
         </button>
-      </details>
+      </section>
     </>
   );
 }

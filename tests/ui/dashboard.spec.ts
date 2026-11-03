@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { openSettings } from "./navigation";
+import { openSettings, openSource } from "./navigation";
 
 test("authenticated monitoring, catalog and scoped keys work at this viewport", async ({
   page,
@@ -56,7 +56,7 @@ test("authenticated monitoring, catalog and scoped keys work at this viewport", 
   ).toBeTruthy();
   await page.getByRole("button", { name: "Job runs", exact: true }).click();
   await expect(page.getByText("Market scan")).toBeVisible();
-  await page.getByRole("button", { name: "Sources", exact: true }).click();
+  await openSource(page, "status");
   await expect(
     page.getByRole("heading", { name: "Reporting sources", exact: true }),
   ).toBeVisible();
@@ -131,7 +131,7 @@ test("authenticated monitoring, catalog and scoped keys work at this viewport", 
       () => document.documentElement.scrollWidth <= window.innerWidth,
     ),
   ).toBeTruthy();
-  await openSettings(page, "API catalog");
+  await openSource(page, "api");
   await expect(
     page.getByText("Synthetic market data", { exact: true }),
   ).toBeVisible();
@@ -188,12 +188,14 @@ test("authenticated monitoring, catalog and scoped keys work at this viewport", 
   await expect(
     page.getByRole("heading", { name: "Configuration audit", exact: true }),
   ).toBeVisible();
-  await openSettings(page, "SDK keys");
+  await openSource(page, "sdk");
   const keyName = `Browser fixture ${test.info().project.name} ${Date.now()}`;
-  await page.getByLabel("Key name", { exact: true }).fill(keyName);
+  await page.getByLabel("Connection name", { exact: true }).fill(keyName);
   await page.getByLabel("Application", { exact: true }).fill("browser-fixture");
   await page.getByLabel("Environment", { exact: true }).fill("test");
-  await page.getByRole("button", { name: "Create key", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Add connection", exact: true })
+    .click();
   await expect(
     page.getByText("Save this key now. It will not be shown again."),
   ).toBeVisible();
@@ -257,7 +259,7 @@ test("authenticated monitoring, catalog and scoped keys work at this viewport", 
   await expect(
     page.getByText(/No configuration sources are connected/),
   ).toBeVisible();
-  await openSettings(page, "LLM keys");
+  await openSource(page, "gateway");
   await expect(
     page.getByLabel("Allowed model names", { exact: false }),
   ).toBeVisible();

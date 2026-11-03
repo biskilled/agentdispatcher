@@ -18,6 +18,7 @@ from demo import main as seed_demo
 from dispatcher.auth import AuthService
 from dispatcher.bootstrap import create_tenant
 from dispatcher.db import Database
+from dispatcher.membership import ensure_email_identity
 from dispatcher.settings import get_settings
 from dotenv import load_dotenv
 
@@ -30,7 +31,11 @@ def invitation_accounts():
     try:
         for viewport in ("desktop", "mobile"):
             email = f"invitation-ui-{uuid4().hex}@example.test"
-            create_tenant(auth.db, "Original workspace", email)
+            if viewport == "desktop":
+                create_tenant(auth.db, "Original workspace", email)
+            else:
+                with auth.db.auth() as connection:
+                    ensure_email_identity(connection, email)
             session = auth.consume_login(auth.request_login(email, email))
             accounts[viewport] = {"email": email, "session": session}
         yield accounts

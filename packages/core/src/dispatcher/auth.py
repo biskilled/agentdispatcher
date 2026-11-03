@@ -38,8 +38,9 @@ JOIN mng_tenants t ON t.id=m.tenant_id WHERE m.user_id=%s ORDER BY t.name
 """
 _SQL_MEMBERSHIP = "SELECT role FROM mng_memberships WHERE user_id=%s AND tenant_id=%s"
 _SQL_KEY_ADD = """
-INSERT INTO mng_sdk_keys(id,tenant_id,token_hash,name,app,environment,created_by,expires_at)
-VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+INSERT INTO mng_sdk_keys(id,tenant_id,token_hash,name,app,environment,
+created_by,expires_at,source_type)
+VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
 """
 _SQL_KEY_AUTH = """
 UPDATE mng_sdk_keys SET last_used_at=now()
@@ -48,11 +49,16 @@ AND purpose='ingest'
 RETURNING id,tenant_id,app,environment,expires_at
 """
 _SQL_KEY_LIST = """
-SELECT id,name,app,environment,created_at,expires_at,revoked_at,last_used_at
+SELECT id,name,app,environment,created_at,expires_at,revoked_at,last_used_at,source_type
 FROM mng_sdk_keys WHERE tenant_id=%s AND purpose='ingest' ORDER BY created_at DESC
 """
 _SQL_KEY_REVOKE = """
 UPDATE mng_sdk_keys SET revoked_at=now() WHERE id=%s AND tenant_id=%s RETURNING id
+"""
+_SQL_KEY_UPDATE = """
+UPDATE mng_sdk_keys SET name=%s,
+source_type=CASE WHEN purpose='ingest' THEN coalesce(%s,source_type) ELSE source_type END
+WHERE id=%s AND tenant_id=%s AND revoked_at IS NULL RETURNING id
 """
 _SQL_AUDIT = """
 INSERT INTO mng_auth_audit(tenant_id,actor_id,action,target_id) VALUES (%s,%s,%s,%s)
@@ -267,7 +273,9 @@ class AuthService:
             expires_at=row["expires_at"],
         )
 
-    def issue_key(self, principal: Principal, name: str, app: str, environment: str) -> dict:
+    def issue_key(
+        self, principal: Principal, name: str, app: str, environment: str, source_type: str = "sdk"
+    ) -> dict:
         """Return the secret once; persist only its verifier and scope."""
         require_admin(principal)
         key_id, secret = uuid4(), self.new_secret()
@@ -284,6 +292,7 @@ class AuthService:
                     environment,
                     principal.subject_id,
                     expires,
+                    source_type,
                 ),
             )
             connection.execute(
@@ -306,6 +315,19 @@ class AuthService:
                 raise HTTPException(404, "Key not found")
             connection.execute(
                 _SQL_AUDIT, (principal.tenant_id, principal.subject_id, "key.revoked", key_id)
+            )
+
+    def update_key(self, principal: Principal, key_id: UUID, name: str, source_type: str | None):
+        """Edit display metadata without changing credential scope, secret or model permissions."""
+        require_admin(principal)
+        with self.db.auth() as connection:
+            row = connection.execute(
+                _SQL_KEY_UPDATE, (name, source_type, key_id, principal.tenant_id)
+            ).fetchone()
+            if not row:
+                raise HTTPException(404, "Active key not found")
+            connection.execute(
+                _SQL_AUDIT, (principal.tenant_id, principal.subject_id, "key.updated", key_id)
             )
 
     def logout(self, token: str) -> None:

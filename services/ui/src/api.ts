@@ -1,3 +1,5 @@
+import { type CredentialSource } from "./sourceTypes";
+
 export type Tenant = { tenant_id: string; name: string; role: string };
 export type User = { user_id: string; email: string; tenants: Tenant[] };
 export type Cost = {
@@ -53,6 +55,8 @@ export type Key = {
   environment: string;
   revoked_at: string | null;
   expires_at: string;
+  source_type?: CredentialSource;
+  allowed_models?: string[];
 };
 export type Plan = {
   id: string;

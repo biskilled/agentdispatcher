@@ -1013,3 +1013,97 @@ textarea {
   font: inherit;
   padding: 0.65rem;
 }
+
+.settings-layout {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+.settings-sidebar {
+  margin: 0;
+  padding-right: 18px;
+  border-right: 1px solid var(--line);
+  position: sticky;
+  top: 20px;
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+}
+.settings-group {
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+  margin: 14px 10px 6px;
+}
+.settings-sidebar button {
+  width: 100%;
+  font-size: 13px;
+  padding: 10px;
+}
+.settings-detail {
+  min-width: 0;
+}
+.settings-detail .catalog-form,
+.settings-detail .inline-form {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+}
+.source-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 24px;
+}
+.source-tabs button {
+  padding: 12px 4px;
+  border-radius: 0;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+}
+.source-tabs button[aria-selected="true"] {
+  border-bottom-color: var(--accent);
+  color: var(--ink);
+  font-weight: 600;
+}
+.source-intro {
+  margin-bottom: 24px;
+  max-width: 74ch;
+}
+.source-intro > p {
+  margin: 10px 0;
+}
+.source-intro details {
+  margin-top: 14px;
+}
+.source-intro details p {
+  margin-top: 10px;
+}
+.text-button.connection-edit {
+  color: var(--accent);
+}
+@media (max-width: 1000px) {
+  .settings-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+  .settings-sidebar {
+    position: static;
+    max-height: none;
+    padding: 0 0 16px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 760px) {
+  .source-tabs {
+    gap: 0 12px;
+  }
+  .source-tabs button {
+    flex: 1 1 42%;
+    text-align: left;
+  }
+}

@@ -45,6 +45,7 @@ from dispatcher.tool_access import ToolAccess
 from dispatcher.tools_api import routes as tool_routes
 
 SESSION_COOKIE = "dispatcher_session"
+ReportingSource = Literal["sdk", "codex", "claude", "mcp"]
 
 
 def ledger_response(data) -> JSONResponse:
@@ -76,6 +77,14 @@ class KeyRequest(Contract):
     name: str = Field(min_length=1, max_length=100)
     app: str = Field(min_length=1, max_length=100)
     environment: str = Field(min_length=1, max_length=50)
+    source_type: ReportingSource = "sdk"
+
+
+class KeyUpdate(Contract):
+    """Credential metadata can be edited; its authorization scope is immutable."""
+
+    name: str = Field(min_length=1, max_length=100)
+    source_type: ReportingSource | None = None
 
 
 class InviteRequest(EmailRequest):
@@ -416,7 +425,12 @@ def create_app(settings: Settings | None = None, mailer=None, oauth_transport=No
     @app.post("/api/keys", status_code=201)
     def issue_key(body: KeyRequest, principal=Depends(human)):
         """Issue a scoped key; this is the only response containing its secret."""
-        return auth.issue_key(principal, body.name, body.app, body.environment)
+        return auth.issue_key(principal, body.name, body.app, body.environment, body.source_type)
+
+    @app.put("/api/keys/{key_id}", status_code=204)
+    def update_key(key_id: UUID, body: KeyUpdate, principal=Depends(human)):
+        """Rename or classify a tenant-owned connection without widening access."""
+        auth.update_key(principal, key_id, body.name, body.source_type)
 
     @app.delete("/api/keys/{key_id}", status_code=204)
     def revoke_key(key_id: UUID, principal=Depends(human)):

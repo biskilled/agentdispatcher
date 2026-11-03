@@ -1,22 +1,22 @@
 import { useEffect, useState } from "react";
 import { api } from "./api";
 import { RetentionSettings } from "./Retention";
+import { AccessView, JoinWorkspace, LinkGoogle } from "./Access";
+import { AgentDeskView } from "./AgentDesk";
+import { PoliciesView } from "./Policies";
+import { ToolsView } from "./Tools";
+import { OperationsView } from "./Operations";
+import { ConfigurationsView } from "./Configurations";
 
 const sections = [
   { group: "Workspace", id: "Workspace", label: "General", admin: true },
   { group: "Workspace", id: "Access", label: "Users & access", admin: true },
   { group: "Workspace", id: "Account", label: "Your account", admin: false },
   {
-    group: "Application connections",
-    id: "SDK keys",
-    label: "SDK keys",
-    admin: true,
-  },
-  {
-    group: "Application connections",
-    id: "API catalog",
-    label: "API catalog & pricing",
-    admin: true,
+    group: "Workspace",
+    id: "Invitations",
+    label: "Workspace invitations",
+    admin: false,
   },
   {
     group: "Monitoring",
@@ -35,12 +35,6 @@ const sections = [
     id: "AgentDesk",
     label: "AgentDesk",
     admin: false,
-  },
-  {
-    group: "Optional integrations & controls",
-    id: "LLM keys",
-    label: "LLM gateway keys",
-    admin: true,
   },
   {
     group: "Optional integrations & controls",
@@ -64,40 +58,98 @@ const sections = [
 
 export type SettingsSection = (typeof sections)[number]["id"];
 
-/** Keep administration off the daily monitoring navigation, with role-appropriate choices. */
-export function SettingsNavigation({
+/** Show the complete permitted Settings menu beside the selected section. */
+export function SettingsPage({
+  tenant,
+  userId,
+  email,
+  role,
   section,
   select,
-  admin,
+  joined,
+  report,
 }: {
+  tenant: string;
+  userId: string;
+  email: string;
+  role: string;
   section: SettingsSection;
   select: (section: SettingsSection) => void;
-  admin: boolean;
+  joined: (tenant: string) => void;
+  report: (message: string) => void;
 }) {
-  const available = sections.filter((item) => admin || !item.admin);
+  const admin = ["owner", "admin"].includes(role);
+  const available = sections.filter(
+    (item) =>
+      (admin || !item.admin) &&
+      (tenant || ["Account", "Invitations"].includes(item.id)),
+  );
   return (
-    <section className="panel form-panel">
-      <label>
-        Settings section
-        <select
-          aria-label="Settings section"
-          value={section}
-          onChange={(event) => select(event.target.value as SettingsSection)}
-        >
-          {[...new Set(available.map((item) => item.group))].map((group) => (
-            <optgroup key={group} label={group}>
-              {available
-                .filter((item) => item.group === group)
-                .map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.label}
-                  </option>
-                ))}
-            </optgroup>
-          ))}
-        </select>
-      </label>
-    </section>
+    <div className="settings-layout">
+      <nav className="settings-sidebar" aria-label="Settings navigation">
+        {[...new Set(available.map((item) => item.group))].map((group) => (
+          <div key={group}>
+            <p className="settings-group">{group}</p>
+            {available
+              .filter((item) => item.group === group)
+              .map((item) => (
+                <button
+                  key={item.id}
+                  data-settings-section={item.id}
+                  className={section === item.id ? "selected" : ""}
+                  aria-current={section === item.id ? "page" : undefined}
+                  onClick={() => select(item.id)}
+                >
+                  {item.label}
+                </button>
+              ))}
+          </div>
+        ))}
+      </nav>
+      <div className="settings-detail">
+        {section === "Invitations" && (
+          <JoinWorkspace key={userId} joined={joined} report={report} />
+        )}
+        {section === "Account" && (
+          <section className="panel form-panel">
+            <h2>Your account</h2>
+            <p>
+              Signed in as {email}.{role && ` Workspace role: ${role}.`}
+            </p>
+            <LinkGoogle report={report} />
+          </section>
+        )}
+        {tenant && (
+          <div key={`${tenant}-${section}`}>
+            {section === "Workspace" && admin && (
+              <SettingsView tenant={tenant} report={report} />
+            )}
+            {section === "Access" && admin && (
+              <AccessView tenant={tenant} role={role} report={report} />
+            )}
+            {section === "AgentDesk" && (
+              <AgentDeskView tenant={tenant} role={role} report={report} />
+            )}
+            {section === "Tool access" && (
+              <ToolsView tenant={tenant} role={role} report={report} />
+            )}
+            {section === "Model policies" && admin && (
+              <PoliciesView tenant={tenant} report={report} />
+            )}
+            {section === "Configuration" && admin && (
+              <ConfigurationsView tenant={tenant} report={report} />
+            )}
+            {admin && (section === "Schedules" || section === "Budgets") && (
+              <OperationsView
+                tenant={tenant}
+                section={section}
+                report={report}
+              />
+            )}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 

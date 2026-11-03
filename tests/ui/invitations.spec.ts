@@ -29,7 +29,17 @@ test("invite link, direct acceptance and workspace switching", async ({
     .getByLabel("Workspace", { exact: true })
     .locator("option:checked")
     .textContent();
+  await expect(
+    page.getByRole("heading", { name: /^Workspace invitations/ }),
+  ).toHaveCount(0);
   await openSettings(page, "Workspace");
+  await expect(
+    page.getByRole("navigation", { name: "Settings navigation" }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: `test-results/settings-${test.info().project.name}.png`,
+    fullPage: true,
+  });
   await expect(
     page
       .getByRole("navigation", { name: "Main navigation" })
@@ -112,9 +122,38 @@ test("invite link, direct acceptance and workspace switching", async ({
       fullPage: true,
     });
     await openSettings(invitedPage, "Account");
-    await expect(invitedPage.getByRole("heading", { name: "Your account", exact: true })).toBeVisible();
-    await expect(invitedPage.getByLabel("Settings section", { exact: true }).locator("option")).toHaveText(["Your account", "AgentDesk", "MCP tool access"]);
-
+    await expect(
+      invitedPage.getByRole("heading", { name: "Your account", exact: true }),
+    ).toBeVisible();
+    await expect(
+      invitedPage
+        .getByRole("navigation", { name: "Settings navigation" })
+        .getByRole("button"),
+    ).toHaveText([
+      "Your account",
+      "Workspace invitations",
+      "AgentDesk",
+      "MCP tool access",
+    ]);
+    await invitedPage
+      .getByRole("button", { name: "Overview", exact: true })
+      .click();
+    await expect(
+      invitedPage.getByRole("heading", { name: /^Workspace invitations/ }),
+    ).toHaveCount(0);
+    await invitedPage
+      .getByRole("button", { name: "Sources", exact: true })
+      .click();
+    await expect(
+      invitedPage.getByRole("heading", { name: /^Workspace invitations/ }),
+    ).toHaveCount(0);
+    await invitedPage.getByRole("tab", { name: "Codex", exact: true }).click();
+    await expect(
+      invitedPage.getByRole("button", { name: "Add connection", exact: true }),
+    ).toHaveCount(0);
+    await expect(
+      invitedPage.getByText(/A workspace owner or administrator can add/),
+    ).toBeVisible();
   } finally {
     await context.close();
   }

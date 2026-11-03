@@ -1,0 +1,274 @@
+import { useState, type FormEvent } from "react";
+import { KeyRound } from "lucide-react";
+import { api, type Key } from "./api";
+import { credentialSources, type CredentialSource } from "./sourceTypes";
+
+/** Manage scoped source credentials; editing cannot widen application or model access. */
+export function SourceKeys({
+  tenant,
+  keys,
+  refresh,
+  report,
+  source,
+}: {
+  tenant: string;
+  keys: Key[];
+  refresh: () => void;
+  report: (s: string) => void;
+  source: CredentialSource | "gateway";
+}) {
+  const gateway = source === "gateway";
+  const [editing, setEditing] = useState<Key | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [secret, setSecret] = useState("");
+  async function create(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (busy) return;
+    setBusy(true);
+    const form = event.currentTarget;
+    const fields = Object.fromEntries(new FormData(form));
+    const { models, ...scope } = fields;
+    const data = gateway
+      ? {
+          ...scope,
+          models: String(models)
+            .split(",")
+            .map((model) => model.trim())
+            .filter(Boolean),
+        }
+      : { ...scope, source_type: source };
+    try {
+      const result = await api<{ secret: string }>(
+        gateway ? "/gateway/keys" : "/keys",
+        tenant,
+        {
+          method: "POST",
+          body: JSON.stringify(data),
+        },
+      );
+      setSecret(result.secret);
+      form.reset();
+      refresh();
+    } catch (error) {
+      report((error as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function save(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!editing || busy) return;
+    setBusy(true);
+    try {
+      await api(`/keys/${editing.id}`, tenant, {
+        method: "PUT",
+        body: JSON.stringify(
+          Object.fromEntries(new FormData(event.currentTarget)),
+        ),
+      });
+      setEditing(null);
+      refresh();
+      report("Connection updated.");
+    } catch (error) {
+      report((error as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function revoke(id: string) {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await api(`/keys/${id}`, tenant, { method: "DELETE" });
+      setEditing(null);
+      setSecret("");
+      refresh();
+    } catch (error) {
+      report((error as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <>
+      <section className="panel form-panel">
+        <h2>Add connection</h2>
+        <p>
+          Create a credential for one application and environment. Copy it into
+          that application's secret configuration.
+        </p>
+        <form className="inline-form" onSubmit={create}>
+          <label>
+            Connection name
+            <input
+              name="name"
+              required
+              maxLength={100}
+              placeholder="AgentTrade production"
+            />
+          </label>
+          <label>
+            Application
+            <input
+              name="app"
+              required
+              maxLength={100}
+              placeholder="agenttrade"
+              defaultValue={
+                source === "codex"
+                  ? "codex_exec"
+                  : source === "claude"
+                    ? "claude-code"
+                    : ""
+              }
+            />
+          </label>
+          <label>
+            Environment
+            <input
+              name="environment"
+              required
+              maxLength={50}
+              placeholder="production"
+            />
+          </label>
+          {gateway && (
+            <label>
+              Allowed model names
+              <input name="models" required placeholder="configured-model" />
+              <small>
+                Comma-separated names from your gateway configuration.
+              </small>
+            </label>
+          )}
+          <button className="primary" disabled={busy}>
+            Add connection
+          </button>
+        </form>
+        {secret && (
+          <div className="secret">
+            <strong>Save this key now. It will not be shown again.</strong>
+            <code>{secret}</code>
+            <button className="secondary" onClick={() => setSecret("")}>
+              I have saved it
+            </button>
+          </div>
+        )}
+      </section>
+      {editing && (
+        <section className="panel form-panel">
+          <h2>Edit connection</h2>
+          <p>
+            {editing.app} / {editing.environment}. Application scope and model
+            permissions are fixed. Create a replacement connection to change
+            them, then revoke the old one.
+          </p>
+          <form className="inline-form" onSubmit={save} key={editing.id}>
+            <label>
+              Connection name
+              <input
+                name="name"
+                required
+                maxLength={100}
+                defaultValue={editing.name}
+              />
+            </label>
+            {!gateway && (
+              <label>
+                Connection type
+                <select
+                  name="source_type"
+                  defaultValue={editing.source_type || "sdk"}
+                >
+                  {credentialSources.map((item) => (
+                    <option value={item.id} key={item.id}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            <button className="primary" disabled={busy}>
+              Save connection
+            </button>
+            <button
+              className="secondary"
+              type="button"
+              disabled={busy}
+              onClick={() => setEditing(null)}
+            >
+              Cancel
+            </button>
+          </form>
+        </section>
+      )}
+      <section className="panel">
+        <div className="section-heading">
+          <h2>Connections</h2>
+          <KeyRound size={18} />
+        </div>
+        {keys.length ? (
+          <div className="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Scope</th>
+                  <th>Expires</th>
+                  <th>Status</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {keys.map((key) => (
+                  <tr key={key.id} data-connection-id={key.id}>
+                    <td>{key.name}</td>
+                    <td>
+                      {key.app}
+                      <small>{key.environment}</small>
+                      {!!key.allowed_models?.length && (
+                        <small>{key.allowed_models.join(", ")}</small>
+                      )}
+                    </td>
+                    <td>{new Date(key.expires_at).toLocaleDateString()}</td>
+                    <td>
+                      {key.revoked_at
+                        ? "revoked"
+                        : new Date(key.expires_at) < new Date()
+                          ? "expired"
+                          : "active"}
+                    </td>
+                    <td>
+                      {!key.revoked_at && (
+                        <button
+                          className="text-button connection-edit"
+                          disabled={busy}
+                          onClick={() => setEditing(key)}
+                        >
+                          Edit
+                        </button>
+                      )}
+                      {!key.revoked_at && (
+                        <button
+                          disabled={busy}
+                          className="text-button"
+                          onClick={() => revoke(key.id)}
+                        >
+                          Revoke
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="form-panel">
+            No connections yet. Add one above to get started.
+          </p>
+        )}
+      </section>
+    </>
+  );
+}

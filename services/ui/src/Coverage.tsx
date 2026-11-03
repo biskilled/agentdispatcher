@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { api } from "./api";
-import { SourceSetup } from "./SourceSetup";
 
 type Source = {
   app: string;
@@ -61,8 +60,6 @@ export function CoverageView({
   }, [tenant]);
   return (
     <>
-      <p>This is the health dashboard for usage sources. Follow the guide to instrument an application, then check that its events arrive here. It does not discover or connect applications automatically.</p>
-      <SourceSetup />
       <section className="panel form-panel">
         <h2>Reporting sources</h2>
         <p>{data?.coverage ?? "Loading source coverage…"}</p>

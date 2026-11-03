@@ -52,7 +52,7 @@ be deployed before enabling that optional identity integration.
 docker compose exec api dispatcher create-tenant --name "My workspace" --email "owner@example.com"
 ```
 
-The email address alone is not proof of identity. The owner signs in using a single-use email link before receiving dashboard access. Use **Settings → Users & access** to invite members, assign roles/app views, and revoke invitations. Invitations are emailed when SMTP is configured; otherwise Access provides a shareable link. The recipient signs in independently with the invited email and selects **Accept invitation** in **Workspace invitations**. Acceptance switches to that workspace; no invitation token needs to be entered. Google identities must first be explicitly linked to the email identity; matching addresses do not merge accounts. Concurrent membership changes cannot remove the last owner. Tenant creation remains operator-controlled.
+The email address alone is not proof of identity. The owner signs in using a single-use email link before receiving dashboard access. Use **Settings → Users & access** to invite members, assign roles/app views, and revoke invitations. Invitations are emailed when SMTP is configured; otherwise Access provides a shareable link. The recipient signs in independently with the invited email and selects **Accept invitation** in **Settings → Workspace invitations**. Invitation links open that Settings section directly, including for accounts without a workspace. Acceptance switches to that workspace; no invitation token needs to be entered. Google identities must first be explicitly linked to the email identity; matching addresses do not merge accounts. Concurrent membership changes cannot remove the last owner. Tenant creation remains operator-controlled.
 
 For Google sign-in, configure `DISPATCHER_GOOGLE_CLIENT_ID` and `DISPATCHER_GOOGLE_CLIENT_SECRET`. Register the exact `${DISPATCHER_PUBLIC_URL}/api/auth/google/callback` redirect URI in Google. Accounts use the OIDC issuer and subject; matching email addresses are **not** automatically linked. **Link a Google account** requires a recent sign-in (`DISPATCHER_REAUTH_SECONDS`) and an unchanged browser session throughout linking. OAuth state is single-use in PostgreSQL. A newly created Google account has no workspace access until membership is provisioned.
 
@@ -66,7 +66,7 @@ Install only the small SDK into your application's environment:
 pip install ./packages/sdk
 ```
 
-Create a tenant key in **SDK keys**, scoped to the application's name and environment. Store it in the application's environment or secret store; never in browser code, prompts or YAML committed to Git.
+Create a tenant key in **Sources → Applications & jobs**, scoped to the application's name and environment. Store it in the application's environment or secret store; never in browser code, prompts or YAML committed to Git.
 
 ```python
 import os
@@ -154,7 +154,7 @@ See [CLI onboarding](integrations/cli/README.md) for Codex/Claude capabilities a
 coverage limits. Generic metrics ingestion is outside the implemented trace/log contract.
 
 The optional [MCP tools service](services/mcp/README.md) has its own dependency lock
-and container. Create a dedicated credential in **Tool access**; SDK keys cannot read
+and container. Create a dedicated credential in **Settings → MCP tool access**; SDK keys cannot read
 monitoring data. MCP grants preserve the user's current permissions and end on logout
 or revocation. This is the monitoring-tool interface; instrumentation of arbitrary
 third-party MCP calls is a separate adapter.
@@ -178,8 +178,15 @@ interactive calls need app-reported user context or verified user delegation. A 
 provider key does not identify individual people. Sources checks reporting coverage
 and provides instrumentation guidance; it does not discover applications automatically.
 
-Settings contains users, application credentials/pricing, expected schedules and budgets.
-AgentDesk, MCP tool access, gateway routing and YAML editing are optional controls there.
+Settings has a visible submenu for General, users, your account, workspace invitations,
+expected schedules and budgets. AgentDesk, MCP tool access, routing and YAML editing
+are optional controls there. Invitations appear only in Settings.
+
+Sources has tabs for applications/jobs, external APIs, Codex, Claude Code, MCP servers,
+the LLM gateway and reporting status. Each connection tab explains setup and provides
+creation/editing controls in place. Reporting credentials can be renamed, reclassified
+and revoked; authorization scope changes require a replacement credential. Existing
+SDK credentials initially appear under Applications & jobs and can be reclassified.
 They are not prerequisites for basic SDK/CLI usage monitoring.
 
 ## Model policies and experiments

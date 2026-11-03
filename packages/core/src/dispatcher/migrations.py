@@ -17,6 +17,7 @@ from dispatcher.schema_observations import SQL_OBSERVATIONS
 from dispatcher.schema_operations import SQL_OPERATIONS
 from dispatcher.schema_policies import SQL_POLICIES
 from dispatcher.schema_retention import SQL_RETENTION
+from dispatcher.schema_source_connections import SQL_SOURCE_CONNECTIONS
 from dispatcher.schema_source_health import SQL_SOURCE_HEALTH
 from dispatcher.schema_tools import SQL_TOOLS
 
@@ -156,6 +157,7 @@ MIGRATIONS = (
     (14, SQL_SOURCE_HEALTH),
     (15, SQL_RETENTION),
     (16, SQL_ANALYTICS_CONTEXT),
+    (17, SQL_SOURCE_CONNECTIONS),
 )
 
 

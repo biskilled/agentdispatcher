@@ -6,7 +6,6 @@ import {
   Box,
   Check,
   ChevronRight,
-  KeyRound,
   Layers,
   LogOut,
   RefreshCw,
@@ -26,16 +25,9 @@ import {
 } from "./api";
 import "./style.css";
 import { Credits } from "./Credits";
-import { CatalogView } from "./Accounting";
-import { AccessView, JoinWorkspace, LinkGoogle } from "./Access";
-import { AgentDeskView } from "./AgentDesk";
-import { PoliciesView } from "./Policies";
-import { ToolsView } from "./Tools";
 import { UsageControls, UsageCharts, AttemptDetail, UsageExport } from "./UsageControls";
-import { OperationsView } from "./Operations";
-import { ConfigurationsView } from "./Configurations";
-import { SettingsView, SettingsNavigation, type SettingsSection } from "./Settings";
-import { CoverageView } from "./Coverage";
+import { SettingsPage, type SettingsSection } from "./Settings";
+import { SourcesView } from "./Sources";
 import { repository as sourceUrl } from "../../../package.json";
 
 type Tab = "Overview" | "Job runs" | "Sources" | "Settings";
@@ -476,178 +468,12 @@ function JobsView({ jobs }: { jobs: Job[] }) {
   );
 }
 
-function KeyView({
-  tenant,
-  keys,
-  refresh,
-  report,
-  gateway = false,
-}: {
-  tenant: string;
-  keys: Key[];
-  refresh: () => void;
-  report: (s: string) => void;
-  gateway?: boolean;
-}) {
-  const [secret, setSecret] = useState("");
-  async function create(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const fields = Object.fromEntries(new FormData(form));
-    const { models, ...scope } = fields;
-    const data = gateway
-      ? {
-          ...scope,
-          models: String(models)
-            .split(",")
-            .map((model) => model.trim())
-            .filter(Boolean),
-        }
-      : scope;
-    try {
-      const result = await api<{ secret: string }>(
-        gateway ? "/gateway/keys" : "/keys",
-        tenant,
-        {
-          method: "POST",
-          body: JSON.stringify(data),
-        },
-      );
-      setSecret(result.secret);
-      form.reset();
-      refresh();
-    } catch (error) {
-      report((error as Error).message);
-    }
-  }
-  async function revoke(id: string) {
-    try {
-      await api(`/keys/${id}`, tenant, { method: "DELETE" });
-      refresh();
-    } catch (error) {
-      report((error as Error).message);
-    }
-  }
-  return (
-    <>
-      <section className="panel form-panel">
-        <h2>
-          {gateway
-            ? "Connect an application to LiteLLM"
-            : "Connect an application"}
-        </h2>
-        <p>
-          Create a key for one application and environment. Store it in your
-          backend’s secret store.
-        </p>
-        <form className="inline-form" onSubmit={create}>
-          <label>
-            Key name
-            <input
-              name="name"
-              required
-              maxLength={100}
-              placeholder="Advisor production"
-            />
-          </label>
-          <label>
-            Application
-            <input
-              name="app"
-              required
-              maxLength={100}
-              placeholder="agenttrade"
-            />
-          </label>
-          <label>
-            Environment
-            <input
-              name="environment"
-              required
-              maxLength={50}
-              placeholder="production"
-            />
-          </label>
-          {gateway && (
-            <label>
-              Allowed model names
-              <input name="models" required placeholder="configured-model" />
-              <small>
-                Comma-separated names from your gateway configuration.
-              </small>
-            </label>
-          )}
-          <button className="primary">Create key</button>
-        </form>
-        {secret && (
-          <div className="secret">
-            <strong>Save this key now. It will not be shown again.</strong>
-            <code>{secret}</code>
-            <button className="secondary" onClick={() => setSecret("")}>
-              I have saved it
-            </button>
-          </div>
-        )}
-      </section>
-      <section className="panel">
-        <div className="section-heading">
-          <h2>Application keys</h2>
-          <KeyRound size={18} />
-        </div>
-        {keys.length ? (
-          <div className="table-scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Scope</th>
-                  <th>Expires</th>
-                  <th>Status</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {keys.map((key) => (
-                  <tr key={key.id}>
-                    <td>{key.name}</td>
-                    <td>
-                      {key.app}
-                      <small>{key.environment}</small>
-                    </td>
-                    <td>{new Date(key.expires_at).toLocaleDateString()}</td>
-                    <td>
-                      <Status value={key.revoked_at ? "revoked" : "active"} />
-                    </td>
-                    <td>
-                      {!key.revoked_at && (
-                        <button
-                          className="text-button"
-                          onClick={() => revoke(key.id)}
-                        >
-                          Revoke
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <Empty>No application keys yet.</Empty>
-        )}
-      </section>
-    </>
-  );
-}
-
 function App() {
   const [user, setUser] = useState<User | null>(null);
   const [checking, setChecking] = useState(true);
   const [tenant, setTenant] = useState("");
-  const [tab, setTab] = useState<Tab>("Overview");
-  const [settingsSection, setSettingsSection] = useState<SettingsSection>("Workspace");
-  const view = tab === "Settings" ? settingsSection : tab;
+  const [tab, setTab] = useState<Tab>(() => new URLSearchParams(location.hash.slice(1)).has("invite") ? "Settings" : "Overview");
+  const [settingsSection, setSettingsSection] = useState<SettingsSection>(() => new URLSearchParams(location.hash.slice(1)).has("invite") ? "Invitations" : "Workspace");
   const [overview, setOverview] = useState<Overview | null>(null);
   const [events, setEvents] = useState<Usage[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -665,6 +491,7 @@ function App() {
     try {
       const next = await api<User>("/auth/me");
       setUser(next);
+      if (!next.tenants.length) { setTab("Settings"); setSettingsSection("Invitations"); }
       setTenant(next.tenants.find((item) => item.tenant_id === preferredTenant)?.tenant_id || next.tenants[0]?.tenant_id || "");
     } catch {
       setUser(null);
@@ -719,7 +546,7 @@ function App() {
     setFilters("");
   }, [tenant]);
   useEffect(() => {
-    setSettingsSection(admin ? "Workspace" : "Account");
+    setSettingsSection((previous) => previous === "Invitations" ? previous : admin ? "Workspace" : "Account");
   }, [tenant, admin]);
   if (checking)
     return <div className="loading">Connecting to your workspace…</div>;
@@ -818,20 +645,17 @@ function App() {
               {message}
             </div>
           )}
-          <JoinWorkspace key={user.user_id} joined={loadUser} report={setMessage} />
-          {!tenant ? (
+          {tab === "Settings" ? (
+            <SettingsPage tenant={tenant} userId={user.user_id} email={user.email} role={current?.role || ""}
+              section={settingsSection} select={setSettingsSection} joined={loadUser} report={setMessage} />
+          ) : !tenant ? (
             <Empty>
               Your account is signed in but has no workspace membership. Ask an
-              administrator to invite your email, then accept the invitation above.
+              administrator to invite your email, then open Settings → Workspace invitations.
             </Empty>
           ) : (
             <div key={tenant}>
-              {tab === "Settings" && <SettingsNavigation section={settingsSection} select={setSettingsSection} admin={admin} />}
-              {view === "Account" && <section className="panel form-panel">
-                <h2>Your account</h2><p>Signed in as {user.email}. Workspace role: {current?.role}.</p>
-                <LinkGoogle report={setMessage} />
-              </section>}
-              {view === "Overview" && (
+              {tab === "Overview" && (
                 <>
                   <UsageControls
                     apply={(query) => {
@@ -878,72 +702,9 @@ function App() {
                   </div>
                 </>
               )}{" "}
-              {view === "Job runs" && <JobsView jobs={jobs} />}{" "}
-              {admin && (view === "Schedules" || view === "Budgets") && (
-                <OperationsView
-                  tenant={tenant}
-                  section={view}
-                  report={setMessage}
-                />
-              )}
-              {view === "Access" && admin && (
-                <AccessView
-                  tenant={tenant}
-                  role={current?.role || ""}
-                  report={setMessage}
-                />
-              )}
-              {view === "AgentDesk" && (
-                <AgentDeskView
-                  tenant={tenant}
-                  role={current?.role || ""}
-                  report={setMessage}
-                />
-              )}
-              {view === "Tool access" && (
-                <ToolsView
-                  key={tenant}
-                  tenant={tenant}
-                  role={current?.role || ""}
-                  report={setMessage}
-                />
-              )}
-              {admin && view === "Model policies" && (
-                <PoliciesView
-                  key={tenant}
-                  tenant={tenant}
-                  report={setMessage}
-                />
-              )}
-              {view === "Configuration" && admin && (
-                <ConfigurationsView tenant={tenant} report={setMessage} />
-              )}
-              {view === "Workspace" && admin && <SettingsView key={tenant} tenant={tenant} report={setMessage} />}
-              {view === "Sources" && (
-                <CoverageView
-                  key={tenant}
-                  tenant={tenant}
-                  report={setMessage}
-                />
-              )}
-              {view === "API catalog" && admin && (
-                <CatalogView
-                  tenant={tenant}
-                  plans={plans}
-                  refresh={refresh}
-                  report={setMessage}
-                />
-              )}{" "}
-              {(view === "SDK keys" || view === "LLM keys") && admin && (
-                <KeyView
-                  key={view}
-                  tenant={tenant}
-                  keys={view === "LLM keys" ? gatewayKeys : keys}
-                  gateway={view === "LLM keys"}
-                  refresh={refresh}
-                  report={setMessage}
-                />
-              )}
+              {tab === "Job runs" && <JobsView jobs={jobs} />}{" "}
+              {tab === "Sources" && <SourcesView key={tenant} tenant={tenant} admin={admin}
+                keys={keys} gatewayKeys={gatewayKeys} plans={plans} refresh={refresh} report={setMessage} />}
             </div>
           )}
           <footer>
