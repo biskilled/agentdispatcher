@@ -704,7 +704,7 @@ function App() {
               )}{" "}
               {tab === "Job runs" && <JobsView jobs={jobs} />}{" "}
               {tab === "Sources" && <SourcesView key={tenant} tenant={tenant} admin={admin}
-                keys={keys} gatewayKeys={gatewayKeys} plans={plans} refresh={refresh} report={setMessage} />}
+                keys={keys} gatewayKeys={gatewayKeys} plans={plans} refresh={refresh} report={setMessage} revision={revision} />}
             </div>
           )}
           <footer>

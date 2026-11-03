@@ -15,6 +15,7 @@ export function SourcesView({
   plans,
   refresh,
   report,
+  revision,
 }: {
   tenant: string;
   admin: boolean;
@@ -23,6 +24,7 @@ export function SourcesView({
   plans: Plan[];
   refresh: () => void;
   report: (message: string) => void;
+  revision: number;
 }) {
   const [selected, setSelected] = useState<SourceTab>(admin ? "sdk" : "status");
   const tabs = useRef<HTMLDivElement>(null);
@@ -74,7 +76,7 @@ export function SourcesView({
       >
         <SourceSetup source={selected} />
         {selected === "status" ? (
-          <CoverageView tenant={tenant} report={report} />
+          <CoverageView tenant={tenant} report={report} revision={revision} />
         ) : !admin ? (
           <p className="notice">
             A workspace owner or administrator can add and manage connections.

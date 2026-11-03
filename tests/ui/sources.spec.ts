@@ -81,6 +81,12 @@ test("manage source connections inside their tabs", async ({ page }) => {
   await expect(
     page.getByLabel("Allowed model names", { exact: false }),
   ).toBeVisible();
+  const loaded = page.waitForResponse((response) => response.url().endsWith("/api/coverage"));
+  await openSource(page, "status");
+  expect((await loaded).status()).toBe(200);
+  const refreshed = page.waitForResponse((response) => response.url().endsWith("/api/coverage"));
+  await page.getByRole("button", { name: "Refresh", exact: true }).click();
+  expect((await refreshed).status()).toBe(200);
   await openSource(page, "sdk");
   expect(
     await page.evaluate(

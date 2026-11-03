@@ -40,9 +40,11 @@ type Coverage = {
 export function CoverageView({
   tenant,
   report,
+  revision,
 }: {
   tenant: string;
   report: (message: string) => void;
+  revision: number;
 }) {
   const [data, setData] = useState<Coverage | null>(null);
   useEffect(() => {
@@ -57,7 +59,7 @@ export function CoverageView({
     return () => {
       active = false;
     };
-  }, [tenant]);
+  }, [tenant, revision, report]);
   return (
     <>
       <section className="panel form-panel">
