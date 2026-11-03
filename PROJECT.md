@@ -43,7 +43,7 @@ _Born as a design-mode export; review and refine — this file is the project's 
 
 ## Key Decisions
 
-- Core architecture: LiteLLM proxy + OTel collector + Postgres ledger + React web UI (browser-first, no Electron desktop required)
+- Core architecture: LiteLLM proxy + OTel collector + PostgreSQL ledger + React web UI (browser-first, no Electron desktop required)
 - Open-source licensing: Apache 2.0 for core, with THIRD_PARTY_NOTICES.md and CI license checks (blocking AGPL, commercial)
 - Usage tracking: normalised usage_event ledger capturing timestamp, user, key, team, project, work_item, client, provider, model, with pricing attached
 - AgentDesk integration: session→project/work-item attribution via OTEL_RESOURCE_ATTRIBUTES (agentdesk.project, agentdesk.work_item)
@@ -55,9 +55,9 @@ _Born as a design-mode export; review and refine — this file is the project's 
 - Agent instrumentation: small agents (e.g., AgentTrade) integrate via OTEL_RESOURCE_ATTRIBUTES to tag scheduled/hard-to-monitor LLM jobs
 - API monitoring: general-purpose SDK for tracking any API usage (LLM, CoinGecko, Yahoo Finance, paid/free) with tenant-scoped catalog and pricing configuration
 - Authentication: AgentDesk token (identity/session/membership), Google OAuth, user email, SDK dedicated hash keys per tenant; credentials via environment variables for deployment
-- A/B experiments: routing policies support weighted model variants for experimentation
-- Deployment: single docker-compose stack with LiteLLM, OTel collector, Postgres, Dispatcher core, and optional UI components
+- Deployment: six independently deployable services (UI, API, background worker, scheduler, LiteLLM proxy, OTel collector) in single docker-compose stack with PostgreSQL 17.11+pgvector
 - Security hardening: pip-licenses/license-checker CI step, OTEL attribute validation, read-only AgentData role, least-privilege tenant isolation
+- A/B experiments: routing policies support weighted model variants for experimentation
 
 ## Open Items
 
@@ -83,12 +83,12 @@ _Born as a design-mode export; review and refine — this file is the project's 
 
 ## Recent Work
 
-- [task] Responsive React monitoring UI: overview, jobs, sessions and connections (review) — React/TypeScript/Vite web UI for desktop and mobile monitoring
-- [task] Tenant-isolated PostgreSQL ledger, execution context and pricing (review) — Durable storage for tenants, memberships, apps, connections and usage events
-- [task] Shared API quota and pricing engine with mixed-workload fixtures (review) — Extended accounting for LLM/API adapters with logical operation support
-- [task] Admin API catalog and versioned provider plans (review) — Tenant-scoped catalog/connection and plan CRUD endpoints with React admin interface
-- [task] Reusable LLM/API monitoring SDK and AgentTrade integration (review) — OpenTelemetry-based monitoring SDK for scheduled jobs
-- [task] Background job health, coverage and billing reconciliation (review) — Independent Dispatcher worker with shared application contracts
+- [deployment] Railway production instance running with PostgreSQL 17.11+pgvector 0.8.7; six services deployed and operational
+- [task] Environment variable configuration documentation for each service (UI, API, worker, scheduler, LiteLLM, OTel)
+- [task] Service health checks, billing reconciliation and background job coverage validation
+- [feature] Live authentication integration (Google OAuth, email sign-in) awaiting Railway credential configuration
+- [bug] Upstream security vulnerabilities in LiteLLM and collector resolved via dependency backport and minimal collector rebuild
+- [testing] 96+ tests and full integration CI passing; zero High/Critical security findings in container scans
 
 ## Project Facts
 
@@ -100,22 +100,26 @@ _Born as a design-mode export; review and refine — this file is the project's 
 - **postgresql_tenant_data**: PostgreSQL is the authoritative store for all durable AgentDispatcher product data: tenant/app identities, usage/price records, jobs/runs/traces, policies, configuration snapshots, evaluations and aud
 
 ### Constraint
+- **api_monitoring_scope**: System monitors both LLM usage (via LiteLLM) and general API usage (any third-party or internal API); users configure APIs with quotas, costs, and thresholds via admin interface
 - **deployment_model**: Independently deployable services (React, backend, SDK, MCP gateway) in single Git repository for open-source promotion
 
 ### Convention
 - **open_source_easy_install_and_credits**: AgentDispatcher is intended for public Apache-2.0 open-source distribution. Keep dependencies and custom code minimal; reuse suitable open-source components while preserving attribution and license ob
 - **reusable_minimal_code**: Write once, reuse many: keep AgentDispatcher minimal with single-purpose classes, short well-named methods/functions and shared modules as the single source of each behaviour. Prefer composition and c
+- **authentication**: Users authenticate via Google sign-in or email sign-in; SDKs authenticate with hashed, tenant-scoped API keys
 - **auth_strategy**: React app: Google OAuth + email sign-in; SDK: hashed API keys scoped per tenant
 
 ### General
 - **implementation_status**: 2026-11-01: initial Python/FastAPI API, PostgreSQL forced-RLS ledger/separate auth role, email sessions/Google OIDC routes, scoped hashed SDK keys, basic versioned API pricing, independent worker, Pyt
-- **authentication_and_sdk_keys**: Authentication clarification (2026-11-01): Human access supports Google sign-in and verified email sign-in; passwordless email links are the initial design assumption. Resolve users, tenant membership
-- **general_api_monitoring**: General API monitoring extension (2026-11-01): Monitor free and paid non-LLM APIs through the same reusable SDK and tenant-isolated PostgreSQL ledger, including market-data requests in scheduled jobs
+
+### Pattern
+- **monitoring_architecture**: React web/mobile UI for user monitoring + lightweight OpenTelemetry-based SDKs embedded in applications (e.g. AgentTrade, schedulers) to instrument usage without LLM involvement
 
 ### Stack
 - **project_stack_email**: SMTP via Python smtplib
 - **project_stack_scheduler**: Dedicated Python / FastAPI service
 - **project_stack_backend**: Python / FastAPI
-- **storage**: PostgreSQL per tenant for all durable data (usage ledger, API configs, quotas, user permissions)
+- **llm_gateway**: LiteLLM is the main request router, cost calculator, and virtual key manager; MCP and CLI monitoring adapters planned
+- **data_storage**: PostgreSQL with strict tenant isolation; all usage, API definitions, quotas, and billing data stored per-tenant
 - **ui_framework**: React web app, responsive for desktop and mobile, with admin interface for API/quota/pricing configuration
 - **primary_gateway**: LiteLLM routes all LLM requests, tracks usage/costs, manages virtual keys and MCP gateway functionality
