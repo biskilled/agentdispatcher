@@ -52,7 +52,7 @@ be deployed before enabling that optional identity integration.
 docker compose exec api dispatcher create-tenant --name "My workspace" --email "owner@example.com"
 ```
 
-The email address alone is not proof of identity. The owner signs in using a single-use email link before receiving dashboard access. Use **Access** to invite members, assign roles/app views, and revoke invitations. The invited person signs in independently, then pastes the invitation token into **Join another workspace**. Concurrent membership changes cannot remove the last owner. Tenant creation remains operator-controlled.
+The email address alone is not proof of identity. The owner signs in using a single-use email link before receiving dashboard access. Use **Access** to invite members, assign roles/app views, and revoke invitations. Invitations are emailed when SMTP is configured; otherwise Access provides a shareable link. The recipient signs in independently with the invited email and selects **Accept invitation** in **Workspace invitations**. Acceptance switches to that workspace; no invitation token needs to be entered. Google identities must first be explicitly linked to the email identity; matching addresses do not merge accounts. Concurrent membership changes cannot remove the last owner. Tenant creation remains operator-controlled.
 
 For Google sign-in, configure `DISPATCHER_GOOGLE_CLIENT_ID` and `DISPATCHER_GOOGLE_CLIENT_SECRET`. Register the exact `${DISPATCHER_PUBLIC_URL}/api/auth/google/callback` redirect URI in Google. Accounts use the OIDC issuer and subject; matching email addresses are **not** automatically linked. **Link a Google account** requires a recent sign-in (`DISPATCHER_REAUTH_SECONDS`) and an unchanged browser session throughout linking. OAuth state is single-use in PostgreSQL. A newly created Google account has no workspace access until membership is provisioned.
 
@@ -113,7 +113,7 @@ as missing evidence; it is not substituted with an invented zero cost.
 
 Other adapters may send `POST /api/observations` with an `observations` list containing
 `event` (the usage contract), `expected_source`, and `correlation_kind` (`attempt` or
-`operation`). These records never consume quotas or add charges. **Connections** shows
+`operation`). These records never consume quotas or add charges. **Sources** shows
 which references have matching billable evidence. Matching is scoped to tenant,
 app/environment and the exact attempt or operation ID. References may arrive before
 or after the upstream record; original prices remain immutable. Uncorrelated events
@@ -148,7 +148,7 @@ The collector forwards authenticated traces to `/api/otlp/v1/traces` and support
 CLI logs to `/api/otlp/v1/logs`. It is bound to
 one tenant/app/environment SDK key and has no debug exporter. The API validates live
 credentials, normalizes supported usage spans, discards body content and reports
-rejected usage under **Connections**. See the [telemetry connection guide](integrations/telemetry/README.md)
+rejected usage under **Sources**. See the [telemetry connection guide](integrations/telemetry/README.md)
 for supported fields, correlation, private receiver credentials and coverage limits.
 See [CLI onboarding](integrations/cli/README.md) for Codex/Claude capabilities and
 coverage limits. Generic metrics ingestion is outside the implemented trace/log contract.

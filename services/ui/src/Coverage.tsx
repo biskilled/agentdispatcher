@@ -61,6 +61,7 @@ export function CoverageView({
   }, [tenant]);
   return (
     <>
+      <p>This is the health dashboard for usage sources. Follow the guide to instrument an application, then check that its events arrive here. It does not discover or connect applications automatically.</p>
       <SourceSetup />
       <section className="panel form-panel">
         <h2>Reporting sources</h2>

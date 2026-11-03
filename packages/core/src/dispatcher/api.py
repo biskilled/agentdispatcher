@@ -1,6 +1,7 @@
 """Independently deployable HTTP API over shared authentication and ledger services."""
 
 import logging
+import smtplib
 from decimal import Decimal
 from typing import Annotated, Literal
 from urllib.parse import parse_qs, urlparse
@@ -361,8 +362,35 @@ def create_app(settings: Settings | None = None, mailer=None, oauth_transport=No
 
     @app.post("/api/invitations", status_code=201)
     def invite(body: InviteRequest, principal=Depends(human)):
-        """Create a one-time invitation; accepting also requires independent sign-in."""
-        return memberships.invite(principal, body.email.lower(), body.role)
+        """Create an invitation and report delivery truthfully if SMTP is unavailable."""
+        email = body.email.lower()
+        invitation = memberships.invite(principal, email, body.role)
+        invitation["invitation_url"] = (
+            f"{settings.public_url.rstrip('/')}/#invite={invitation['id']}"
+        )
+        invitation["delivery"] = "not_configured"
+        if settings.smtp_host and settings.smtp_sender:
+            try:
+                mailer.send_invitation(email, invitation["invitation_url"])
+                invitation["delivery"] = "sent"
+            except (OSError, smtplib.SMTPException):
+                # The invitation exists even when delivery fails; allow explicit link sharing.
+                logging.error("Invitation email delivery failed; check SMTP configuration")
+                invitation["delivery"] = "failed"
+        return invitation
+
+    @app.get("/api/invitations/pending")
+    def pending_invitations(request: Request):
+        """Show invitations to this account without requiring an existing tenant membership."""
+        return memberships.pending(auth.user(request.cookies.get(SESSION_COOKIE, "")))
+
+    @app.post("/api/invitations/{invite_id}/accept")
+    def accept_pending_invite(invite_id: UUID, request: Request):
+        """Accept with authenticated mailbox ownership and no manual invitation token."""
+        check_origin(request)
+        return memberships.accept_pending(
+            auth.user(request.cookies.get(SESSION_COOKIE, "")), invite_id
+        )
 
     @app.delete("/api/invitations/{invite_id}", status_code=204)
     def revoke_invite(invite_id: UUID, principal=Depends(human)):

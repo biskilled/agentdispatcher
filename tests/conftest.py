@@ -24,10 +24,15 @@ class TestMailer:
 
     def __init__(self):
         self.tokens = []
+        self.invitations = []
 
     def send_login(self, email, token):
         """Keep the single-use token in memory for the test's explicit consume action."""
         self.tokens.append((email, token))
+
+    def send_invitation(self, email, url):
+        """Capture invitations without contacting a mailbox."""
+        self.invitations.append((email, url))
 
 
 @pytest.fixture(scope="session")

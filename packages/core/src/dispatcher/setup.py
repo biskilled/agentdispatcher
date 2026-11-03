@@ -50,6 +50,7 @@ class Setup:
                     settings.google_client_id and settings.google_client_secret.get_secret_value()
                 ),
                 "email": bool(settings.smtp_host and settings.smtp_sender),
+                "password": settings.test_login_enabled,
                 "gateway": bool(
                     settings.gateway_url and settings.gateway_master_key.get_secret_value()
                 ),

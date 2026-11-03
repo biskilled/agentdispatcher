@@ -11,11 +11,32 @@ import tempfile
 import time
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
+from uuid import uuid4
 
 import httpx
 from demo import main as seed_demo
+from dispatcher.auth import AuthService
+from dispatcher.bootstrap import create_tenant
+from dispatcher.db import Database
 from dispatcher.settings import get_settings
 from dotenv import load_dotenv
+
+
+@contextlib.contextmanager
+def invitation_accounts():
+    """Provide independent recipient sessions and revoke them when browser tests finish."""
+    auth = AuthService(Database(get_settings()))
+    accounts = {}
+    try:
+        for viewport in ("desktop", "mobile"):
+            email = f"invitation-ui-{uuid4().hex}@example.test"
+            create_tenant(auth.db, "Original workspace", email)
+            session = auth.consume_login(auth.request_login(email, email))
+            accounts[viewport] = {"email": email, "session": session}
+        yield accounts
+    finally:
+        for account in accounts.values():
+            auth.logout(account["session"])
 
 
 def verify_worker(base: str) -> None:
@@ -63,7 +84,9 @@ def main() -> None:
             DISPATCHER_TEST_SESSION=client.cookies["dispatcher_session"],
         )
         try:
-            subprocess.run(["npm", "run", "test:ui"], env=environment, check=True)
+            with invitation_accounts() as accounts:
+                environment["DISPATCHER_TEST_INVITE_ACCOUNTS"] = json.dumps(accounts)
+                subprocess.run(["npm", "run", "test:ui"], env=environment, check=True)
         finally:
             client.post("/api/auth/logout").raise_for_status()
 

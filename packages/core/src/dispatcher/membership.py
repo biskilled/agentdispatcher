@@ -53,6 +53,13 @@ _SQL_EMAIL_LOCK = "SELECT pg_advisory_xact_lock(hashtextextended(%s,0))"
 _SQL_PROVED_EMAIL = """
 SELECT subject FROM mng_identities WHERE user_id=%s AND issuer='email'
 """
+_SQL_PENDING = """
+SELECT i.id,t.name workspace_name,i.role,i.expires_at
+FROM mng_invitations i JOIN mng_tenants t ON t.id=i.tenant_id
+WHERE i.email=%s AND i.expires_at>now() AND i.revoked_at IS NULL AND i.accepted_at IS NULL
+ORDER BY i.created_at DESC
+"""
+_SQL_PENDING_HASH = "SELECT token_hash FROM mng_invitations WHERE id=%s AND email=%s"
 
 
 def ensure_email_identity(connection, email: str) -> UUID:
@@ -154,16 +161,40 @@ class MembershipService:
 
     def accept(self, user: dict, token: str) -> dict:
         """Accept only as the independently authenticated invited email identity."""
+        return self._accept(user, verifier(token))
+
+    def _has_email_identity(self, connection, user):
+        identities = connection.execute(_SQL_PROVED_EMAIL, (user["user_id"],)).fetchall()
+        return user["email"] in {row["subject"] for row in identities}
+
+    def _verify_email(self, connection, user):
+        if not self._has_email_identity(connection, user):
+            raise HTTPException(403, "Sign in with the invited email account first")
+
+    def pending(self, user: dict) -> list:
+        """List invitations for this signed-in identity, including before its first join."""
         with self.db.auth() as connection:
-            identities = connection.execute(_SQL_PROVED_EMAIL, (user["user_id"],)).fetchall()
-            emails = {row["subject"] for row in identities}
-            if user["email"] not in emails:
-                raise HTTPException(403, "Sign in with the invited email account first")
-            pending = connection.execute(_SQL_INVITE_TENANT, (verifier(token),)).fetchone()
+            if not self._has_email_identity(connection, user):
+                return []
+            return connection.execute(_SQL_PENDING, (user["email"],)).fetchall()
+
+    def accept_pending(self, user: dict, invite_id: UUID) -> dict:
+        """Use authenticated mailbox ownership instead of asking the recipient for a token."""
+        with self.db.auth() as connection:
+            self._verify_email(connection, user)
+            row = connection.execute(_SQL_PENDING_HASH, (invite_id, user["email"])).fetchone()
+            if not row:
+                raise HTTPException(404, "Invitation not found for this account")
+        return self._accept(user, row["token_hash"])
+
+    def _accept(self, user: dict, token_hash: str) -> dict:
+        with self.db.auth() as connection:
+            self._verify_email(connection, user)
+            pending = connection.execute(_SQL_INVITE_TENANT, (token_hash,)).fetchone()
             if not pending:
                 raise HTTPException(401, "Invalid invitation")
             connection.execute(_SQL_LOCK, (pending["tenant_id"],))
-            invite = connection.execute(_SQL_ACCEPT, (verifier(token), user["email"])).fetchone()
+            invite = connection.execute(_SQL_ACCEPT, (token_hash, user["email"])).fetchone()
             if not invite:
                 raise HTTPException(401, "Invalid, expired or already used invitation")
             inviter = connection.execute(

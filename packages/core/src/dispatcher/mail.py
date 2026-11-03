@@ -7,7 +7,7 @@ from dispatcher.settings import Settings
 
 
 class Mailer:
-    """Send login links through the deployment's SMTP provider."""
+    """Send account links through the deployment's SMTP provider."""
 
     def __init__(self, settings: Settings):
         self.settings = settings
@@ -15,10 +15,7 @@ class Mailer:
     def send_login(self, email: str, token: str) -> None:
         """Put the token in a fragment so reverse-proxy access logs do not capture it."""
         settings = self.settings
-        if not settings.smtp_host or not settings.smtp_sender:
-            raise RuntimeError("Email sign-in requires SMTP configuration")
         message = EmailMessage()
-        message["From"] = settings.smtp_sender
         message["To"] = email
         message["Subject"] = "Sign in to AgentDispatcher"
         message.set_content(
@@ -28,6 +25,26 @@ class Mailer:
             + token
             + "\n\nIf you did not request this link, ignore this email."
         )
+        self._send(message)
+
+    def send_invitation(self, email: str, url: str) -> None:
+        """Deliver a workspace invitation; the link does not authenticate its recipient."""
+        message = EmailMessage()
+        message["To"] = email
+        message["Subject"] = "Workspace invitation to AgentDispatcher"
+        message.set_content(
+            "You have been invited to an AgentDispatcher workspace.\n\n"
+            + url
+            + "\n\nSign in with this email address, then select Accept invitation."
+            + " If you do not recognise this invitation, ignore it."
+        )
+        self._send(message)
+
+    def _send(self, message: EmailMessage) -> None:
+        settings = self.settings
+        if not settings.smtp_host or not settings.smtp_sender:
+            raise RuntimeError("Email delivery requires SMTP configuration")
+        message["From"] = settings.smtp_sender
         with smtplib.SMTP(
             settings.smtp_host, settings.smtp_port, timeout=settings.http_timeout
         ) as client:

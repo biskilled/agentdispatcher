@@ -1,6 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { api } from "./api";
-import { RetentionSettings } from "./Retention";
 
 type Member = { id: string; email: string; role: string; apps: string[] };
 type Invitation = {
@@ -21,7 +20,10 @@ type Props = {
 export function AccessView({ tenant, role, report }: Props) {
   const [members, setMembers] = useState<Member[]>([]);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
-  const [secret, setSecret] = useState("");
+  const [invitation, setInvitation] = useState<{
+    invitation_url: string;
+    delivery: string;
+  } | null>(null);
   const [revision, setRevision] = useState(0);
   const roles =
     role === "owner"
@@ -50,11 +52,15 @@ export function AccessView({ tenant, role, report }: Props) {
     event.preventDefault();
     const form = event.currentTarget;
     try {
-      const result = await api<{ token: string }>("/invitations", tenant, {
-        method: "POST",
-        body: JSON.stringify(Object.fromEntries(new FormData(form))),
-      });
-      setSecret(result.token);
+      const result = await api<{ invitation_url: string; delivery: string }>(
+        "/invitations",
+        tenant,
+        {
+          method: "POST",
+          body: JSON.stringify(Object.fromEntries(new FormData(form))),
+        },
+      );
+      setInvitation(result);
       setRevision((value) => value + 1);
       form.reset();
     } catch (error) {
@@ -91,10 +97,12 @@ export function AccessView({ tenant, role, report }: Props) {
   }
   return (
     <>
-      <RetentionSettings tenant={tenant} report={report} />
       <section className="panel form-panel">
         <h2>Invite to this workspace</h2>
-        <p>The invited person must also sign in with their email account.</p>
+        <p>
+          The recipient signs in with the invited email, then selects Accept
+          invitation to join this workspace.
+        </p>
         <form className="inline-form" onSubmit={invite}>
           <label>
             Email
@@ -110,14 +118,40 @@ export function AccessView({ tenant, role, report }: Props) {
           </label>
           <button className="primary">Create invitation</button>
         </form>
-        {secret && (
+        {invitation && (
           <div className="notice">
             <p>
-              Share this invitation token with the invited person. It is shown
-              only once.
+              {invitation.delivery === "sent"
+                ? "Invitation emailed. You can also share the link below."
+                : invitation.delivery === "failed"
+                  ? "Invitation created, but email delivery failed. Share the link below."
+                  : "Invitation created. Email delivery is not configured. Share the link below."}
             </p>
-            <code className="secret">{secret}</code>
-            <button onClick={() => setSecret("")}>Dismiss token</button>
+            <label>
+              Invitation link
+              <input
+                readOnly
+                value={invitation.invitation_url}
+                onFocus={(event) => event.target.select()}
+              />
+            </label>
+            <button
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(
+                    invitation.invitation_url,
+                  );
+                  report("Invitation link copied.");
+                } catch {
+                  report(
+                    "Copy unavailable. Select and copy the invitation link above.",
+                  );
+                }
+              }}
+            >
+              Copy invitation link
+            </button>
+            <button onClick={() => setInvitation(null)}>Dismiss link</button>
           </div>
         )}
       </section>
@@ -189,45 +223,115 @@ export function AccessView({ tenant, role, report }: Props) {
   );
 }
 
-/** Accept invitations only after independent sign-in, including accounts without memberships. */
+type PendingInvitation = {
+  id: string;
+  workspace_name: string;
+  role: string;
+  expires_at: string;
+};
+
+/** The signed-in recipient accepts directly; mailbox ownership replaces manual token entry. */
 export function JoinWorkspace({
   joined,
   report,
 }: {
-  joined: () => void;
+  joined: (tenant: string) => void;
   report: (message: string) => void;
 }) {
-  async function accept(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = event.currentTarget;
-    try {
-      await api("/invitations/accept", undefined, {
-        method: "POST",
-        body: JSON.stringify({ token: new FormData(form).get("token") }),
+  const [invitations, setInvitations] = useState<PendingInvitation[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [accepted, setAccepted] = useState("");
+  const [revision, setRevision] = useState(0);
+  const [requested, setRequested] = useState(() =>
+    new URLSearchParams(location.hash.slice(1)).get("invite"),
+  );
+  useEffect(() => {
+    let active = true;
+    api<PendingInvitation[]>("/invitations/pending")
+      .then((value) => {
+        if (active) setInvitations(value);
+      })
+      .catch((error) => {
+        if (active) report(error.message);
       });
-      form.reset();
-      joined();
+    return () => {
+      active = false;
+    };
+  }, [revision, report]);
+  async function accept(invitation: PendingInvitation) {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const result = await api<{ tenant_id: string }>(
+        `/invitations/${invitation.id}/accept`,
+        undefined,
+        { method: "POST" },
+      );
+      setInvitations((items) =>
+        items.filter((item) => item.id !== invitation.id),
+      );
+      if (requested === invitation.id) {
+        history.replaceState(null, "", location.pathname);
+        setRequested(null);
+      }
+      joined(result.tenant_id);
+      setAccepted(invitation.workspace_name);
     } catch (error) {
       report((error as Error).message);
+    } finally {
+      setBusy(false);
     }
   }
   return (
-    <details className="panel form-panel">
-      <summary>Join another workspace</summary>
-      <form className="inline-form" onSubmit={accept}>
-        <label>
-          Invitation token
-          <input
-            name="token"
-            autoComplete="off"
-            required
-            minLength={32}
-            maxLength={256}
-          />
-        </label>
-        <button className="primary">Accept invitation</button>
-      </form>
-    </details>
+    <>
+      {accepted && (
+        <p className="notice" role="status">
+          Joined {accepted}.
+        </p>
+      )}
+      <details
+        className="panel form-panel"
+        open={invitations.length > 0 || !!requested}
+      >
+        <summary>
+          Workspace invitations
+          {invitations.length ? ` (${invitations.length})` : ""}
+        </summary>
+        <p>
+          Invitations are matched to your signed-in email. Accept to join and
+          open that workspace.
+        </p>
+        {invitations.length === 0 && (
+          <p>
+            No pending invitations for this account. If you received a link,
+            check that you signed in with the invited email; the invitation may
+            also have expired or been revoked.
+          </p>
+        )}
+        {invitations.map((invitation) => (
+          <div className="inline-form" key={invitation.id}>
+            <span>
+              {invitation.workspace_name} · {invitation.role} · Expires{" "}
+              {new Date(invitation.expires_at).toLocaleString()}
+            </span>
+            <button
+              className="primary"
+              disabled={busy}
+              onClick={() => accept(invitation)}
+            >
+              Accept invitation to {invitation.workspace_name}
+            </button>
+          </div>
+        ))}
+        <button
+          className="secondary"
+          disabled={busy}
+          onClick={() => setRevision((value) => value + 1)}
+        >
+          Refresh invitations
+        </button>
+      </details>
+    </>
   );
 }
 

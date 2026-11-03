@@ -34,19 +34,19 @@ import { ToolsView } from "./Tools";
 import { UsageControls, UsageCharts, AttemptDetail, UsageExport } from "./UsageControls";
 import { OperationsView } from "./Operations";
 import { ConfigurationsView } from "./Configurations";
-import { SetupView } from "./Setup";
+import { SettingsView } from "./Settings";
 import { CoverageView } from "./Coverage";
 import { repository as sourceUrl } from "../../../package.json";
 
 type Tab =
-  | "Setup"
+  | "Settings"
   | "Overview"
   | "Job runs"
   | "API catalog"
   | "SDK keys"
   | "LLM keys"
   | "Configuration"
-  | "Connections"
+  | "Sources"
   | "Access"
   | "AgentDesk"
   | "Model policies"
@@ -55,14 +55,13 @@ type Tab =
   | "Schedules"
   | "Budgets";
 const navigation = [
-  { label: "Setup", icon: Check },
   { label: "Overview", icon: Activity },
   { label: "Job runs", icon: Workflow },
   { label: "API catalog", icon: Database },
   { label: "SDK keys", icon: KeyRound },
   { label: "LLM keys", icon: KeyRound },
   { label: "Configuration", icon: Layers },
-  { label: "Connections", icon: Activity },
+  { label: "Sources", icon: Activity },
   { label: "Access", icon: Shield },
   { label: "AgentDesk", icon: Workflow },
   { label: "Model policies", icon: Layers },
@@ -70,10 +69,11 @@ const navigation = [
   { label: "Tool access", icon: KeyRound },
   { label: "Schedules", icon: Workflow },
   { label: "Budgets", icon: Database },
+  { label: "Settings", icon: Check },
 ] as const;
 
 const descriptions: Record<Tab, string> = {
-  Setup: "Connect your workspace and verify its first usage events.",
+  Settings: "Manage workspace retention and check installation configuration.",
   Overview: "Follow the calls and background work across your applications.",
   "Job runs": "See what ran, what failed, and what stopped reporting.",
   "API catalog":
@@ -81,7 +81,7 @@ const descriptions: Record<Tab, string> = {
   "SDK keys": "Manage scoped monitoring credentials for your applications.",
   "LLM keys": "Control which model aliases each application can call.",
   Configuration: "Review application settings and track their activation.",
-  Connections: "Check reporting sources and missing usage evidence.",
+  Sources: "Check reporting sources and missing usage evidence.",
   Access: "Manage workspace membership and application views.",
   AgentDesk: "Connect a tenant and link your own account.",
   "Model policies":
@@ -169,7 +169,9 @@ function Login({ onLogin }: { onLogin: () => void }) {
       <main className="login-panel">
         <Shield className="login-icon" />
         <h2>Welcome to AgentDispatcher</h2>
-        <p>Sign in to your workspace.</p>
+        <p>{new URLSearchParams(location.hash.slice(1)).has("invite")
+          ? "Sign in with the invited email address, then accept your workspace invitation."
+          : "Sign in to your workspace."}</p>
         <form onSubmit={submit}>
           {!token && (
             <label>
@@ -691,11 +693,11 @@ function App() {
   const [offset, setOffset] = useState(0);
   const current = user?.tenants.find((t) => t.tenant_id === tenant);
   const admin = ["owner", "admin"].includes(current?.role || "");
-  async function loadUser() {
+  async function loadUser(preferredTenant?: string) {
     try {
       const next = await api<User>("/auth/me");
       setUser(next);
-      setTenant(next.tenants[0]?.tenant_id || "");
+      setTenant(next.tenants.find((item) => item.tenant_id === preferredTenant)?.tenant_id || next.tenants[0]?.tenant_id || "");
     } catch {
       setUser(null);
     } finally {
@@ -790,7 +792,7 @@ function App() {
                   "Job runs",
                   "AgentDesk",
                   "Tool access",
-                  "Connections",
+                  "Sources",
                 ].includes(label),
             )
             .map(({ label, icon: Icon }) => (
@@ -859,12 +861,12 @@ function App() {
               {message}
             </div>
           )}
-          <JoinWorkspace joined={loadUser} report={setMessage} />
+          <JoinWorkspace key={user.user_id} joined={loadUser} report={setMessage} />
           <LinkGoogle report={setMessage} />
           {!tenant ? (
             <Empty>
               Your account is signed in but has no workspace membership. Ask an
-              administrator to provision access.
+              administrator to invite your email, then accept the invitation above.
             </Empty>
           ) : (
             <div key={tenant}>
@@ -956,8 +958,8 @@ function App() {
               {tab === "Configuration" && admin && (
                 <ConfigurationsView tenant={tenant} report={setMessage} />
               )}
-              {tab === "Setup" && admin && <SetupView key={tenant} tenant={tenant} navigate={setTab} report={setMessage} />}
-              {tab === "Connections" && (
+              {tab === "Settings" && admin && <SettingsView key={tenant} tenant={tenant} report={setMessage} />}
+              {tab === "Sources" && (
                 <CoverageView
                   key={tenant}
                   tenant={tenant}

@@ -36,7 +36,7 @@ test("authenticated monitoring, catalog and scoped keys work at this viewport", 
   ).toBeTruthy();
   await page.getByRole("button", { name: "Job runs", exact: true }).click();
   await expect(page.getByText("Market scan")).toBeVisible();
-  await page.getByRole("button", { name: "Connections", exact: true }).click();
+  await page.getByRole("button", { name: "Sources", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Reporting sources", exact: true }),
   ).toBeVisible();
@@ -268,11 +268,11 @@ test("authenticated monitoring, catalog and scoped keys work at this viewport", 
   await expect(
     page.getByLabel("Allowed model names", { exact: false }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Setup", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Set up your workspace" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "First-event evidence" })).toBeVisible();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Installation status" })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Main navigation" }).getByRole("button").last()).toHaveText("Settings");
+  await expect(page.getByRole("button", { name: /^Open (SDK keys|LLM keys|API catalog)$/ })).toHaveCount(0);
   await expect(page.getByText("Database: Ready.", { exact: false })).toBeVisible();
-  await page.getByRole("button", { name: "Open Access", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Attribution retention" })).toBeVisible();
   if (test.info().project.name === "desktop") {
     const horizon = page.getByLabel("Keep attribution for days (blank disables expiry)");
