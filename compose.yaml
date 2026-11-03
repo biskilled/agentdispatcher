@@ -51,7 +51,14 @@ services:
     entrypoint: [python, -m, dispatcher.recovery]
 
   db:
-    image: ${POSTGRES_IMAGE}
+    build:
+      context: .
+      dockerfile: services/postgres/Dockerfile
+      args:
+        POSTGRES_IMAGE: ${POSTGRES_IMAGE}
+        PGVECTOR_SOURCE_URL: ${PGVECTOR_SOURCE_URL}
+        PGVECTOR_SHA256: ${PGVECTOR_SHA256}
+    image: agentdispatcher-postgres:local
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB}

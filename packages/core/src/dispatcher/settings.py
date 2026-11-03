@@ -13,7 +13,9 @@ from dispatcher.configuration_document import ConfigSource
 class Settings(BaseSettings):
     """Load service configuration from DISPATCHER_ environment variables."""
 
-    model_config = SettingsConfigDict(env_prefix="DISPATCHER_", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_prefix="DISPATCHER_", extra="ignore", hide_input_in_errors=True
+    )
     database_url: SecretStr
     auth_database_url: SecretStr
     public_url: str

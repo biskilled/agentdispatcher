@@ -9,6 +9,8 @@ complete workspace deletion is a separate, explicit offline operator action.
 
 React monitoring for application API calls, LLM requests and scheduled work, backed by a tenant-isolated PostgreSQL ledger. One repository contains independently runnable API, worker, UI and Python SDK packages.
 
+For hosted deployment, see the [Railway service layout, credentials and operator commands](documents/output/railway.md). The PostgreSQL image includes pgvector; new databases enable the extension automatically. The current ledger does not require embeddings.
+
 Monitoring, administration, SDK integrations and configuration controls are implemented and tested. The release-security gate passes for the pinned images, including the maintained gateway backport and minimal collector. Authentication credentials, live sign-in verification and deployment remain environment setup, deferred by the project owner. See [implementation status](documents/output/implementation-progress.md) and [release evidence](documents/output/release-verification.md) for verified scope and operating limits.
 
 ## Try the synthetic demo

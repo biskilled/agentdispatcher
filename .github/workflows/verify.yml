@@ -53,6 +53,8 @@ jobs:
       - uses: actions/checkout@v4
       - run: python3 scripts/configure.py
       - run: docker compose up --build -d --wait
+      - name: Verify pgvector extension and vector operations
+        run: docker compose exec -T db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c "CREATE EXTENSION IF NOT EXISTS vector; SELECT extversion FROM pg_extension WHERE extname = '\''vector'\''; SELECT '\''[1,2]'\''::vector <-> '\''[1,2]'\''::vector;"'
       - run: docker compose --profile demo run --rm demo > /tmp/demo.json
       - name: Capture tenant persistence evidence
         run: docker compose exec -T api python scripts/persistence_smoke.py capture --state /tmp/restart-fixture.json

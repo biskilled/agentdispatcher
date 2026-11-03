@@ -20,6 +20,7 @@ RUN go run github.com/google/go-licenses/v2@${GO_LICENSES_VERSION} check ./... -
     && go list -m all > /licenses/modules.txt \
     && go version -m ./otelcol-contrib > /licenses/binary-modules.txt
 FROM ${OTEL_IMAGE}
+COPY services/collector/config.yaml /etc/otelcol-contrib/config.yaml
 COPY --from=build /build/collector/otelcol-contrib /otelcol-contrib
 COPY --from=build /licenses /licenses/dispatcher
 COPY --from=build /build/collector/go.mod /build/collector/go.sum /licenses/dispatcher/

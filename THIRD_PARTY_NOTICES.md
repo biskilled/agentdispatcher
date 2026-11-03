@@ -15,6 +15,7 @@ and notices remain intact:
 | LiteLLM | Optional gateway service; real container callback verified | https://github.com/BerriAI/litellm |
 | OpenTelemetry Collector Contrib | Optional authenticated telemetry intake | https://github.com/open-telemetry/opentelemetry-collector-contrib |
 | PostgreSQL | Durable tenant data | https://www.postgresql.org/about/licence/ |
+| pgvector | Optional vector types and indexes | https://github.com/pgvector/pgvector/blob/v0.8.7/LICENSE |
 | Nginx | Static UI and same-origin proxy | https://nginx.org/en/LICENSE |
 
 The optional MCP service uses the official [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk)
