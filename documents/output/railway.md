@@ -104,3 +104,21 @@ railway up --service agentdispatcher --detach
 ```
 
 For non-interactive CLI configuration, Railway 4.66.1 reads `environment edit` JSON from stdin before command-line configuration flags. Use service IDs in the JSON and pipe it securely, or use the Railway UI. Use `railway variable set KEY --stdin --service SERVICE` for secrets; do not print environment exports into logs. See [Railway CLI environment documentation](https://docs.railway.com/cli/environment).
+
+## Deployment verification — 2026-11-03
+
+Runtime code commits: `cf16e05` (Railway/pgvector startup and credential-safe validation) and `1ef6fea` (dynamic backend DNS). Seven always-on services ran successfully; migration and initial backup jobs exited successfully.
+
+Live Railway checks passed:
+
+- Dashboard HTML/assets and `/health/ready` return 200 over HTTPS; unauthenticated dashboard API and MCP calls return 401.
+- PostgreSQL reports `vector` version `0.8.7`; a vector distance query returns the expected zero. Two isolated fixture ledgers retain their exact totals after restarting PostgreSQL.
+- The Python SDK submits zero-cost synthetic API attempts and scheduled-job lifecycle events through the public dashboard endpoint. Wrong-tenant and wrong-app writes are rejected; ingestion credentials cannot read human dashboard reports.
+- The collector requires its inbound bearer token, forwards into its scoped tenant/app/environment, deduplicates repeated exports and excludes private prompt contents. Three zero-cost synthetic spans produce exactly three attempts.
+- The gateway requires authentication and returns no configured model routes while provider credentials are absent. No paid provider API was called.
+- The independent worker health command passes. The operator backup writes a private archive and checksum/schema manifest on its separate persistent volume. It is an initial point-in-time backup, not an automatic recurring schedule.
+- Runtime configurations contain neither the owner database password nor migration/recovery DSNs. The initial workspace and scoped collector credential are provisioned; Google/SMTP sign-in remains unverified until configured.
+
+[Application and Compose CI](https://github.com/biskilled/agentdispatcher/actions/runs/41691754957) verifies the runtime revision, including 100 backend/SDK/PostgreSQL tests and five MCP checks. [Security CI](https://github.com/biskilled/agentdispatcher/actions/runs/41691754792) passes all seven image variants and dependency gates without High/Critical exceptions. Local unit-only execution passed 38 tests and skipped 62 database tests; the full database evidence comes from CI, not those skips.
+
+Synthetic verification data is clearly labelled and costs zero in the initial workspace. Two separate `Synthetic restart fixture` tenants contain only persistence test data and are not memberships of the initial owner. Other applications are not yet instrumented by this deployment: connect each application through its own SDK key or an authorized gateway/collector route.
