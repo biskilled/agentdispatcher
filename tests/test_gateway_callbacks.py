@@ -8,9 +8,20 @@ from types import ModuleType, SimpleNamespace
 from uuid import uuid4
 
 import httpx
+import pytest
 
 
-def test_policy_callback_requested_served_models_and_distinct_attempts(monkeypatch):
+@pytest.mark.parametrize(
+    "usage,standard",
+    [
+        ({"prompt_tokens": 4, "completion_tokens": 2}, {}),
+        ({"input_tokens": 4, "output_tokens": 2}, {}),
+        ({}, {"prompt_tokens": 4, "completion_tokens": 2, "response_cost": 0.125}),
+    ],
+)
+def test_policy_callback_requested_served_models_and_distinct_attempts(
+    monkeypatch, usage, standard
+):
     """The real image smoke complements this isolated hook-order fixture."""
     litellm = ModuleType("litellm")
     litellm.completion_cost = lambda **kwargs: "0.2"
@@ -72,11 +83,12 @@ def test_policy_callback_requested_served_models_and_distinct_attempts(monkeypat
         first = await handler.async_pre_call_deployment_hook(data, "completion")
         await handler.async_post_call_failure_deployment_hook(first, TimeoutError(), "completion")
         fallback = await handler.async_pre_call_deployment_hook(first, "completion")
+        fallback["standard_logging_object"] = standard
         await handler.async_post_call_success_deployment_hook(
             fallback,
             {
                 "model": "provider-baseline-model",
-                "usage": {"prompt_tokens": 4, "completion_tokens": 2},
+                "usage": usage,
                 "choices": [{"message": {"content": "never export this body"}}],
             },
             "completion",
@@ -91,3 +103,6 @@ def test_policy_callback_requested_served_models_and_distinct_attempts(monkeypat
     assert observations[1]["model"] == "provider-baseline-model"
     assert observations[0]["status"] == "timeout" and observations[1]["status"] == "success"
     assert "never export" not in str(observations)
+    assert observations[1]["input_tokens"] == 4
+    assert observations[1]["output_tokens"] == 2
+    assert observations[1]["reported_cost"] == ("0.125" if standard else "0.2")

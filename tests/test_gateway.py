@@ -4,6 +4,7 @@ import json
 import secrets
 
 import httpx
+import pytest
 from pydantic import SecretStr
 from test_integration import event, ingest
 
@@ -92,3 +93,47 @@ def test_gateway_key_scope_revocation_and_cost_provenance(system):
         client.post("/internal/gateway/authorize", json=authorised, headers=headers).status_code
         == 401
     )
+
+
+@pytest.mark.parametrize(
+    "response,state,models",
+    [
+        (
+            httpx.Response(200, json={"data": [{"id": "model-a", "api_key": "private"}]}),
+            "ready",
+            ["model-a"],
+        ),
+        (httpx.Response(200, json={"data": []}), "no_models", []),
+        (httpx.Response(401, text="private upstream detail"), "unavailable", []),
+        (httpx.Response(200, json={"data": None}), "unavailable", []),
+    ],
+)
+def test_gateway_connection_uses_native_model_list_without_provider_calls(
+    system, response, state, models
+):
+    client = system["client"]
+    gateway = client.app.state.gateway
+    assert client.get("/api/gateway/connection").json()["state"] == "not_configured"
+
+    def upstream(request):
+        assert request.method == "GET" and request.url.path == "/v1/models"
+        assert request.headers["Authorization"] == "Bearer operator-secret"
+        return response
+
+    gateway.settings = gateway.settings.model_copy(
+        update={
+            "gateway_url": "https://gateway.example.test",
+            "gateway_master_key": SecretStr("operator-secret"),
+            "gateway_client_url": "http://client.example.test/v1",
+        }
+    )
+    gateway.transport = httpx.MockTransport(upstream)
+    result = client.get("/api/gateway/connection")
+    assert result.json() == {
+        "state": state,
+        "models": models,
+        "base_url": "http://client.example.test/v1",
+    }
+    assert "private" not in result.text and "operator-secret" not in result.text
+    client.headers["X-Tenant-ID"] = str(system["other"].tenant_id)
+    assert client.get("/api/gateway/connection").status_code == 403

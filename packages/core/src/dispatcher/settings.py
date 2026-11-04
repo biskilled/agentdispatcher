@@ -57,6 +57,7 @@ class Settings(BaseSettings):
     google_metadata_url: str = "https://accounts.google.com/.well-known/openid-configuration"
     http_timeout: float = 10
     gateway_url: str = ""
+    gateway_client_url: str = ""
     gateway_master_key: SecretStr = SecretStr("")
     gateway_callback_secret: SecretStr = SecretStr("")
     config_sources: dict[str, ConfigSource] = Field(default_factory=dict)
@@ -101,7 +102,7 @@ class Settings(BaseSettings):
             raise ValueError("public_url must be an absolute HTTP(S) URL")
         if self.secure_cookies and not self.public_url.startswith("https://"):
             raise ValueError("secure_cookies requires an HTTPS public_url")
-        for name in ("agentdesk_identity_url", "tool_resource_url"):
+        for name in ("agentdesk_identity_url", "tool_resource_url", "gateway_client_url"):
             if not getattr(self, name):
                 continue
             identity_url = urlsplit(getattr(self, name))

@@ -8,7 +8,7 @@ Authenticated MCP resource: https://mcp-production-5562.up.railway.app/mcp
 
 The dashboard resolves the API hostname again as its DNS cache expires, using the container resolver and IPv4 records. This supports replacing the API without restarting the dashboard.
 
-The dashboard serves the React build and proxies `/api/` to the private API. SDK clients use the dashboard URL as their endpoint. Database, worker, gateway, collector and operator jobs have no public domain or TCP proxy. MCP requires a dedicated session-bound tool token; an SDK ingestion key does not authorize MCP tools.
+The dashboard serves React, proxies `/api/` to the private API, and exposes selected LiteLLM inference routes at `/llm/v1` through the private gateway. SDK clients use the dashboard URL; LLM clients use that URL plus `/llm/v1` with a native LiteLLM key. No separate usage exporter is needed for gateway calls. Database, worker, gateway management, collector and operator jobs have no public domain or TCP proxy. MCP requires a dedicated session-bound tool token; an SDK ingestion key does not authorize MCP tools.
 
 ## Services
 
@@ -62,11 +62,18 @@ Database DSNs use Railway references such as `${{postgres.RAILWAY_PRIVATE_DOMAIN
 | --- | --- |
 | UI `BACKEND_URL`; runtime `DISPATCHER_API_INTERNAL_URL`; MCP `DISPATCHER_API_URL`; gateway `DISPATCHER_CALLBACK_URL` | `http://${{api.RAILWAY_PRIVATE_DOMAIN}}:8080` |
 | API `DISPATCHER_GATEWAY_URL` | `http://${{gateway.RAILWAY_PRIVATE_DOMAIN}}:4000` |
+| UI `GATEWAY_URL` | `http://${{gateway.RAILWAY_PRIVATE_DOMAIN}}:4000` |
 | API `DISPATCHER_COLLECTOR_INTERNAL_URL` | `http://${{collector.RAILWAY_PRIVATE_DOMAIN}}:4318/v1/traces` |
 | Collector `DISPATCHER_OTLP_TRACES_URL` | `http://${{api.RAILWAY_PRIVATE_DOMAIN}}:8080/api/otlp/v1/traces` |
 | Collector `DISPATCHER_OTLP_LOGS_URL` | `http://${{api.RAILWAY_PRIVATE_DOMAIN}}:8080/api/otlp/v1/logs` |
 | API `DISPATCHER_TOOL_RESOURCE_URL`; MCP `DISPATCHER_MCP_RESOURCE_URL` | Public HTTPS MCP URL including `/mcp` |
 | MCP `DISPATCHER_MCP_ISSUER_URL`; runtime `DISPATCHER_PUBLIC_URL` | Public HTTPS dashboard URL |
+
+Set UI `GATEWAY_READ_TIMEOUT_SECONDS=600` (adjust for model response duration).
+Optional API `DISPATCHER_GATEWAY_CLIENT_URL` overrides the displayed client address
+for separately managed/private ingress. Leave it empty for the bundled `/llm/v1`
+inference facade. The gateway's model list is read without calling a paid provider;
+the setup page distinguishes missing routes from an unreachable gateway.
 
 MCP has `DISPATCHER_MCP_ALLOW_HTTP=true` only to permit its configured private API connection; the advertised MCP resource and issuer use HTTPS.
 

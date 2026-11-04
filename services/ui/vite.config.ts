@@ -13,7 +13,20 @@ export default defineConfig(({ mode }) => {
       port: Number(env.UI_PORT || 5173),
       strictPort: true,
       proxy: env.BACKEND_URL
-        ? { "/api": env.BACKEND_URL, "/health": env.BACKEND_URL }
+        ? {
+            "/api": env.BACKEND_URL,
+            "/health": env.BACKEND_URL,
+            ...(env.GATEWAY_URL
+              ? {
+                  "^/llm/v1/(chat/completions|responses|embeddings|messages|models)$":
+                    {
+                      target: env.GATEWAY_URL,
+                      changeOrigin: true,
+                      rewrite: (path: string) => path.replace(/^\/llm/, ""),
+                    },
+                }
+              : {}),
+          }
         : undefined,
     },
     build: { outDir: "../../dist/ui", emptyOutDir: true },

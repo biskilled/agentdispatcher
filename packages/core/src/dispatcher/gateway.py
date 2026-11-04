@@ -66,6 +66,43 @@ class Gateway:
         with self.db.auth() as connection:
             return connection.execute(_SQL_KEYS, (principal.tenant_id,)).fetchall()
 
+    def client(self):
+        """Use LiteLLM's management API without exposing the operator credential to clients."""
+        if not self.settings.gateway_url or not self.settings.gateway_master_key.get_secret_value():
+            raise HTTPException(503, "LiteLLM gateway is not configured")
+        return httpx.Client(
+            base_url=self.settings.gateway_url.rstrip("/") + "/",
+            headers={
+                "Authorization": "Bearer " + self.settings.gateway_master_key.get_secret_value()
+            },
+            timeout=self.settings.http_timeout,
+            transport=self.transport,
+        )
+
+    def connection(self, principal):
+        """Read native model aliases without invoking a provider or exposing provider settings."""
+        require_admin(principal)
+        result = {
+            "base_url": self.settings.gateway_client_url
+            or self.settings.public_url.rstrip("/") + "/llm/v1",
+            "state": "not_configured",
+            "models": [],
+        }
+        if not self.settings.gateway_url or not self.settings.gateway_master_key.get_secret_value():
+            return result
+        try:
+            with self.client() as client:
+                response = client.get("v1/models")
+                response.raise_for_status()
+                rows = response.json()["data"]
+                if not isinstance(rows, list):
+                    raise ValueError("Invalid model list")
+                models = sorted({row["id"] for row in rows if isinstance(row["id"], str)})
+        except (httpx.HTTPError, ValueError, KeyError, TypeError):
+            # Upstream errors can contain infrastructure details; keep them out of the browser.
+            return {**result, "state": "unavailable"}
+        return {**result, "state": "ready" if models else "no_models", "models": models}
+
     def route(self, principal, requested_model, task_id):
         """Select policy routes only when every candidate is also allowed by this virtual key."""
         route = Policies(self.db).route(principal, requested_model, task_id)
@@ -76,19 +113,10 @@ class Gateway:
     def issue(self, principal, name, app, environment, models):
         """Create an upstream virtual key then register its scope; unregistered keys cannot run."""
         require_admin(principal)
-        if not self.settings.gateway_url or not self.settings.gateway_master_key.get_secret_value():
-            raise HTTPException(503, "LiteLLM gateway is not configured")
         service_id = uuid4()
         requested_key = "sk-" + secrets.token_urlsafe(32)
         expiry = datetime.now(UTC) + timedelta(seconds=self.settings.key_seconds)
-        with httpx.Client(
-            base_url=self.settings.gateway_url.rstrip("/") + "/",
-            headers={
-                "Authorization": "Bearer " + self.settings.gateway_master_key.get_secret_value()
-            },
-            timeout=self.settings.http_timeout,
-            transport=self.transport,
-        ) as client:
+        with self.client() as client:
             try:
                 response = client.post(
                     "key/generate",

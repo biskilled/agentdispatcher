@@ -23,4 +23,14 @@ def test_unconfigured_gateway_has_no_provider_routes_and_keeps_security():
 @pytest.mark.parametrize("model,key", [("provider/model", ""), ("", "secret")])
 def test_partial_credentials_fail_closed(model, key):
     with pytest.raises(ValueError, match="Configure both"):
-        _CONFIGURE({}, model, key)
+        source = yaml.safe_load((_ROOT / "config.yaml").read_text())
+        _CONFIGURE(source, model, key)
+
+
+def test_custom_litellm_routes_are_not_replaced_by_template_settings():
+    source = yaml.safe_load((_ROOT / "config.yaml").read_text())
+    source["model_list"][0]["litellm_params"] = {
+        "model": "openai/fixture",
+        "api_key": "os.environ/MY_PROVIDER_KEY",
+    }
+    assert _CONFIGURE(source, "", "") == source

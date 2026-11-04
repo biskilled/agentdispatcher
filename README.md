@@ -120,6 +120,41 @@ or after the upstream record; original prices remain immutable. Uncorrelated eve
 with unrelated IDs cannot safely be guessed into one charge. Instrumenting one app
 does not discover other uninstrumented applications.
 
+## LLM calls: connect once through LiteLLM
+
+**Sources → LLM gateway** is the default LLM setup. Provider credentials and model
+definitions live in LiteLLM; the page reads its model aliases and creates native
+LiteLLM virtual keys. Set the displayed API base URL and that key in your app's
+existing OpenAI-compatible client. Both schedulers and user requests then report
+usage automatically. An additional SDK key, collector or CLI exporter is **not**
+required for these calls.
+
+The bundled web server exposes only selected inference endpoints at `/llm/v1`
+(chat completions, responses, messages, embeddings and models). Streaming HTTP
+responses are forwarded without buffering; WebSocket upgrades and stored-response
+management routes are not exposed by this facade. Gateway management stays private.
+For a separately managed/private endpoint, set `DISPATCHER_GATEWAY_CLIENT_URL` to
+the client-accessible API base URL including `/v1`. Vite uses `GATEWAY_URL` for its
+local inference proxy; production UI uses the same variable for the private upstream.
+
+LiteLLM already supports [OpenTelemetry export](https://docs.litellm.ai/docs/observability/opentelemetry_integration)
+and [custom callbacks](https://docs.litellm.ai/docs/proxy/logging). This deployment
+uses its callback interface once to map trusted key scope and per-attempt usage into
+the tenant ledger. Pricing comes from LiteLLM. Do not add a second billable OTel or
+CLI export for the same gateway calls. Native OTel can independently feed an existing
+operations tracing backend; it is not a second required AgentDispatcher setup.
+LiteLLM Lens is a separate tracing product and is not required by this PostgreSQL deployment.
+
+Use the SDK only for additional application context: job lifecycle/heartbeats,
+ordinary API calls, or existing LLM traffic that bypasses the gateway. For combined
+SDK/gateway work use the correlation block documented above. Direct Codex/Claude
+telemetry remains an alternative for installations retaining their existing model
+connection. Supported gateway clients use the same LLM-key flow; see
+[LiteLLM client setup](https://docs.litellm.ai/docs/proxy/client_setup/overview).
+Each installation must receive the client settings; creating a key does not enroll
+every machine or import historical sessions. Provider subscription authentication
+and supported client versions must be checked for the chosen route.
+
 ## Accounting and security boundaries
 
 - Runtime PostgreSQL roles cannot bypass RLS. Tenant context is transaction-local and comes from authenticated credentials. A separate narrowly granted auth connection owns identity, membership and credential lookups; no public route exposes those tables directly.
@@ -138,11 +173,11 @@ does not discover other uninstrumented applications.
 | Worker | `dispatcher-worker` | Tenant-scoped run health, expected schedules, leases, budget/quota alerts |
 | UI | `npm run dev` / static Vite build | Desktop/mobile monitoring and administration |
 | Migrations | `python scripts/migrate.py` | Sole schema owner, separate deployment credentials |
-| LiteLLM | Compose `gateway` profile | Managed virtual keys, model restrictions, per-attempt callbacks |
+| LiteLLM | Default Compose service | Native virtual keys, model restrictions, per-attempt callbacks |
 | MCP tools | Compose `mcp` profile or standalone stdio | Session-bound usage/session/experiment reads and consented policy writes |
 | OTel collector | Compose `telemetry` profile | Authenticated app-scoped traces, JSON ledger export and rejection diagnostics |
 
-`docker compose --profile gateway up --build -d gateway` builds and starts LiteLLM after you supply `LLM_PROVIDER_MODEL` and `LLM_API_KEY`. It is internal-only; connect applications on an authorised service network. Its master key is operator-only. Use **LLM keys** to provision an application/environment key with explicit model aliases. The gateway verifies revocation and scope before each call and exports metadata-only usage using a separate internal callback secret. These calculated prices are not invoices. End-to-end tests use synthetic provider responses inside the real LiteLLM image and verify SDK/gateway correlation without duplicate charges. Paid provider invoices have not been validated. OpenRouter can be configured as a LiteLLM upstream.
+`docker compose up --build -d` includes LiteLLM. With the supplied template it starts without model routes until you supply both `LLM_PROVIDER_MODEL` and `LLM_API_KEY`; custom LiteLLM YAML can instead define its own routes. The gateway management API and master key remain private. Use **Sources → LLM gateway** to provision an application/environment key with explicit model aliases. The gateway verifies revocation and scope before each call and exports metadata-only usage using a separate internal callback secret, configured once by the operator. These calculated prices are not invoices. End-to-end tests use synthetic provider responses inside the real LiteLLM image and verify SDK/gateway correlation without duplicate charges. Paid provider invoices have not been validated. OpenRouter can be configured as a LiteLLM upstream.
 
 The collector forwards authenticated traces to `/api/otlp/v1/traces` and supported
 CLI logs to `/api/otlp/v1/logs`. It is bound to

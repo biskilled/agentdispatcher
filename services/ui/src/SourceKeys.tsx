@@ -94,8 +94,9 @@ export function SourceKeys({
       <section className="panel form-panel">
         <h2>Add connection</h2>
         <p>
-          Create a credential for one application and environment. Copy it into
-          that application's secret configuration.
+          {gateway
+            ? "Create a native LiteLLM key for one application and environment. This key both authorizes model calls and attributes their usage; no second monitoring key is needed."
+            : "Create a reporting credential for one application and environment. This is needed only for usage or job events sent outside the LLM gateway."}
         </p>
         <form className="inline-form" onSubmit={create}>
           <label>

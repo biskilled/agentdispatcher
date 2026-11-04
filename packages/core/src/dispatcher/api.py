@@ -552,6 +552,11 @@ def create_app(settings: Settings | None = None, mailer=None, oauth_transport=No
         """Append an audited correction to an existing tenant event."""
         return reconciliation.adjust(principal, body)
 
+    @app.get("/api/gateway/connection")
+    def gateway_connection(principal=Depends(human)):
+        """Read the gateway address and LiteLLM model aliases for workspace administrators."""
+        return gateway.connection(principal)
+
     @app.get("/api/gateway/keys")
     def gateway_keys(principal=Depends(human)):
         """List distinct LLM virtual keys for this tenant."""

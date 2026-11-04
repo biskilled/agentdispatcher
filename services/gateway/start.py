@@ -9,11 +9,21 @@ import yaml
 
 def configure(source: dict, model: str, key: str) -> dict:
     """Keep shared security settings and reject partially configured provider credentials."""
+    uses_template = any(
+        entry.get("litellm_params", {}).get("model") == "os.environ/LLM_PROVIDER_MODEL"
+        for entry in source.get("model_list", [])
+    )
+    if not uses_template:
+        return dict(source)
     if bool(model) != bool(key):
         raise ValueError("Configure both LLM_PROVIDER_MODEL and LLM_API_KEY, or leave both empty")
     result = dict(source)
     if not model:
-        result["model_list"] = []
+        result["model_list"] = [
+            entry
+            for entry in source.get("model_list", [])
+            if entry.get("litellm_params", {}).get("model") != "os.environ/LLM_PROVIDER_MODEL"
+        ]
     return result
 
 

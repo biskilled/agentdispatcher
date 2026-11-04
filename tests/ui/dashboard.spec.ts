@@ -189,6 +189,7 @@ test("authenticated monitoring, catalog and scoped keys work at this viewport", 
     page.getByRole("heading", { name: "Configuration audit", exact: true }),
   ).toBeVisible();
   await openSource(page, "sdk");
+  await page.getByText("Add job and API reporting", { exact: true }).click();
   const keyName = `Browser fixture ${test.info().project.name} ${Date.now()}`;
   await page.getByLabel("Connection name", { exact: true }).fill(keyName);
   await page.getByLabel("Application", { exact: true }).fill("browser-fixture");

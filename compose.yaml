@@ -104,6 +104,7 @@ services:
       DISPATCHER_MCP_INTERNAL_URL: http://mcp:${MCP_PORT:-8090}/mcp
       DISPATCHER_COLLECTOR_INTERNAL_URL: http://collector:${OTEL_HTTP_PORT:-4318}/v1/traces
       DISPATCHER_GATEWAY_URL: http://gateway:${LITELLM_PORT}
+      DISPATCHER_GATEWAY_CLIENT_URL: ${DISPATCHER_GATEWAY_CLIENT_URL:-}
       DISPATCHER_GATEWAY_MASTER_KEY: ${LITELLM_MASTER_KEY:-}
       DISPATCHER_GATEWAY_CALLBACK_SECRET: ${DISPATCHER_GATEWAY_CALLBACK_SECRET:-}
     command:
@@ -169,6 +170,8 @@ services:
     restart: unless-stopped
     environment:
       BACKEND_URL: http://api:${API_PORT}
+      GATEWAY_URL: http://gateway:${LITELLM_PORT}
+      GATEWAY_READ_TIMEOUT_SECONDS: ${GATEWAY_READ_TIMEOUT_SECONDS:-600}
       NGINX_ENTRYPOINT_LOCAL_RESOLVERS: "1"
       BACKEND_DNS_IPV6: ${BACKEND_DNS_IPV6:-off}
       BACKEND_DNS_VALID_SECONDS: ${BACKEND_DNS_VALID_SECONDS:-10}
@@ -194,7 +197,6 @@ services:
       args:
         LITELLM_IMAGE: ${LITELLM_IMAGE}
     image: agentdispatcher-gateway:local
-    profiles: [gateway]
     restart: unless-stopped
     environment:
       LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY}
@@ -203,12 +205,16 @@ services:
       LITELLM_DATABASE_URL: ${LITELLM_DATABASE_URL:-}
       DISPATCHER_CALLBACK_URL: http://api:${API_PORT}
       DISPATCHER_GATEWAY_CALLBACK_SECRET: ${DISPATCHER_GATEWAY_CALLBACK_SECRET:-}
+      GATEWAY_CONFIG_PATH: /app/config.yaml
+      GATEWAY_LAUNCHER: /app/docker/prod_entrypoint.sh
+      GATEWAY_HOST: ${GATEWAY_HOST:-0.0.0.0}
+      PORT: ${LITELLM_PORT}
     depends_on:
       api: { condition: service_healthy }
     volumes:
       - ${GATEWAY_CONFIG_PATH:-./services/gateway/config.yaml}:/app/config.yaml:ro
       - ./services/gateway/dispatcher_callbacks.py:/app/dispatcher_callbacks.py:ro
-    command: [--config, /app/config.yaml, --port, "${LITELLM_PORT}"]
+    entrypoint: [python, /app/start.py]
 
   collector:
     build:

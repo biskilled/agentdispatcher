@@ -1,12 +1,32 @@
 # AgentDispatcher — current product specification
 
 Use case: **US10000**
-Revision: **2026-11-01**
+Revision: **2026-11-04**
 Status: **Approved; implementation in progress.** See [verified implementation coverage](implementation-progress.md).
 
 This revision incorporates the user's monitoring, embedded-agent, tenant storage, deployment and open-source requirements. It supersedes conflicting details in the 2026-10-19 design export, especially desktop-first delivery and the unvalidated 2–3 week estimate. The original export remains intact in AgentDesk.
 
 ## Product purpose
+
+Gateway-first clarification (2026-11-04): LiteLLM is the default execution and usage
+source for controlled LLM traffic. Applications and supported coding tools configure
+one gateway address, native LiteLLM virtual key and model alias; no separate SDK/CLI
+telemetry credential is required for those model calls. Reuse LiteLLM's provider
+adapters, routing, pricing and supported callback/OTel interfaces. Dispatcher adds
+tenant isolation, application/job context and a unified LLM/non-LLM usage ledger.
+Keep provider configuration in LiteLLM and read its aliases for onboarding rather
+than maintaining another provider catalog. The thin callback adapter maps trusted
+scope and distinct attempts into the ledger; it is the single billing observation
+path for gateway requests. Additional OTel exports to operational tracing systems
+must not create another charge in Dispatcher.
+
+Sources opens with the LLM gateway; direct CLI reporting is an explicit alternative
+for traffic outside it. The SDK remains optional for job lifecycle, heartbeats and
+ordinary API calls. Gateway configuration is distributed to each managed client;
+creating a connection does not enroll an enterprise's machines. Keep gateway admin
+routes private and expose only authenticated inference routes through the web
+ingress. An empty provider configuration is reported as missing models, not as a
+working inference connection. Existing authorized direct reporting remains usable.
 
 AgentDispatcher is an Apache-2.0 open-source, self-installable app in the AgentDesk ecosystem. A responsive React/TypeScript monitoring UI works on desktop and mobile; lightweight reusable SDKs/connectors inside apps capture LLM requests, scheduled jobs, workers and MCP calls. LiteLLM is the request gateway, OpenTelemetry carries execution context, and PostgreSQL is the authoritative tenant-isolated store for all durable product data.
 

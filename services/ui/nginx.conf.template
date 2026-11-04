@@ -5,6 +5,7 @@ server {
     # Resolve on requests so an API replacement cannot leave a stale upstream address.
     resolver ${NGINX_LOCAL_RESOLVERS} ipv6=${BACKEND_DNS_IPV6} valid=${BACKEND_DNS_VALID_SECONDS}s;
     set $dispatcher_backend ${BACKEND_URL};
+    set $dispatcher_gateway ${GATEWAY_URL};
     client_max_body_size 2m;
     add_header X-Content-Type-Options nosniff always;
     add_header Referrer-Policy no-referrer always;
@@ -16,5 +17,17 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
     location /health/ { proxy_pass $dispatcher_backend; }
+    # Only inference endpoints are public; LiteLLM management and its master key stay private.
+    location ~ ^/llm/v1/(?<gateway_operation>chat/completions|responses|embeddings|messages|models)$ {
+        limit_except GET POST { deny all; }
+        access_log off;
+        proxy_pass $dispatcher_gateway/v1/$gateway_operation$is_args$args;
+        proxy_http_version 1.1;
+        proxy_buffering off;
+        proxy_read_timeout ${GATEWAY_READ_TIMEOUT_SECONDS}s;
+        proxy_set_header Cookie "";
+        proxy_set_header Host $proxy_host;
+    }
+    location /llm/ { return 404; }
     location / { try_files $uri $uri/ /index.html; }
 }

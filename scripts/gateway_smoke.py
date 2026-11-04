@@ -69,6 +69,34 @@ def wait_ready(client):
     raise RuntimeError("LiteLLM did not become ready")
 
 
+def verify_public_inference(db, gateway, ledger):
+    """Exercise the web ingress with one native LLM key and no SDK/exporter setup."""
+    endpoint = os.environ["DISPATCHER_GATEWAY_PROXY_URL"].rstrip("/")
+    owner = create_tenant(db, "Gateway ingress fixture", "gateway-ingress@example.test")
+    key = gateway.issue(owner, "Ingress fixture", "fixture-ingress", "test", ["configured-model"])
+    with httpx.Client(base_url=endpoint, timeout=30) as client:
+        for path in ("/llm/key/generate", "/llm/ui", "/llm/v1/key/generate"):
+            assert client.get(path).status_code == 404
+        assert client.get("/llm/v1/models").status_code in {401, 403}
+        body = {"model": "configured-model", "messages": [{"role": "user", "content": "fixture"}]}
+        assert client.post("/llm/v1/chat/completions", json=body).status_code in {401, 403}
+        client.headers["Authorization"] = "Bearer " + key["secret"]
+        result = client.post("/llm/v1/chat/completions", json=body)
+        result.raise_for_status()
+        rows = wait_events(ledger, owner, 1)
+        assert rows[0]["payload"]["source"] == "litellm"
+        assert rows[0]["app"] == "fixture-ingress"
+        assert client.post(
+            "/llm/v1/chat/completions", json={**body, "model": "forbidden"}
+        ).status_code in {400, 401, 403}
+        AuthService(db).revoke_key(owner, key["id"])
+        assert client.post("/llm/v1/chat/completions", json=body).status_code in {401, 403}
+    print(
+        "Public inference: native key, automatic usage, model scope, revocation "
+        "and private admin routes verified."
+    )
+
+
 def verify():
     """Verify model/tenant isolation, streaming accounting and immediate revocation."""
     settings = get_settings()
@@ -187,6 +215,8 @@ def verify():
             )
             auth.revoke_key(owner, key["id"])
             assert client.post("/v1/chat/completions", json=body).status_code >= 400
+    if os.environ.get("DISPATCHER_GATEWAY_PROXY_URL"):
+        verify_public_inference(db, gateway, ledger)
     print(
         "Real LiteLLM image: tenant/model restrictions, streaming, effective routing/rollback "
         "and revocation verified."

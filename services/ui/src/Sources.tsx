@@ -4,6 +4,7 @@ import { CatalogView } from "./Accounting";
 import { CoverageView } from "./Coverage";
 import { SourceKeys } from "./SourceKeys";
 import { SourceSetup } from "./SourceSetup";
+import { GatewaySetup } from "./GatewaySetup";
 import { sourceTabs, type SourceTab } from "./sourceTypes";
 
 /** Keep each source's explanation and management controls together. */
@@ -26,7 +27,9 @@ export function SourcesView({
   report: (message: string) => void;
   revision: number;
 }) {
-  const [selected, setSelected] = useState<SourceTab>(admin ? "sdk" : "status");
+  const [selected, setSelected] = useState<SourceTab>(
+    admin ? "gateway" : "status",
+  );
   const tabs = useRef<HTMLDivElement>(null);
   function move(event: KeyboardEvent<HTMLButtonElement>, index: number) {
     const steps: Record<string, number> = { ArrowRight: 1, ArrowLeft: -1 };
@@ -74,7 +77,10 @@ export function SourcesView({
         id={`source-panel-${selected}`}
         aria-labelledby={`source-tab-${selected}`}
       >
-        <SourceSetup source={selected} />
+        <SourceSetup
+          source={selected}
+          onGateway={() => setSelected("gateway")}
+        />
         {selected === "status" ? (
           <CoverageView tenant={tenant} report={report} revision={revision} />
         ) : !admin ? (
@@ -89,18 +95,34 @@ export function SourcesView({
             refresh={refresh}
             report={report}
           />
+        ) : selected === "gateway" ? (
+          <>
+            <GatewaySetup tenant={tenant} revision={revision} />
+            <SourceKeys
+              tenant={tenant}
+              source="gateway"
+              keys={gatewayKeys}
+              refresh={refresh}
+              report={report}
+            />
+          </>
         ) : (
-          <SourceKeys
-            tenant={tenant}
-            source={selected}
-            keys={
-              selected === "gateway"
-                ? gatewayKeys
-                : keys.filter((key) => (key.source_type || "sdk") === selected)
-            }
-            refresh={refresh}
-            report={report}
-          />
+          <details className="panel form-panel" key={selected}>
+            <summary>
+              {selected === "sdk"
+                ? "Add job and API reporting"
+                : "Manage direct reporting (outside the LLM gateway)"}
+            </summary>
+            <SourceKeys
+              tenant={tenant}
+              source={selected}
+              keys={keys.filter(
+                (key) => (key.source_type || "sdk") === selected,
+              )}
+              refresh={refresh}
+              report={report}
+            />
+          </details>
         )}
       </div>
     </>

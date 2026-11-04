@@ -1,15 +1,32 @@
 import { sourceTabs, type SourceTab } from "./sourceTypes";
 
 /** Explain a source before its inline controls; technical instructions stay optional. */
-export function SourceSetup({ source }: { source: SourceTab }) {
+export function SourceSetup({
+  source,
+  onGateway,
+}: {
+  source: SourceTab;
+  onGateway: () => void;
+}) {
   const definition = sourceTabs.find((item) => item.id === source)!;
   return (
     <section className="source-intro">
       <h2>{definition.label}</h2>
       <p>{definition.description}</p>
-      {!["api", "status"].includes(source) && (
+      {["sdk", "codex", "claude"].includes(source) && (
+        <p>
+          <button className="primary" onClick={onGateway}>
+            Connect LLM calls through LiteLLM
+          </button>
+        </p>
+      )}
+      {!["api", "status", "gateway"].includes(source) && (
         <details>
-          <summary>Setup instructions</summary>
+          <summary>
+            {source === "sdk"
+              ? "Optional job and API instrumentation"
+              : "Direct reporting setup (outside the gateway)"}
+          </summary>
           {source === "sdk" && (
             <p>
               Install agentdispatcher-sdk in the application. Wrap its
@@ -59,15 +76,6 @@ export function SourceSetup({ source }: { source: SourceTab }) {
                 gateway connection.
               </p>
             </>
-          )}
-          {source === "gateway" && (
-            <p>
-              Start the optional LiteLLM service and register a gateway-purpose
-              key. Route compatible API clients through that gateway to apply
-              model policies. Use the gateway as the billing source; overlapping
-              SDK observations must share its correlation identifiers instead of
-              adding a second charge.
-            </p>
           )}
           <p className="muted">
             After configuring the application or CLI, send a test request and

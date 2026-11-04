@@ -14,10 +14,16 @@ export const sourceTabs: {
   description: string;
 }[] = [
   {
+    id: "gateway",
+    label: "LLM gateway",
+    description:
+      "Start here for LLM calls. LiteLLM routes requests from your applications, schedulers and compatible coding tools, and automatically reports model usage to this workspace.",
+  },
+  {
     id: "sdk",
     label: "Applications & jobs",
     description:
-      "Connect an application such as AgentTrade to report API calls, LLM usage and scheduled jobs. Add a connection below, then install its credential in your application.",
+      "Route an application's LLM calls through the gateway first. Add SDK reporting only for job start/finish, heartbeats, non-LLM API calls or existing requests that bypass the gateway.",
   },
   {
     id: "api",
@@ -29,25 +35,19 @@ export const sourceTabs: {
     id: "codex",
     label: "Codex",
     description:
-      "Connect a Codex installation to report CLI usage. Create its credential here, then configure the exporter on the machine running Codex.",
+      "Use a LiteLLM gateway key to route and monitor supported Codex model calls. Direct telemetry below is an alternative for installations that keep their existing model connection; do not report the same calls twice.",
   },
   {
     id: "claude",
     label: "Claude Code",
     description:
-      "Connect a Claude Code installation to report CLI usage. Create its credential here, then configure telemetry through your authenticated collector.",
+      "Use a LiteLLM gateway key to route and monitor supported Claude Code model calls. Direct telemetry below is an alternative for installations that keep their existing model connection; do not report the same calls twice.",
   },
   {
     id: "mcp",
     label: "MCP servers",
     description:
       "Monitor calls to an MCP server. Create its reporting credential here, then configure the local proxy or instrument the server.",
-  },
-  {
-    id: "gateway",
-    label: "LLM gateway",
-    description:
-      "Connect an application's model calls through LiteLLM. Create a gateway credential with allowed model names; provider credentials remain in the gateway configuration.",
   },
   {
     id: "status",

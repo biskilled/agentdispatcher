@@ -152,7 +152,8 @@ class DispatcherCallbacks(CustomLogger):
         if not state:
             logging.error("Dispatcher callback missing verified context; observation rejected")
             return
-        standard = standard or {}
+        # Prefer LiteLLM's normalized measurements; deployment hooks can precede that payload.
+        standard = standard or data.get("standard_logging_object") or {}
         payload = response.model_dump() if hasattr(response, "model_dump") else response or {}
         if not isinstance(payload, dict):
             payload = {}
@@ -174,7 +175,9 @@ class DispatcherCallbacks(CustomLogger):
             "environment": scope["environment"],
             "source": "litellm",
             "resource_kind": "llm",
-            "provider": hidden.get("custom_llm_provider") or "litellm",
+            "provider": standard.get("custom_llm_provider")
+            or hidden.get("custom_llm_provider")
+            or "litellm",
             "model": payload.get("model") or data.get("model"),
             "operation": "completion",
             "status": "timeout"
@@ -186,8 +189,12 @@ class DispatcherCallbacks(CustomLogger):
             else "success",
             "status_code": status if isinstance(status, int) and 100 <= status <= 599 else None,
             "duration_ms": str(max(0, (ended - started).total_seconds() * 1000)),
-            "input_tokens": usage.get("prompt_tokens"),
-            "output_tokens": usage.get("completion_tokens"),
+            "input_tokens": standard.get(
+                "prompt_tokens", usage.get("prompt_tokens", usage.get("input_tokens"))
+            ),
+            "output_tokens": standard.get(
+                "completion_tokens", usage.get("completion_tokens", usage.get("output_tokens"))
+            ),
             **state["attributes"],
         }
         cost = standard.get("response_cost")
