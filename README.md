@@ -11,7 +11,7 @@ React monitoring for application API calls, LLM requests and scheduled work, bac
 
 For hosted deployment, see the [Railway service layout, credentials and operator commands](documents/output/railway.md). The PostgreSQL image includes pgvector; new databases enable the extension automatically. The current ledger does not require embeddings.
 
-Monitoring, administration, SDK integrations and configuration controls are implemented and tested. The release-security gate passes for the pinned images, including the maintained gateway backport and minimal collector. Authentication credentials, live sign-in verification and deployment remain environment setup, deferred by the project owner. See [implementation status](documents/output/implementation-progress.md) and [release evidence](documents/output/release-verification.md) for verified scope and operating limits.
+Monitoring, administration, SDK integrations and configuration controls are implemented and tested. LiteLLM is the default LLM gateway with automatic usage reporting. The Railway test deployment and temporary test-account login are verified; provider, Google and SMTP credentials remain environment setup. The November 4 container scan reports upstream SQLite vulnerabilities, so the release-security gate remains open. See [implementation status](documents/output/implementation-progress.md) and [release evidence](documents/output/release-verification.md) for verified scope and operating limits.
 
 ## Try the synthetic demo
 

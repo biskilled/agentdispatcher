@@ -1,4 +1,26 @@
-# Release verification — 2026-11-02
+# Release verification
+
+## Current scan — 2026-11-04
+
+The gateway-first change `6f751bc` passes 128 local backend tests, six desktop/mobile
+browser workflows and live Railway login/onboarding/inference-boundary checks.
+The real LiteLLM container check also passes, including a native-key request through
+the public inference facade that reports exactly one usage event without an SDK.
+
+The [new release-security scan](https://github.com/biskilled/agentdispatcher/actions/runs/41811421699)
+**does not pass**: the API, MCP, recovery and gateway image scans fail their unchanged
+High/Critical threshold. The API artifact identifies SQLite package `3.53.4-r0`
+against CVE-2026-119373, CVE-2026-119374, CVE-2026-119379 and CVE-2026-119586;
+the gateway artifact identifies SQLite `3.54.1-r0` against CVE-2026-119586. Neither
+artifact lists a fixed package version for these findings. This is evidence from
+the scanner, not a claim that no upstream fix exists. Dependency-advisory checks
+and the database, UI and collector image scans pass. Full artifacts remain in CI.
+
+The gateway change is deployed for testing, but the open-source release security
+gate remains unresolved under AI0022. No findings have been suppressed or marked
+safe. The passing evidence below is historical and does not supersede this scan.
+
+## Previous scan — 2026-11-02
 
 **Both blocking findings resolved.** Functional CI and the release-security workflow
 pass for the derived gateway and minimal collector. Live authentication setup is

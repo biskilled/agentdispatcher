@@ -1,10 +1,18 @@
 # US10000 implementation progress
 
-Updated 2026-11-03. All thirteen implementation tasks are verified and ready for review under the owner's clarified scope. The Railway production stack is deployed, including PostgreSQL with verified pgvector support. Provider/identity credentials and live authentication checks remain deferred environment setup. See [Railway services and configuration](railway.md).
+Updated 2026-11-04. The gateway-first flow is deployed: Sources defaults to LiteLLM,
+native keys authorize and report model calls without a separate SDK/exporter, and
+the UI exposes a restricted inference address while keeping management private.
+The current change passes 128 backend tests, six desktop/mobile workflows and live
+Railway checks. Provider credentials remain deferred; the gateway correctly reports
+no configured models. Temporary test-account authentication is verified; Google and
+SMTP credentials remain deferred. The new container security scan fails on upstream
+SQLite findings: see [current release evidence](release-verification.md). This remains
+an open release item. See [Railway services and configuration](railway.md).
 
 ## Implemented and verified
 
-- A Python/FastAPI API, independent worker, React/TypeScript mobile dashboard, separately installable monitoring SDK and PostgreSQL ledger share reusable application services. Compose also provides optional LiteLLM, collector and MCP services.
+- A Python/FastAPI API, independent worker, React/TypeScript mobile dashboard, separately installable monitoring SDK and PostgreSQL ledger share reusable application services. LiteLLM is a default Compose service; collector and MCP are optional.
 - PostgreSQL enforces tenant isolation with forced RLS, separate auth/runtime grants and transaction-local scope. Human sessions, invitations, live membership/app grants, owner safeguards and scoped SDK keys have integration tests. SDK secrets are displayed once and stored only as hashes.
 - Google OIDC and passwordless email use explicit identity linking, single-use state/tokens, CSRF protection and revocable sessions. Signed-token callback fixtures exercise issuer, audience, signature, expiry, nonce and state rejection. Per the owner's 2026-11-02 clarification, credentials and live sign-in checks are deferred deployment setup, not an implementation blocker. All variables are documented in `.env.example` and README for local/Railway API service configuration.
 - AgentDesk has an explicit identity adapter, tenant binding and personal account linking. Effective-time session context preserves historical work-item/role attribution. The sibling AgentDesk identity endpoint patch and its verification harness are included under `integrations/agentdesk`; deployment remains separate.
@@ -21,7 +29,7 @@ Updated 2026-11-03. All thirteen implementation tasks are verified and ready for
 - React provides reporting filters, trends, attempts, schedules, budgets, catalog, keys, AgentDesk linking, configurations, policies, experiments and tool access. Desktop/mobile browser tests exercise the principal administration flows. Runtime license texts are bundled and shown in the UI.
 - Guided setup reports configured identity/gateway connections, worker health and each app's observed first/last event without exposing secrets. Configuration presence is distinguished from live external verification. Trace/feature filters share reporting/export semantics.
 - Bounded exports preserve decimal costs. Tenant-admin attribution retention defaults off, redacts old identifying metadata while preserving financial evidence/idempotency and labels affected rows. Offline deletion requires an explicit tenant confirmation and operator credentials. Backup/restore into a fresh database preserves ownership/totals and invalidates copied credentials; two-tenant isolation and independent container-restart persistence pass.
-- License artifacts include 56 runtime/upstream component credits and 137 development/platform entries, plus the custom collector's compiled dependency licenses inside its image. CI checks dependency advisories, explicit enterprise integration references and all seven deployed image variants, preserving inventories, signatures and vulnerability reports. The gateway's explicit dependency-only fork installs fixed filelock 4.2.4; the minimal collector removes vulnerable JOSE from its binary and pins the fixed version in its broader module graph. All seven image scans pass the unchanged High/Critical gate without exceptions; see [release evidence](release-verification.md).
+- License artifacts include 56 runtime/upstream component credits and 137 development/platform entries, plus the custom collector's compiled dependency licenses inside its image. CI checks dependency advisories, explicit enterprise integration references and all seven deployed image variants, preserving inventories, signatures and vulnerability reports. The gateway's explicit dependency-only fork installs fixed filelock 4.2.4; the minimal collector removes vulnerable JOSE from its binary and pins the fixed version in its broader module graph. The November 2 image scans passed the unchanged High/Critical gate; the November 4 scan has new unresolved SQLite findings. See [release evidence](release-verification.md).
 
 ## Verification
 
