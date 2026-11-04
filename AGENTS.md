@@ -40,23 +40,16 @@ _Auto-filled from the tenant's available skills._
 - **DietrichGebert/ponytail** (cli) — Makes your AI agent think like the laziest senior dev. The best code is the code you never wrote. · https://github.com/DietrichGebert/ponytail
 - **pragmar/mcp-server-webcrawl** (backend) — web crawl MCP · https://github.com/pragmar/mcp-server-webcrawl
 
-## Org rules — always apply
-_🌐 = all tenants (platform) · 🏢 = this tenant. Managed in Settings/Admin._
-_When one of these rules shapes an action or answer, SAY SO briefly — e.g. “per org rule ‘session start checks’ …” — so rule usage is visible._
-
-- 🏢 **session start checks**: Always check that all hooks are running when you start a session, and make sure you are connected to AgentDesk.
-- 🏢 **node_modules folder**: Always store node_modules under /Users/user/Documents/node_modules folder (linked folder) and venv under /Users/user/Documents/venv
-
-<!-- Last updated: 2026-11-03 21:44 UTC -->
+<!-- Last updated: 2026-11-03 21:49 UTC -->
 # agentdispatcher
-_2026-11-03 21:44 UTC | Memory synced: 2026-11-03_
+_2026-11-03 21:49 UTC | Memory synced: 2026-11-03_
 
 ## Recent Work
-- [ui] Navigation and menu structure redesign: consolidating Setup→Settings (last in menu), removing duplicate SDK/LLM/catalog shortcuts, moving retention controls to Settings
-- [ui] Simplification of dashboard sections: reducing feature surface area, evaluating necessity of Access (user management), AgentDesk connectivity, Experiments, and Tool Access sections
-- [ui] Testing temporary email authentication (tal@biskilled.com / adminadmin) for Railway production instance
-- [deployment] Railway production instance running with PostgreSQL 17.11+pgvector 0.8.7; six services deployed and operational
-- [feature] Live authentication integration (Google OAuth, email sign-in) with Railway credential configuration
+- [ui] Settings sidebar consolidation: Workspace invitations moved to Settings only; Settings sidebar now displays General, Users & access, Your account, Invitations, and other options
+- [ui] Sources section tabs refactor: replaced navigation redirect with inline tabs for each source type with descriptions, setup instructions, and connection management
+- [ui] Multi-tool CLI adapter support: clarifying that Codex and Claude Code are initial CLI adapters; other tools require telemetry/API integration, not just name addition
+- [deployment] Railway production instance operational with PostgreSQL 17.11+pgvector 0.8.7; six services deployed and live
+- [feature] Live authentication integration foundation: Google OAuth and email sign-in infrastructure in place; awaiting completion of Google credential configuration
 - [bug] Upstream security vulnerabilities in LiteLLM and collector remain unresolved
 
 ## Stack & Architecture
@@ -91,7 +84,7 @@ _2026-11-03 21:44 UTC | Memory synced: 2026-11-03_
 - Authentication: AgentDesk token (identity/session/membership), Google OAuth, user email, SDK dedicated hash keys per tenant; credentials via environment variables
 - Deployment: six independently deployable services (UI, API, background worker, scheduler, LiteLLM proxy, OTel collector) in single docker-compose stack with PostgreSQL 17.11+pgvector
 - Security hardening: pip-licenses/license-checker CI step, OTEL attribute validation, read-only AgentData role, least-privilege tenant isolation
-- Agent instrumentation: small agents (e.g., AgentTrade) integrate via OTEL_RESOURCE_ATTRIBUTES to tag scheduled/hard-to-monitor LLM jobs
+- Agent instrumentation: small agents integrate via OTEL_RESOURCE_ATTRIBUTES to tag scheduled/hard-to-monitor LLM jobs
 - API monitoring: general-purpose SDK for tracking any API usage (LLM, CoinGecko, Yahoo Finance, paid/free) with tenant-scoped catalog and pricing configuration
 - A/B experiments: routing policies support weighted model variants for experimentation
 
