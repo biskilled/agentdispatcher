@@ -1,5 +1,5 @@
 # agentdispatcher
-_Last updated: 2026-11-03_
+_Last updated: 2026-11-05_
 
 Self-installable, open-source (Apache 2.0) LLM gateway + usage ledger. Captures every LLM request and tool call across Claude Code, Codex, web chat and own apps (AgentData, AgentDesk) via two collectors — LiteLLM proxy for traffic we can route (metered) and an OpenTelemetry collector for CLI subscription logins (reported) — plus an optional browser extension (estimated). Normalises everything into one usage_event ledger in Postgres. Goal 1: monitoring per user/session/project/model/provider/tool. Goal 2: improvement via model policies, routing/fallbacks, A/B experiments with a quality signal, and savings suggestions. Ships with a local desktop UI (AgentDesk theme), an MCP server, AgentDesk work-item attribution, and an AgentData connector + semantic model. Full source attribution for all reused open-source components. Full stories: docs/USER_STORIES.md (DSP-01..DSP-50). Mockups: mockups/agentdispatcher-mockups.html.
 
@@ -43,13 +43,13 @@ _Born as a design-mode export; review and refine — this file is the project's 
 
 ## Key Decisions
 
-- Core architecture: LiteLLM proxy + OTel collector + PostgreSQL ledger + React web UI (browser-first, no Electron desktop required)
+- Core architecture: LiteLLM proxy as default gateway + OTel collector + PostgreSQL ledger + React web UI (browser-first, no Electron desktop required)
 - Open-source licensing: Apache 2.0 for core, with THIRD_PARTY_NOTICES.md and CI license checks (blocking AGPL, commercial)
 - Usage tracking: normalised usage_event ledger capturing timestamp, user, key, team, project, work_item, client, provider, model, with pricing attached
 - AgentDesk integration: session→project/work-item attribution via OTEL_RESOURCE_ATTRIBUTES (agentdesk.project, agentdesk.work_item)
 - AgentData integration: read-only semantic model (llm_usage.yaml) consumed by AgentData for cross-tenant analytics
-- Model governance: allow-lists per virtual key/team/app, force-model rules, weighted routing by task tag or priority
-- UI monitoring dimensions: breakdown by client, provider, model, source, with Overview KPIs and per-session drill-down
+- Model governance: allow-lists per virtual key/team/app, force-model rules, default provider/model fallback, weighted routing by task tag or priority
+- UI monitoring dimensions: breakdown by client, provider, model, source, with Overview KPIs (by application, CLI/source, person) and per-session drill-down
 - Multi-tenant support: isolated usage ledgers per tenant with team-level key management and budget policies
 - Mobile-first monitoring: React web app usable on desktop and mobile, shared design tokens with AgentDesk
 - Authentication: AgentDesk token (identity/session/membership), Google OAuth, user email, SDK dedicated hash keys per tenant; credentials via environment variables
@@ -83,12 +83,12 @@ _Born as a design-mode export; review and refine — this file is the project's 
 
 ## Recent Work
 
-- [ui] Settings sidebar consolidation: Workspace invitations moved to Settings only; Settings sidebar now displays General, Users & access, Your account, Invitations, and other options
-- [ui] Sources section tabs refactor: replaced navigation redirect with inline tabs for each source type with descriptions, setup instructions, and connection management
-- [ui] Multi-tool CLI adapter support: clarifying that Codex and Claude Code are initial CLI adapters; other tools require telemetry/API integration, not just name addition
-- [deployment] Railway production instance operational with PostgreSQL 17.11+pgvector 0.8.7; six services deployed and live
-- [feature] Live authentication integration foundation: Google OAuth and email sign-in infrastructure in place; awaiting completion of Google credential configuration
-- [bug] Upstream security vulnerabilities in LiteLLM and collector remain unresolved
+- [ui] LiteLLM gateway as default with automatic usage tracking: resolved telemetry integration so apps change only base URL and API key without dual instrumentation
+- [deployment] CI/CD workflow paused: direct commit/push to main branch; GitHub Actions quota constraints; LiteLLM changes deployed on Railway
+- [ui] Settings sidebar consolidation: Workspace invitations moved to Settings only; General, Users & access, Your account, Invitations options visible in sidebar
+- [ui] Simplified main navigation: menu now Overview · Job runs · Sources · Settings; Experiments removed; Sources converted to tabs with inline connection management
+- [infrastructure] PostgreSQL 17.11 + pgvector 0.8.7 deployed on Railway with tenant isolation verified
+- [gateway] Default provider/model fallback and UI management: allow users to add/rename default provider and model; LiteLLM distinguishes apps by virtual key
 
 ## Project Facts
 
@@ -100,26 +100,24 @@ _Born as a design-mode export; review and refine — this file is the project's 
 - **postgresql_tenant_data**: PostgreSQL is the authoritative store for all durable AgentDispatcher product data: tenant/app identities, usage/price records, jobs/runs/traces, policies, configuration snapshots, evaluations and aud
 
 ### Constraint
-- **api_monitoring_scope**: System monitors both LLM usage (via LiteLLM) and general API usage (any third-party or internal API); users configure APIs with quotas, costs, and thresholds via admin interface
-- **deployment_model**: Independently deployable services (React, backend, SDK, MCP gateway) in single Git repository for open-source promotion
+- **deployment_model**: Multiple independent services (React app, backend, SDK, LiteLLM) deployable from single Git repository; tenant data isolated in PostgreSQL
 
 ### Convention
 - **open_source_easy_install_and_credits**: AgentDispatcher is intended for public Apache-2.0 open-source distribution. Keep dependencies and custom code minimal; reuse suitable open-source components while preserving attribution and license ob
 - **reusable_minimal_code**: Write once, reuse many: keep AgentDispatcher minimal with single-purpose classes, short well-named methods/functions and shared modules as the single source of each behaviour. Prefer composition and c
+- **code_quality_standard**: Write once, use many: reusable classes/methods, proper comments, minimal code; open-source ready
 - **authentication**: Users authenticate via Google sign-in or email sign-in; SDKs authenticate with hashed, tenant-scoped API keys
 - **auth_strategy**: React app: Google OAuth + email sign-in; SDK: hashed API keys scoped per tenant
 
-### General
-- **implementation_status**: 2026-11-01: initial Python/FastAPI API, PostgreSQL forced-RLS ledger/separate auth role, email sessions/Google OIDC routes, scoped hashed SDK keys, basic versioned API pricing, independent worker, Pyt
-
 ### Pattern
+- **monitoring_scope**: LLM usage (via LiteLLM) + general API usage (via configurable SDK) + scheduled jobs; user-configurable API catalog with pricing/quotas/thresholds
+- **auth_mechanism**: Google Sign-In and email sign-in for users; tenant-scoped hashed keys for SDK; tenant/user authorization enforced backend-side
 - **monitoring_architecture**: React web/mobile UI for user monitoring + lightweight OpenTelemetry-based SDKs embedded in applications (e.g. AgentTrade, schedulers) to instrument usage without LLM involvement
 
 ### Stack
 - **project_stack_email**: SMTP via Python smtplib
 - **project_stack_scheduler**: Dedicated Python / FastAPI service
 - **project_stack_backend**: Python / FastAPI
+- **primary_stack**: React (frontend), Python (SDK/backend), PostgreSQL (tenant-isolated data), LiteLLM (LLM gateway), Docker Compose (local dev)
 - **llm_gateway**: LiteLLM is the main request router, cost calculator, and virtual key manager; MCP and CLI monitoring adapters planned
 - **data_storage**: PostgreSQL with strict tenant isolation; all usage, API definitions, quotas, and billing data stored per-tenant
-- **ui_framework**: React web app, responsive for desktop and mobile, with admin interface for API/quota/pricing configuration
-- **primary_gateway**: LiteLLM routes all LLM requests, tracks usage/costs, manages virtual keys and MCP gateway functionality

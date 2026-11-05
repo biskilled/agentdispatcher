@@ -11,23 +11,26 @@ _Explicit user instructions — always apply these. When a rule shapes your acti
 - **reusable_minimal_code**: Write once, reuse many: keep AgentDispatcher minimal with single-purpose classes, short well-named methods/functions and shared modules as the single source of each behaviour. Prefer composition and clear data flow; no duplicated pricing, attribution, validation or connector logic, speculative abstractions or silent failures. Add short public docstrings explaining purpose and non-obvious constraints; comments explain why. Match surrounding style, remove dead code, validate boundaries, configure URLs/ports/paths/limits through env/config and keep secrets out of source. SQL is named _SQL_* constants at file top with parameterised queries; migrations are appended and idempotent. Use focused tests for meaningful behaviour.
 
 ## Constraint
-- **api_monitoring_scope**: System monitors both LLM usage (via LiteLLM) and general API usage (any third-party or internal API); users configure APIs with quotas, costs, and thresholds vi _(candidate)_
-- **deployment_model**: Independently deployable services (React, backend, SDK, MCP gateway) in single Git repository for open-source promotion _(candidate)_
+- **deployment_model**: Multiple independent services (React app, backend, SDK, LiteLLM) deployable from single Git repository; tenant data isolated in PostgreSQL _(candidate)_
 
 ## Convention
 - **auth_strategy**: React app: Google OAuth + email sign-in; SDK: hashed API keys scoped per tenant _(candidate)_
+- **code_quality_standard**: Write once, use many: reusable classes/methods, proper comments, minimal code; open-source ready _(candidate)_
 - **authentication**: Users authenticate via Google sign-in or email sign-in; SDKs authenticate with hashed, tenant-scoped API keys _(candidate)_
 
 ## General
 - **implementation_status**: 2026-11-01: initial Python/FastAPI API, PostgreSQL forced-RLS ledger/separate auth role, email sessions/Google OIDC routes, scoped hashed SDK keys, basic versio _(candidate)_
 
 ## Pattern
+- **monitoring_scope**: LLM usage (via LiteLLM) + general API usage (via configurable SDK) + scheduled jobs; user-configurable API catalog with pricing/quotas/thresholds _(candidate)_
+- **auth_mechanism**: Google Sign-In and email sign-in for users; tenant-scoped hashed keys for SDK; tenant/user authorization enforced backend-side _(candidate)_
 - **monitoring_architecture**: React web/mobile UI for user monitoring + lightweight OpenTelemetry-based SDKs embedded in applications (e.g. AgentTrade, schedulers) to instrument usage withou _(candidate)_
 
 ## Stack
 - **project_stack_email**: SMTP via Python smtplib
 - **project_stack_scheduler**: Dedicated Python / FastAPI service
 - **project_stack_backend**: Python / FastAPI
+- **primary_stack**: React (frontend), Python (SDK/backend), PostgreSQL (tenant-isolated data), LiteLLM (LLM gateway), Docker Compose (local dev) _(candidate)_
 - **llm_gateway**: LiteLLM is the main request router, cost calculator, and virtual key manager; MCP and CLI monitoring adapters planned _(candidate)_
 - **data_storage**: PostgreSQL with strict tenant isolation; all usage, API definitions, quotas, and billing data stored per-tenant _(candidate)_
 - **ui_framework**: React web app, responsive for desktop and mobile, with admin interface for API/quota/pricing configuration _(candidate)_
