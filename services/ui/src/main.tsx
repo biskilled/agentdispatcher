@@ -336,7 +336,7 @@ function OverviewView({
             </div>
           ) : (
             <Empty>
-              No application calls have been recorded. Connect an app under Sources → Application LLM calls, then send a request through the gateway.
+              No application calls match this view. For a new app, connect it under Sources → Application LLM calls, then send a request through the gateway.
             </Empty>
           )}
         </section>
@@ -418,7 +418,7 @@ function OverviewView({
             </table>
           </div>
         ) : (
-          <Empty>Your first instrumented request will appear here.</Empty>
+          <Empty>No attempts match the selected filters.</Empty>
         )}
       </section>
     </>

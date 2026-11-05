@@ -110,7 +110,7 @@ export function GatewaySetup({
       <p className="muted">
         Provider credentials and model definitions are managed once in LiteLLM.
         AgentDispatcher uses its native virtual keys and usage callbacks to
-        populate this workspace. Confirm received requests in Reporting status.
+        populate this workspace. Confirm received requests in Reporting diagnostics below.
       </p>
     </section>
   );
