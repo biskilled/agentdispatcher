@@ -1,12 +1,12 @@
 # agentdispatcher — Summary
 
 ## Recent Work
-- [ui] LiteLLM gateway as default with automatic usage tracking: resolved telemetry integration so apps change only base URL and API key without dual instrumentation
-- [deployment] CI/CD workflow paused: direct commit/push to main branch; GitHub Actions quota constraints; LiteLLM changes deployed on Railway
-- [ui] Settings sidebar consolidation: Workspace invitations moved to Settings only; General, Users & access, Your account, Invitations options visible in sidebar
-- [ui] Simplified main navigation: menu now Overview · Job runs · Sources · Settings; Experiments removed; Sources converted to tabs with inline connection management
+- [ui] Default provider/model fallback and gateway configuration: users can add/rename service names and configure default provider/model routes through Sources → LLM gateway → Services & default; apps identified by separate gateway keys
+- [ui] User confusion on connection options and MCP servers: clarification needed on why multiple connection options exist when LiteLLM gateway is primary; MCP server integration and CLI adapter usage patterns need documentation
+- [gateway] LiteLLM gateway service deployed on Railway with tenant-scoped app key management
 - [infrastructure] PostgreSQL 17.11 + pgvector 0.8.7 deployed on Railway with tenant isolation verified
-- [gateway] Default provider/model fallback and UI management: allow users to add/rename default provider and model; LiteLLM distinguishes apps by virtual key
+- [bug] Live authentication not fully operational: Google OAuth and SMTP configuration require deployment; AgentDesk identity endpoint integration pending
+- [bug] Upstream security vulnerabilities in LiteLLM and collector: two unresolved dependency findings remain in LiteLLM and upstream collector packages
 
 ## Stack & Architecture
 
