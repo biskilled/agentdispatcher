@@ -8,9 +8,23 @@ This revision incorporates the user's monitoring, embedded-agent, tenant storage
 
 ## Product purpose
 
+UI/account clarification (2026-11-05): one Overview combines app request usage and
+CLI account state, with visible app/device, source, provider, model and user filters.
+Remove the three application/CLI/person view tabs. Sources offers Application LLM
+calls (default LiteLLM), CLI account usage (CodexBar), and Other API usage. Keep optional
+SDK/direct CLI/MCP tool reporting and diagnostics collapsed. MCP tool instrumentation
+is distinct from an owned MCP server routing its internal model calls through LiteLLM.
+Reuse CodexBar's external CLI and dynamic provider IDs for account limits, resets,
+balances and period spend. Keep these replaceable account snapshots separate from
+request-cost accounting, tenant-scoped in PostgreSQL and covered by retention/deletion.
+No browser-local credential discovery, automatic enterprise enrollment, native Windows
+collector, or full upstream desktop-feature parity is implied. Explicit reversible
+labels distinguish synthetic verification events; exclude them from default reports
+without rewriting or deleting original evidence. See the CLI integration guide.
+
 Service/default clarification (2026-11-05): each application/environment has its own
 native LiteLLM key, which determines tenant and app attribution on a shared gateway
-URL. Sources → LLM gateway lets administrators add, rename and remove per-key service
+URL. Sources → Application LLM calls lets administrators add, rename and remove per-key service
 aliases and select an optional default from that key's allowed native model routes.
 An unrecognized model name resolves to that default before model-policy enforcement;
 without a default it is rejected. An explicit model name is still required. Default

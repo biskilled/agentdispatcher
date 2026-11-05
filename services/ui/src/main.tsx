@@ -25,6 +25,7 @@ import {
 } from "./api";
 import "./style.css";
 import { Credits } from "./Credits";
+import { AccountUsage } from "./AccountUsage";
 import { UsageControls, UsageCharts, AttemptDetail, UsageExport } from "./UsageControls";
 import { SettingsPage, type SettingsSection } from "./Settings";
 import { SourcesView } from "./Sources";
@@ -243,15 +244,18 @@ function OverviewView({
   overview,
   events,
   tenant,
+  children,
 }: {
   overview: Overview | null;
   events: Usage[];
   tenant: string;
+  children?: React.ReactNode;
 }) {
   if (!overview) return <p className="muted">Loading usage…</p>;
   const { counts, totals, breakdown } = overview;
   return (
     <>
+      {!!overview.test_records && <p className="notice">This workspace contains {overview.test_records} labeled test records. They are excluded by default; use Include labeled test data to inspect them.</p>}
       <div className="metrics">
         <div>
           <span>Observed attempts</span>
@@ -293,6 +297,7 @@ function OverviewView({
         <p>Input: {counts.input_tokens == null ? "Unknown" : Number(counts.input_tokens).toLocaleString()} · Output: {counts.output_tokens == null ? "Unknown" : Number(counts.output_tokens).toLocaleString()}</p>
         <p className="muted">Only reported token counts are included. Missing measurements are unknown. Reasoning tokens and effort are not collected separately yet.</p>
       </section>
+      {children}
       <div className="overview-grid">
         <section className="panel">
           <div className="section-heading">
@@ -331,7 +336,7 @@ function OverviewView({
             </div>
           ) : (
             <Empty>
-              Connect an application with an SDK key to see its usage here.
+              No application calls have been recorded. Connect an app under Sources → Application LLM calls, then send a request through the gateway.
             </Empty>
           )}
         </section>
@@ -389,6 +394,7 @@ function OverviewView({
                   <tr key={event.event_id}>
                     <td>
                       <strong>{event.app}</strong>
+                      {event.is_test && <small className="status">Test data</small>}
                       <small>{event.resource_kind}</small>
                     </td>
                     <td>
@@ -657,7 +663,7 @@ function App() {
             <div key={tenant}>
               {tab === "Overview" && (
                 <>
-                  <UsageControls
+                  <UsageControls tenant={tenant} revision={revision} query={filters}
                     apply={(query) => {
                       setFilters(query);
                       setOffset(0);
@@ -668,7 +674,9 @@ function App() {
                     overview={overview}
                     events={events}
                     tenant={tenant}
-                  />
+                  >
+                    <AccountUsage tenant={tenant} query={filters} revision={revision} />
+                  </OverviewView>
                   <div className="inline-form">
                     <button
                       className="secondary"

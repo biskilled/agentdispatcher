@@ -66,7 +66,7 @@ Install only the small SDK into your application's environment:
 pip install ./packages/sdk
 ```
 
-Create a tenant key in **Sources → Applications & jobs**, scoped to the application's name and environment. Store it in the application's environment or secret store; never in browser code, prompts or YAML committed to Git.
+Create a tenant key in **Sources → Application LLM calls → Advanced reporting → Applications & jobs**, scoped to the application's name and environment. Store it in the application's environment or secret store; never in browser code, prompts or YAML committed to Git.
 
 ```python
 import os
@@ -122,7 +122,7 @@ does not discover other uninstrumented applications.
 
 ## LLM calls: connect once through LiteLLM
 
-**Sources → LLM gateway** is the default LLM setup. Provider credentials and model
+**Sources → Application LLM calls** is the default LLM setup. Provider credentials and model
 definitions live in LiteLLM; the page reads its model aliases and creates native
 LiteLLM virtual keys. Set the displayed API base URL and that key in your app's
 existing OpenAI-compatible client. Both schedulers and user requests then report
@@ -204,7 +204,7 @@ and supported client versions must be checked for the chosen route.
 | MCP tools | Compose `mcp` profile or standalone stdio | Session-bound usage/session/experiment reads and consented policy writes |
 | OTel collector | Compose `telemetry` profile | Authenticated app-scoped traces, JSON ledger export and rejection diagnostics |
 
-`docker compose up --build -d` includes LiteLLM. With the supplied template it starts without model routes until you supply both `LLM_PROVIDER_MODEL` and `LLM_API_KEY`; custom LiteLLM YAML can instead define its own routes. The gateway management API and master key remain private. Use **Sources → LLM gateway** to provision an application/environment key with explicit model aliases. The gateway verifies revocation and scope before each call and exports metadata-only usage using a separate internal callback secret, configured once by the operator. These calculated prices are not invoices. End-to-end tests use synthetic provider responses inside the real LiteLLM image and verify SDK/gateway correlation without duplicate charges. Paid provider invoices have not been validated. OpenRouter can be configured as a LiteLLM upstream.
+`docker compose up --build -d` includes LiteLLM. With the supplied template it starts without model routes until you supply both `LLM_PROVIDER_MODEL` and `LLM_API_KEY`; custom LiteLLM YAML can instead define its own routes. The gateway management API and master key remain private. Use **Sources → Application LLM calls** to provision an application/environment key with explicit model aliases. The gateway verifies revocation and scope before each call and exports metadata-only usage using a separate internal callback secret, configured once by the operator. These calculated prices are not invoices. End-to-end tests use synthetic provider responses inside the real LiteLLM image and verify SDK/gateway correlation without duplicate charges. Paid provider invoices have not been validated. OpenRouter can be configured as a LiteLLM upstream.
 
 The collector forwards authenticated traces to `/api/otlp/v1/traces` and supported
 CLI logs to `/api/otlp/v1/logs`. It is bound to
@@ -233,8 +233,9 @@ AgentDesk identity endpoint to be deployed; matching email addresses never grant
 ## Daily monitoring
 
 The main menu has four sections: **Overview**, **Job runs**, **Sources** and **Settings**.
-Overview has application, CLI/source and person views with reported input/output token
-counts. Missing measurements remain unknown; reasoning tokens and reasoning effort
+Overview combines request usage and CLI account snapshots with visible app/device,
+source, provider, model and user filters. Request totals include reported input/output token
+counts. Account limits and balances are displayed separately and never added as charges. Missing measurements remain unknown; reasoning tokens and reasoning effort
 are not collected separately yet. Background jobs belong to their application/service;
 interactive calls need app-reported user context or verified user delegation. A shared
 provider key does not identify individual people. Sources checks reporting coverage
@@ -244,12 +245,25 @@ Settings has a visible submenu for General, users, your account, workspace invit
 expected schedules and budgets. AgentDesk, MCP tool access, routing and YAML editing
 are optional controls there. Invitations appear only in Settings.
 
-Sources has tabs for applications/jobs, external APIs, Codex, Claude Code, MCP servers,
-the LLM gateway and reporting status. Each connection tab explains setup and provides
-creation/editing controls in place. Reporting credentials can be renamed, reclassified
-and revoked; authorization scope changes require a replacement credential. Existing
-SDK credentials initially appear under Applications & jobs and can be reclassified.
-They are not prerequisites for basic SDK/CLI usage monitoring.
+Sources has three tabs: **Application LLM calls** (LiteLLM, the default), **CLI account
+usage** (optional CodexBar sync), and **Other API usage** (SDK catalog/pricing).
+Direct CLI telemetry, SDK job reporting and MCP tool counts are optional advanced
+reporting. Reporting diagnostics are collapsed below the connection controls.
+An owned MCP server routes its internal LLM calls through LiteLLM like any other app;
+the gateway does not connect to arbitrary MCP servers or expose their hidden costs.
+
+[CodexBar account sync](integrations/cli/README.md#codexbar-account-sync) reuses the
+upstream CLI's enabled providers, including providers added by future CodexBar versions.
+It sends selected quota windows, resets, credit balances, period spend and display rows
+through one device-scoped key. No provider-specific tabs or second provider credential
+store. CodexBar currently supplies macOS/Linux runtimes; viewing works in any browser.
+This is account-status integration, not all CodexBar desktop features or a per-call
+ledger for every provider. Live accounts require local CodexBar authentication.
+
+Administrators can reversibly label known verification events through
+`PUT /api/events/{event_id}/label` with `is_test` and `reason`. Overview, request lists
+and exports exclude those records by default; **Include labeled test data** restores
+visibility. Raw events remain intact. An application's name alone never hides data.
 
 ## Model policies and experiments
 
@@ -380,4 +394,4 @@ This seeds synthetic data through the real SDK, checks desktop/mobile screens wi
 
 ## Built on
 
-Thanks to the maintainers of FastAPI, Starlette, Pydantic, Psycopg/PostgreSQL, Authlib, HTTPX, OpenTelemetry, React, Vite, Lucide, LiteLLM and the other dependencies that make this project possible. AgentDispatcher is Apache-2.0; dependencies retain their own terms, including Psycopg's LGPL terms. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), the generated [runtime notices](third_party/notices.json), and **Open-source licenses** in the UI. No QuotaBar or CodexBar code has been copied into this implementation.
+Thanks to the maintainers of FastAPI, Starlette, Pydantic, Psycopg/PostgreSQL, Authlib, HTTPX, OpenTelemetry, React, Vite, Lucide, LiteLLM and the other dependencies that make this project possible. AgentDispatcher is Apache-2.0; dependencies retain their own terms, including Psycopg's LGPL terms. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), the generated [runtime notices](third_party/notices.json), and **Open-source licenses** in the UI. The optional account-sync bridge invokes [CodexBar](https://github.com/steipete/CodexBar) (Peter Steinberger and contributors, MIT) as an installed external CLI; it does not copy its provider fetchers. QuotaBar code is not included.

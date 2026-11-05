@@ -147,12 +147,14 @@ test("invite link, direct acceptance and workspace switching", async ({
     await expect(
       invitedPage.getByRole("heading", { name: /^Workspace invitations/ }),
     ).toHaveCount(0);
-    await invitedPage.getByRole("tab", { name: "Codex", exact: true }).click();
+    await invitedPage
+      .getByRole("tab", { name: "CLI account usage", exact: true })
+      .click();
     await expect(
       invitedPage.getByRole("button", { name: "Add connection", exact: true }),
     ).toHaveCount(0);
     await expect(
-      invitedPage.getByText(/A workspace owner or administrator can add/),
+      invitedPage.getByText(/A workspace owner or administrator can manage/),
     ).toBeVisible();
   } finally {
     await context.close();

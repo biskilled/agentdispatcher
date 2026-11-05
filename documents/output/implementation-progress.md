@@ -15,6 +15,16 @@ an open release item. See [Railway services and configuration](railway.md).
 
 ## Implemented and verified
 
+- Unified Overview with visible filters; Sources now has Application LLM calls,
+  CLI account usage and Other API usage. Optional reporters/diagnostics are collapsed.
+  CodexBar account sync uses the installed upstream CLI across dynamic provider IDs,
+  with latest tenant-scoped snapshots for windows, balances, period spend and details.
+  Snapshot polling never adds request charges. Explicit reversible test labels hide
+  known verification events from default request reports. Local verification: 138
+  backend tests, eight desktop/mobile workflows, a final four-case source/layout pass,
+  React build, Ruff and regenerated license notices. Real provider sessions remain
+  user setup; native Windows collection and full CodexBar desktop parity are not claimed.
+
 - Gateway connections expose **Services & default** in Sources. Administrators can add,
   rename and remove service aliases without rotating app keys, choose an allowed native
   model as the default, and rename connection display labels independently of app scope.

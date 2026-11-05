@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { api, apiResponse, money, type Overview, type Usage } from "./api";
 
 const dimensions = [
@@ -21,7 +21,10 @@ const dimensions = [
   "api_id",
 ];
 const labels: Record<string, string> = {
-  app_name: "Application",
+  app_name: "Application / device",
+  source: "Tool / source",
+  provider: "Provider",
+  model: "Model",
   user_id: "Person / user ID",
   session_id: "Session ID",
   trace_id: "Trace ID",
@@ -34,9 +37,58 @@ const labels: Record<string, string> = {
 const label = (field: string) => labels[field] || field.replaceAll("_", " ");
 
 /** Apply one filter set to totals, charts and the paginated attempt table. */
-export function UsageControls({ apply }: { apply: (query: string) => void }) {
+export function UsageControls({
+  apply,
+  tenant,
+  revision,
+  query,
+}: {
+  apply: (query: string) => void;
+  tenant: string;
+  revision: number;
+  query: string;
+}) {
+  const [options, setOptions] = useState<Record<string, string[]>>({});
+  const [error, setError] = useState("");
+  useEffect(() => {
+    let active = true;
+    api<Record<string, string[]>>("/usage/filter-options", tenant)
+      .then((value) => {
+        if (active) {
+          setOptions(value);
+          setError("");
+        }
+      })
+      .catch(() => {
+        if (active)
+          setError(
+            "Filter suggestions unavailable; you can still enter a value.",
+          );
+      });
+    return () => {
+      active = false;
+    };
+  }, [tenant, revision]);
   const form = useRef<HTMLFormElement>(null);
   const [groupBy, setGroupBy] = useState("app");
+  useEffect(() => {
+    const params = new URLSearchParams(query);
+    setGroupBy(params.get("group_by") || "app");
+    form.current
+      ?.querySelectorAll<HTMLInputElement>("input[name]")
+      .forEach((input) => {
+        const value = params.get(input.name) || "";
+        if (input.type === "checkbox") input.checked = value === "true";
+        else if (input.type === "datetime-local" && value) {
+          const date = new Date(value);
+          input.value = new Date(
+            date.getTime() - date.getTimezoneOffset() * 60000,
+          )
+            .toISOString()
+            .slice(0, 16);
+        } else input.value = value;
+      });
+  }, [query]);
   function applyForm(target: HTMLFormElement, group = groupBy) {
     const params = new URLSearchParams();
     for (const [key, value] of new FormData(target)) {
@@ -60,39 +112,23 @@ export function UsageControls({ apply }: { apply: (query: string) => void }) {
     return names.map((field) => (
       <label key={field}>
         {label(field)}
-        <input name={field} />
+        <input name={field} list={`usage-${field}`} placeholder="All" />
+        <datalist id={`usage-${field}`}>
+          {(options[field] || []).map((value) => (
+            <option key={value} value={value} />
+          ))}
+        </datalist>
       </label>
     ));
   }
   return (
     <>
-      <div className="inline-form" role="group" aria-label="Usage views">
-        {[
-          { id: "app", name: "By application" },
-          { id: "source", name: "By CLI / source" },
-          { id: "user_id", name: "By person" },
-        ].map((item) => (
-          <button
-            key={item.id}
-            className={groupBy === item.id ? "primary" : "secondary"}
-            onClick={() => {
-              if (form.current) applyForm(form.current, item.id);
-            }}
-          >
-            {item.name}
-          </button>
-        ))}
-      </div>
-      {groupBy === "user_id" && (
-        <p>
-          People are identified by the calling app. App-reported IDs are not
-          verified identities; open a request's details to see its attribution.
-          Unattributed usage includes background services. Shared provider keys
-          cannot identify a person on their own.
-        </p>
-      )}
-      <details className="panel form-panel">
-        <summary>Filter and group usage</summary>
+      <section
+        className="panel form-panel usage-filters"
+        aria-label="Usage filters"
+      >
+        <h2>Filter usage</h2>
+        {error && <p role="status">{error}</p>}
         <form ref={form} className="catalog-form" onSubmit={submit}>
           <label>
             From (local time)
@@ -128,6 +164,10 @@ export function UsageControls({ apply }: { apply: (query: string) => void }) {
               ))}
             </select>
           </label>
+          <label className="check-label">
+            <input name="include_test" type="checkbox" value="true" />
+            Include labeled test data
+          </label>
           <button className="primary">Apply filters</button>
           <button
             className="secondary"
@@ -140,7 +180,7 @@ export function UsageControls({ apply }: { apply: (query: string) => void }) {
             Clear filters
           </button>
         </form>
-      </details>
+      </section>
     </>
   );
 }

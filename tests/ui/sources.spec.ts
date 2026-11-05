@@ -7,16 +7,14 @@ test("manage gateway services and default without changing app identity", async 
   const base = process.env.DISPATCHER_TEST_UI_URL;
   const session = process.env.DISPATCHER_TEST_SESSION;
   test.skip(!base || !session, "Requires a synthetic administrator fixture");
-  await page
-    .context()
-    .addCookies([
-      {
-        name: "dispatcher_session",
-        value: session!,
-        url: base!,
-        httpOnly: true,
-      },
-    ]);
+  await page.context().addCookies([
+    {
+      name: "dispatcher_session",
+      value: session!,
+      url: base!,
+      httpOnly: true,
+    },
+  ]);
   let routing = {
     aliases: {} as Record<string, string>,
     default_model: null as string | null,
@@ -111,22 +109,12 @@ test("manage gateway services and default without changing app identity", async 
   ).toContainText("agenttrade");
 });
 
-async function openReporting(page: Page, source: string) {
-  await openSource(page, source);
-  await page
-    .getByText(
-      source === "sdk"
-        ? "Add job and API reporting"
-        : "Manage direct reporting (outside the LLM gateway)",
-      { exact: true },
-    )
-    .click();
-}
-
-test("manage source connections inside their tabs", async ({ page }) => {
+test("connections use three clear paths and one provider-independent account sync", async ({
+  page,
+}) => {
   const base = process.env.DISPATCHER_TEST_UI_URL;
   const session = process.env.DISPATCHER_TEST_SESSION;
-  test.skip(!base || !session, "Requires a synthetic administrator fixture");
+  test.skip(!base || !session, "Requires synthetic administrator");
   await page.context().addCookies([
     {
       name: "dispatcher_session",
@@ -136,104 +124,115 @@ test("manage source connections inside their tabs", async ({ page }) => {
     },
   ]);
   await page.goto("/");
-  await page.getByRole("button", { name: "Sources", exact: true }).click();
+  await expect(page.getByRole("group", { name: "Usage views" })).toHaveCount(0);
   await expect(
-    page.getByRole("tab", { name: "LLM gateway", exact: true }),
-  ).toHaveAttribute("aria-selected", "true");
-  await expect(
-    page.getByRole("heading", { name: "Connect once through LiteLLM" }),
+    page.getByRole("heading", { name: "Filter usage", exact: true }),
   ).toBeVisible();
+  await expect(
+    page.getByLabel("Application / device", { exact: true }),
+  ).toBeVisible();
+  await openSource(page, "gateway");
+  await expect(
+    page.getByRole("tablist", { name: "Source types" }).getByRole("tab"),
+  ).toHaveText([
+    "Application LLM calls",
+    "CLI account usage",
+    "Other API usage",
+  ]);
   await expect(page.getByLabel("Gateway API base URL")).toBeVisible();
-  await openSource(page, "codex");
-  await expect(
-    page.getByLabel("Connection name", { exact: true }),
-  ).not.toBeVisible();
   await page
-    .getByRole("button", { name: "Connect LLM calls through LiteLLM" })
-    .click();
-  await expect(
-    page.getByRole("tab", { name: "LLM gateway", exact: true }),
-  ).toHaveAttribute("aria-selected", "true");
-  for (const source of ["sdk", "codex", "claude", "mcp"]) {
-    await openReporting(page, source);
-    await expect(
-      page.getByRole("heading", { name: /^Workspace invitations/ }),
-    ).toHaveCount(0);
-    const name = `${source}-${test.info().project.name}-${Date.now()}`;
-    await page.getByLabel("Connection name", { exact: true }).fill(name);
-    await page.getByLabel("Application", { exact: true }).fill(name);
-    await page.getByLabel("Environment", { exact: true }).fill("test");
-    await page
-      .getByRole("button", { name: "Add connection", exact: true })
-      .click();
-    await expect(
-      page.getByText("Save this key now. It will not be shown again."),
-    ).toBeVisible();
-    await page
-      .getByRole("button", { name: "I have saved it", exact: true })
-      .click();
-    await page
-      .getByRole("row")
-      .filter({ hasText: name })
-      .getByRole("button", { name: "Edit", exact: true })
-      .click();
-    const edit = page.locator("section").filter({
-      has: page.getByRole("heading", {
-        name: "Edit connection",
-        exact: true,
-      }),
-    });
-    await edit
-      .getByLabel("Connection name", { exact: true })
-      .fill(`${name}-renamed`);
-    await edit
-      .getByRole("button", { name: "Save connection", exact: true })
-      .click();
-    const row = page.getByRole("row").filter({ hasText: `${name}-renamed` });
-    await expect(row).toBeVisible();
-    await page.reload();
-    await openReporting(page, source);
-    await expect(row).toBeVisible();
-    await openSource(page, source === "sdk" ? "codex" : "sdk");
-    await expect(
-      page.getByRole("row").filter({ hasText: `${name}-renamed` }),
-    ).toHaveCount(0);
-    await openReporting(page, source);
-    await row.getByRole("button", { name: "Revoke", exact: true }).click();
-    await expect(row.getByText("revoked", { exact: true })).toBeVisible();
-  }
-  await openSource(page, "codex");
-  await page
-    .getByRole("tab", { name: "Codex", exact: true })
+    .getByRole("tab", { name: "Application LLM calls", exact: true })
     .press("ArrowRight");
   await expect(
-    page.getByRole("tab", { name: "Claude Code", exact: true }),
+    page.getByRole("tab", { name: "CLI account usage", exact: true }),
   ).toHaveAttribute("aria-selected", "true");
-  await openSource(page, "api");
+  const name = `Account sync ${test.info().project.name} ${Date.now()}`;
+  await page.getByLabel("Connection name", { exact: true }).fill(name);
+  await page
+    .getByLabel("Device / user label", { exact: true })
+    .fill(`browser-device-${test.info().project.name}`);
+  await page.getByLabel("Environment", { exact: true }).fill("test");
+  await page
+    .getByRole("button", { name: "Add connection", exact: true })
+    .click();
   await expect(
-    page.getByRole("heading", { name: "API connections", exact: true }),
+    page.getByText("Save this key now. It will not be shown again."),
   ).toBeVisible();
-  await openSource(page, "gateway");
-  await expect(
-    page.getByLabel("Allowed model names", { exact: false }),
-  ).toBeVisible();
-  const loaded = page.waitForResponse((response) =>
-    response.url().endsWith("/api/coverage"),
-  );
-  await openSource(page, "status");
-  expect((await loaded).status()).toBe(200);
-  const refreshed = page.waitForResponse((response) =>
-    response.url().endsWith("/api/coverage"),
-  );
+  const key = await page.locator(".secret code").textContent();
+  const received = await page.request.post("/api/accounts/snapshots", {
+    headers: { Authorization: `Bearer ${key}` },
+    data: {
+      snapshots: ["copilot", "cursor", "gemini"].map((provider) => ({
+        provider,
+        account: "Browser fixture",
+        source: "api",
+        status: "ready",
+        collected_at: new Date().toISOString(),
+        observed_at: new Date().toISOString(),
+        windows: [{ label: "Weekly", used_percent: 25 }],
+      })),
+    },
+  });
+  expect(received.status()).toBe(202);
+  await page
+    .getByRole("button", { name: "I have saved it", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Overview", exact: true }).click();
   await page.getByRole("button", { name: "Refresh", exact: true }).click();
-  expect((await refreshed).status()).toBe(200);
-  await openSource(page, "gateway");
-  await page.getByText("Application setup", { exact: true }).click();
+  await page
+    .getByLabel("Application / device", { exact: true })
+    .fill(`browser-device-${test.info().project.name}`);
+  const filteredAccounts = page.waitForResponse((response) =>
+    response.url().includes("/api/accounts?app_name="),
+  );
+  await page
+    .getByRole("button", { name: "Apply filters", exact: true })
+    .click();
+  await filteredAccounts;
+  for (const name of ["copilot", "cursor", "gemini"]) {
+    await expect(page.getByRole("heading", { name, exact: true })).toHaveCount(
+      1,
+    );
+    await expect(
+      page.getByRole("heading", { name, exact: true }),
+    ).toBeVisible();
+  }
+  await page.getByLabel("Provider", { exact: true }).fill("cursor");
+  await page
+    .getByRole("button", { name: "Apply filters", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "cursor", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "copilot", exact: true }),
+  ).toHaveCount(0);
+  await page.screenshot({
+    path: `test-results/accounts-${test.info().project.name}.png`,
+    fullPage: true,
+  });
+  await page.locator(".account-usage").screenshot({
+    path: `test-results/account-card-${test.info().project.name}.png`,
+  });
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= window.innerWidth,
     ),
   ).toBeTruthy();
+  await openSource(page, "accounts");
+  await page.getByRole("button", { name: "Overview", exact: true }).click();
+  await expect(page.getByLabel("Provider", { exact: true })).toHaveValue("cursor");
+  await expect(page.getByRole("heading", { name: "cursor", exact: true })).toHaveCount(1);
+  await openSource(page, "accounts");
+  await page
+    .getByRole("row")
+    .filter({ hasText: name })
+    .getByRole("button", { name: "Revoke", exact: true })
+    .click();
+  await expect(
+    page.getByRole("row").filter({ hasText: name }).getByText("revoked"),
+  ).toBeVisible();
+  await openSource(page, "gateway");
   await page.screenshot({
     path: `test-results/sources-${test.info().project.name}.png`,
     fullPage: true,

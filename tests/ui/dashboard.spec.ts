@@ -28,17 +28,12 @@ test("authenticated monitoring, catalog and scoped keys work at this viewport", 
   await expect(
     page.getByRole("heading", { name: "Reported LLM tokens" }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "By person", exact: true }).click();
   await expect(
-    page.getByRole("columnheader", { name: "Input tokens", exact: true }),
+    page.getByRole("heading", { name: "Filter usage", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole("columnheader", { name: "Output tokens", exact: true }),
+    page.getByLabel("Application / device", { exact: true }),
   ).toBeVisible();
-  await page
-    .getByRole("button", { name: "By application", exact: true })
-    .click();
-
   await expect(page.getByText("Synthetic market API").first()).toBeVisible();
   const downloaded = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export selected usage" }).click();
@@ -189,25 +184,35 @@ test("authenticated monitoring, catalog and scoped keys work at this viewport", 
     page.getByRole("heading", { name: "Configuration audit", exact: true }),
   ).toBeVisible();
   await openSource(page, "sdk");
-  await page.getByText("Add job and API reporting", { exact: true }).click();
+  const reporting = page
+    .locator("details")
+    .filter({
+      has: page.locator("summary").filter({ hasText: /^Advanced reporting:/ }),
+    })
+    .first();
   const keyName = `Browser fixture ${test.info().project.name} ${Date.now()}`;
-  await page.getByLabel("Connection name", { exact: true }).fill(keyName);
-  await page.getByLabel("Application", { exact: true }).fill("browser-fixture");
-  await page.getByLabel("Environment", { exact: true }).fill("test");
-  await page
+  await reporting.getByLabel("Connection name", { exact: true }).fill(keyName);
+  await reporting
+    .getByLabel("Application", { exact: true })
+    .fill("browser-fixture");
+  await reporting.getByLabel("Environment", { exact: true }).fill("test");
+  await reporting
     .getByRole("button", { name: "Add connection", exact: true })
     .click();
   await expect(
-    page.getByText("Save this key now. It will not be shown again."),
+    reporting.getByText("Save this key now. It will not be shown again."),
   ).toBeVisible();
-  await page.getByRole("button", { name: "I have saved it" }).click();
-  await page
+  await reporting.getByRole("button", { name: "I have saved it" }).click();
+  await reporting
     .getByRole("row")
     .filter({ hasText: keyName })
     .getByRole("button", { name: "Revoke" })
     .click();
   await expect(
-    page.getByRole("row").filter({ hasText: keyName }).getByText("revoked"),
+    reporting
+      .getByRole("row")
+      .filter({ hasText: keyName })
+      .getByText("revoked"),
   ).toBeVisible();
   await openSettings(page, "Schedules");
   const scheduleId = `schedule-${test.info().project.name}-${Date.now()}`;

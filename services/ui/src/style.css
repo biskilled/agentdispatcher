@@ -52,6 +52,62 @@
 .form-panel fieldset {
   min-width: 0;
 }
+.usage-filters {
+  margin-bottom: 20px;
+}
+.usage-filters .check-label {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+.usage-filters .check-label input {
+  width: auto;
+  margin: 0;
+}
+@media (max-width: 760px) {
+  .usage-filters .catalog-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .usage-filters input, .usage-filters select {
+    min-width: 0;
+    font-size: 12px;
+  }
+  .usage-filters .check-label {
+    grid-column: 1 / -1;
+  }
+}
+.account-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+  gap: 24px;
+}
+.account-card {
+  min-width: 0;
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+.account-card .section-heading {
+  padding: 0;
+}
+.account-window {
+  margin: 16px 0;
+}
+.account-window > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.account-window progress {
+  width: 100%;
+  height: 8px;
+  accent-color: var(--accent);
+}
+.account-card small {
+  display: block;
+}
 .gateway-routing-fields {
   border: 0;
   padding: 0;

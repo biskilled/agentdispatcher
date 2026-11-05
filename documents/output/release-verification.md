@@ -1,5 +1,23 @@
 # Release verification
 
+## Unified overview and CodexBar account sync — 2026-11-05
+
+Local verification: 138 backend tests pass against an isolated PostgreSQL database;
+eight desktop/mobile workflows pass, followed by four source/layout checks after the
+final visual adjustment. React type checking/build, Ruff and attribution generation
+pass. Tests cover the upstream JSON shape, partial failures, unknown/zero readings,
+source-key restrictions, tenant/app visibility, replay ordering, future timestamps,
+retention/deletion and reversible test labels. CLI file import reaches the real API
+fixture; no live provider sessions or paid calls were used. An earlier run exhausted
+local TCP connections while traversing accumulated fixtures; isolated databases over
+a Unix socket resolved that test-environment issue.
+
+CodexBar is an optional external MIT-licensed runtime, with upstream source/version
+and license text in runtime notices. The bridge is not full desktop-feature parity.
+The live dispatcher-collector records inspected on November 5 are four synthetic
+Railway verification events from November 3, not actual application spending. Only
+those exact reviewed records are candidates for explicit test labeling.
+
 ## Functional update — 2026-11-05
 
 Change `c0d7524` adds native per-key service aliases and optional app defaults. Local

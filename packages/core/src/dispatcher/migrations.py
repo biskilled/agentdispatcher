@@ -5,6 +5,8 @@ import os
 import psycopg
 
 from dispatcher.schema_access import SQL_ACCESS
+from dispatcher.schema_account_retention import SQL_ACCOUNT_RETENTION
+from dispatcher.schema_account_snapshots import SQL_ACCOUNT_SNAPSHOTS
 from dispatcher.schema_accounting import SQL_ACCOUNTING
 from dispatcher.schema_agentdesk import SQL_AGENTDESK
 from dispatcher.schema_analytics import SQL_ANALYTICS
@@ -158,6 +160,8 @@ MIGRATIONS = (
     (15, SQL_RETENTION),
     (16, SQL_ANALYTICS_CONTEXT),
     (17, SQL_SOURCE_CONNECTIONS),
+    (18, SQL_ACCOUNT_SNAPSHOTS),
+    (19, SQL_ACCOUNT_RETENTION),
 )
 
 

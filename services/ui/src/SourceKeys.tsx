@@ -19,6 +19,7 @@ export function SourceKeys({
   source: CredentialSource | "gateway";
 }) {
   const gateway = source === "gateway";
+  const accountSync = source === "codexbar";
   const [editing, setEditing] = useState<Key | null>(null);
   const [routing, setRouting] = useState<Key | null>(null);
   const [busy, setBusy] = useState(false);
@@ -99,7 +100,9 @@ export function SourceKeys({
         <p>
           {gateway
             ? "Create a native LiteLLM key for one application and environment. This key both authorizes model calls and attributes their usage; no second monitoring key is needed."
-            : "Create a reporting credential for one application and environment. This is needed only for usage or job events sent outside the LLM gateway."}
+            : accountSync
+              ? "Create one sync credential for a device or user. It can report every provider enabled in CodexBar; you do not need a connection for each provider."
+              : "Create a reporting credential for one application and environment. This is needed only for usage or job events sent outside the LLM gateway."}
         </p>
         <form className="inline-form" onSubmit={create}>
           <label>
@@ -112,7 +115,7 @@ export function SourceKeys({
             />
           </label>
           <label>
-            Application
+            {accountSync ? "Device / user label" : "Application"}
             <input
               name="app"
               required

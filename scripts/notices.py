@@ -136,6 +136,9 @@ def main() -> None:
         optional = root / "services/mcp/third_party/notices.json"
         if optional.exists():
             notices.extend(json.loads(optional.read_text()))
+        for item in json.loads((root / "third_party/integrations.json").read_text()):
+            checked_license(item["name"], item["license"])
+            notices.append(item)
     notices = sorted(
         {(item["name"], item["version"], item["ecosystem"]): item for item in notices}.values(),
         key=lambda item: (item["name"], item["version"]),

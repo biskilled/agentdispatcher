@@ -1,5 +1,13 @@
 # Third-party notices
 
+The optional CLI account integration uses [CodexBar](https://github.com/steipete/CodexBar),
+copyright © 2026 Peter Steinberger, under the MIT license. CodexBar is installed
+separately on the user's machine; its existing provider fetchers supply JSON account
+snapshots. AgentDispatcher does not bundle its executable or copy its authentication
+implementations. The reviewed JSON contract revision is recorded in
+`third_party/integrations.json`, which includes the upstream license and feeds the
+in-app Open-source licenses screen.
+
 AgentDispatcher's original code is licensed under Apache-2.0. This does not relicense dependencies.
 
 The authoritative generated attribution and verbatim package license texts for the pinned Python runtime and shipped JavaScript dependencies are in [third_party/notices.json](third_party/notices.json). The same artifact is served by the UI's Open-source licenses view. Regenerate it with `python scripts/notices.py` after installing the exact dependency locks. The generator rejects missing license declarations/texts and AGPL/proprietary declarations; this is a basic gate, not an exhaustive legal review or a container SBOM.

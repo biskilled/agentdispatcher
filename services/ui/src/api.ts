@@ -9,6 +9,7 @@ export type Cost = {
   attempts: number;
 };
 export type Overview = {
+  test_records: number;
   counts: {
     attempts: number;
     unknown_cost: number;
@@ -28,6 +29,7 @@ export type Overview = {
   chart_row_limit: number;
 };
 export type Usage = Cost & {
+  is_test: boolean;
   event_id: string;
   occurred_at: string;
   app: string;

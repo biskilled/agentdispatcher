@@ -1,7 +1,7 @@
 # Retention and workspace deletion
 
 Automatic attribution expiry is disabled by default. A tenant owner/admin can set
-an explicit horizon in **Access → Attribution retention**. The worker processes
+an explicit horizon in **Settings → General → Attribution retention**. The worker processes
 bounded batches (`DISPATCHER_RETENTION_BATCH_ROWS`, default 1,000 per table/tick),
 with row locks and tenant RLS. Policy changes and applied batches are audited.
 
@@ -12,6 +12,10 @@ idempotency hashes remain. Dashboard/export rows identify expired attribution.
 This preserves accounting and prevents old event replays from recreating a charge.
 It deliberately does not erase every workspace record: policies, audit, configuration,
 scheduler definitions, identities and financial evidence have separate lifecycles.
+
+Replaceable CLI account snapshots older than the horizon (last received time) are
+deleted in the same bounded worker transaction. Active collection refreshes that
+state. Snapshot deletion removes account labels and provider details together.
 
 Choose a horizon that covers required historical attribution reports. Disabling or
 extending a policy cannot reconstruct expired attribution. A backup can restore an

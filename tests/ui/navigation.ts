@@ -12,5 +12,31 @@ export async function openSettings(page: Page, section: string) {
 /** Source setup and connection management share one tabbed workspace. */
 export async function openSource(page: Page, section: string) {
   await page.getByRole("button", { name: "Sources", exact: true }).click();
-  await page.locator(`#source-tab-${section}`).click();
+  if (section === "status") {
+    const diagnostics = page
+      .locator("details")
+      .filter({
+        has: page
+          .locator("summary")
+          .filter({ hasText: /^Reporting diagnostics$/ }),
+      })
+      .first();
+    if ((await diagnostics.getAttribute("open")) === null)
+      await diagnostics.locator("summary").first().click();
+  } else if (["sdk", "codex", "claude", "mcp"].includes(section)) {
+    await page.locator("#source-tab-gateway").click();
+    const advanced = page
+      .locator("details")
+      .filter({
+        has: page
+          .locator("summary")
+          .filter({ hasText: /^Advanced reporting:/ }),
+      })
+      .first();
+    if ((await advanced.getAttribute("open")) === null)
+      await advanced.locator("summary").first().click();
+    await advanced
+      .getByRole("combobox", { name: "Reporting type", exact: true })
+      .selectOption(section);
+  } else await page.locator(`#source-tab-${section}`).click();
 }

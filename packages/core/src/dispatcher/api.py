@@ -17,6 +17,7 @@ from pydantic import Field, SecretStr
 from starlette.concurrency import run_in_threadpool
 from starlette.middleware.sessions import SessionMiddleware
 
+from dispatcher.accounts import AccountBatch, Accounts
 from dispatcher.agentdesk import AgentDesk
 from dispatcher.agentdesk_api import routes as agentdesk_routes
 from dispatcher.auth import AuthService, require_admin
@@ -45,7 +46,7 @@ from dispatcher.tool_access import ToolAccess
 from dispatcher.tools_api import routes as tool_routes
 
 SESSION_COOKIE = "dispatcher_session"
-ReportingSource = Literal["sdk", "codex", "claude", "mcp"]
+ReportingSource = Literal["sdk", "codex", "claude", "mcp", "codexbar"]
 
 
 def ledger_response(data) -> JSONResponse:
@@ -158,6 +159,13 @@ class GatewayObservation(Contract):
 
     service_id: UUID
     event: UsageEvent
+
+
+class UsageLabel(Contract):
+    """An administrator can correct test classification without deleting evidence."""
+
+    is_test: bool
+    reason: str = Field(min_length=1, max_length=200)
 
 
 def create_app(settings: Settings | None = None, mailer=None, oauth_transport=None) -> FastAPI:
@@ -473,6 +481,34 @@ def create_app(settings: Settings | None = None, mailer=None, oauth_transport=No
     def overview(filters: Annotated[UsageFilter, Query()], principal=Depends(human)):
         """Read authoritative totals, keeping currency and cost kinds separate."""
         return ledger_response(reporter.overview(principal, filters))
+
+    @app.get("/api/usage/filter-options")
+    def filter_options(principal=Depends(human)):
+        """Return observed filter choices, including connected CLI accounts."""
+        options = reporter.filter_options(principal)
+        for row in Accounts(db).list(principal, UsageFilter()):
+            for field, value in {
+                "app_name": row["app"], "source": "codexbar",
+                "provider": row["snapshot"]["provider"],
+                "user_id": str(row["verified_user_id"] or row["snapshot"]["account"]),
+            }.items():
+                options[field] = sorted(set(options[field]) | {value})
+        return options
+
+    @app.put("/api/events/{event_id}/label")
+    def label_usage(event_id: UUID, body: UsageLabel, principal=Depends(human)):
+        """Explicitly mark a test record or restore its normal visibility."""
+        return reporter.label_test(principal, event_id, body.is_test, body.reason)
+
+    @app.get("/api/accounts")
+    def accounts(filters: Annotated[UsageFilter, Query()], principal=Depends(human)):
+        """Read scoped latest account limits independently of request-cost totals."""
+        return Accounts(db).list(principal, filters)
+
+    @app.post("/api/accounts/snapshots", status_code=202)
+    def account_snapshots(body: AccountBatch, principal=Depends(service)):
+        """Receive safe snapshots from a locally authorized CodexBar sync process."""
+        return Accounts(db).ingest(principal, body)
 
     @app.get("/api/events")
     def events(

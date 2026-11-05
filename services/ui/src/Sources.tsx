@@ -3,9 +3,15 @@ import { type Key, type Plan } from "./api";
 import { CatalogView } from "./Accounting";
 import { CoverageView } from "./Coverage";
 import { SourceKeys } from "./SourceKeys";
-import { SourceSetup } from "./SourceSetup";
+import { AccountSetup } from "./AccountSetup";
+import { AccountUsage } from "./AccountUsage";
 import { GatewaySetup } from "./GatewaySetup";
-import { sourceTabs, type SourceTab } from "./sourceTypes";
+import {
+  credentialSources,
+  sourceTabs,
+  type CredentialSource,
+  type SourceTab,
+} from "./sourceTypes";
 
 /** Keep each source's explanation and management controls together. */
 export function SourcesView({
@@ -27,10 +33,9 @@ export function SourcesView({
   report: (message: string) => void;
   revision: number;
 }) {
-  const [selected, setSelected] = useState<SourceTab>(
-    admin ? "gateway" : "status",
-  );
+  const [selected, setSelected] = useState<SourceTab>("gateway");
   const tabs = useRef<HTMLDivElement>(null);
+  const [advancedSource, setAdvancedSource] = useState<CredentialSource>("sdk");
   function move(event: KeyboardEvent<HTMLButtonElement>, index: number) {
     const steps: Record<string, number> = { ArrowRight: 1, ArrowLeft: -1 };
     const next =
@@ -77,16 +82,10 @@ export function SourcesView({
         id={`source-panel-${selected}`}
         aria-labelledby={`source-tab-${selected}`}
       >
-        <SourceSetup
-          source={selected}
-          onGateway={() => setSelected("gateway")}
-        />
-        {selected === "status" ? (
-          <CoverageView tenant={tenant} report={report} revision={revision} />
-        ) : !admin ? (
+        {!admin ? (
           <p className="notice">
-            A workspace owner or administrator can add and manage connections.
-            Reporting status shows the usage you have permission to view.
+            A workspace owner or administrator can manage connections. Your
+            Overview shows the usage you have permission to view.
           </p>
         ) : selected === "api" ? (
           <CatalogView
@@ -107,24 +106,68 @@ export function SourcesView({
             />
           </>
         ) : (
-          <details className="panel form-panel" key={selected}>
-            <summary>
-              {selected === "sdk"
-                ? "Add job and API reporting"
-                : "Manage direct reporting (outside the LLM gateway)"}
-            </summary>
+          <>
+            <AccountSetup />
             <SourceKeys
               tenant={tenant}
-              source={selected}
-              keys={keys.filter(
-                (key) => (key.source_type || "sdk") === selected,
-              )}
+              source="codexbar"
+              keys={keys.filter((key) => key.source_type === "codexbar")}
               refresh={refresh}
               report={report}
             />
-          </details>
+            <AccountUsage tenant={tenant} revision={revision} />
+          </>
         )}
       </div>
+      {admin && selected !== "accounts" && (
+        <details className="panel form-panel">
+          <summary>
+            Advanced reporting: jobs, direct CLI telemetry &amp; MCP tools
+          </summary>
+          <p>
+            Optional. Gateway LLM calls already report automatically. Use
+            reporting credentials only for job lifecycle, non-LLM APIs, direct
+            CLI telemetry, or MCP tool-call counts.
+          </p>
+          <p>
+            An MCP server you own routes its internal LLM calls through the
+            gateway like any other app. The gateway URL is not an MCP server
+            URL. Tool-call instrumentation cannot reveal hidden LLM usage inside
+            a third-party server.
+          </p>
+          <label>
+            Reporting type
+            <select
+              value={advancedSource}
+              onChange={(event) =>
+                setAdvancedSource(event.target.value as CredentialSource)
+              }
+            >
+              {credentialSources
+                .filter((item) => item.id !== "codexbar")
+                .map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.label}
+                  </option>
+                ))}
+            </select>
+          </label>
+          <SourceKeys
+            key={advancedSource}
+            tenant={tenant}
+            source={advancedSource}
+            keys={keys.filter(
+              (key) => (key.source_type || "sdk") === advancedSource,
+            )}
+            refresh={refresh}
+            report={report}
+          />
+        </details>
+      )}
+      <details className="panel form-panel">
+        <summary>Reporting diagnostics</summary>
+        <CoverageView tenant={tenant} report={report} revision={revision} />
+      </details>
     </>
   );
 }

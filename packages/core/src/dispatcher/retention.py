@@ -18,6 +18,16 @@ attribution_days=EXCLUDED.attribution_days,revision=mng_retention_policy.revisio
 updated_by=EXCLUDED.updated_by,updated_at=now() RETURNING revision
 """
 _SQL_LOCK = "SELECT pg_advisory_xact_lock(hashtextextended(%s,0))"
+_SQL_EXPIRE_ACCOUNTS = """
+WITH expired AS (
+ SELECT tenant_id,service_id,provider,account_key FROM mem_account_snapshots
+ WHERE tenant_id=%s AND received_at<%s ORDER BY received_at
+ LIMIT %s FOR UPDATE SKIP LOCKED
+)
+DELETE FROM mem_account_snapshots AS target USING expired
+WHERE (target.tenant_id,target.service_id,target.provider,target.account_key)=
+ (expired.tenant_id,expired.service_id,expired.provider,expired.account_key)
+"""
 _SQL_REDACT = {
     table: f"""
 WITH expired AS (
@@ -105,6 +115,10 @@ class Retention:
             ).rowcount
             for table, statement in _SQL_REDACT.items()
         }
+        # Snapshots are replaceable account state, not immutable financial evidence.
+        counts["mem_account_snapshots"] = connection.execute(
+            _SQL_EXPIRE_ACCOUNTS, (tenant_id, cutoff, self.db.settings.retention_batch_rows)
+        ).rowcount
         if any(counts.values()):
             audit(
                 connection,

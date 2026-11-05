@@ -6,7 +6,7 @@ from uuid import UUID
 from fastapi import HTTPException
 from pydantic import AwareDatetime, Field, model_validator
 
-from dispatcher.auth import require_usage_reader, usage_scope
+from dispatcher.auth import require_admin, require_usage_reader, usage_scope
 from dispatcher.contracts import Contract
 
 _FILTER_COLUMNS = {
@@ -37,7 +37,21 @@ _SQL_WHERE = """
 WHERE tenant_id=%s AND (%s OR app=ANY(%s::text[]) OR verified_user_id=%s::uuid)
 AND (%s::timestamptz IS NULL OR occurred_at >= %s)
 AND (%s::timestamptz IS NULL OR occurred_at < %s)
+AND (%s OR NOT EXISTS(SELECT 1 FROM mng_usage_labels l
+ WHERE l.tenant_id=mem_usage.tenant_id AND l.event_id=mem_usage.event_id AND l.is_test))
 """ + "".join(f" AND (%s::text IS NULL OR {column}=%s)" for column in _FILTER_COLUMNS.values())
+_SQL_LABEL = """
+INSERT INTO mng_usage_labels(tenant_id,event_id,is_test,reason,actor_id)
+SELECT tenant_id,event_id,%s,%s,%s FROM mem_usage WHERE tenant_id=%s AND event_id=%s
+ON CONFLICT(tenant_id,event_id) DO UPDATE SET is_test=excluded.is_test,
+reason=excluded.reason,actor_id=excluded.actor_id,updated_at=now() RETURNING event_id
+"""
+_SQL_TEST_COUNT = """
+SELECT count(*) count FROM mem_usage WHERE tenant_id=%s
+AND (%s OR app=ANY(%s::text[]) OR verified_user_id=%s::uuid)
+AND EXISTS(SELECT 1 FROM mng_usage_labels l WHERE l.tenant_id=mem_usage.tenant_id
+ AND l.event_id=mem_usage.event_id AND l.is_test)
+"""
 _SQL_COUNTS = (
     """
 SELECT count(*) attempts,count(*) FILTER(WHERE cost IS NULL) unknown_cost,
@@ -66,7 +80,9 @@ FROM mem_usage
 _SQL_EVENTS = (
     """
 SELECT event_id,occurred_at,app,environment,resource_kind,provider,model,api_id,status,
-cost,currency,cost_kind,job_run_id,payload,verified_user_id,plan_id,attribution_expired_at
+cost,currency,cost_kind,job_run_id,payload,verified_user_id,plan_id,attribution_expired_at,
+EXISTS(SELECT 1 FROM mng_usage_labels l WHERE l.tenant_id=mem_usage.tenant_id
+ AND l.event_id=mem_usage.event_id AND l.is_test) is_test
 FROM mem_usage
 """
     + _SQL_WHERE
@@ -144,6 +160,7 @@ class UsageFilter(Contract):
         "operation",
     ] = "app"
     offset: int = Field(default=0, ge=0)
+    include_test: bool = False
 
     @model_validator(mode="after")
     def valid_range(self):
@@ -173,6 +190,7 @@ class Reporter:
             filters.from_time,
             filters.to_time,
             filters.to_time,
+            filters.include_test,
             *fields,
         )
 
@@ -189,7 +207,40 @@ class Reporter:
                 "groups": connection.execute(_SQL_GROUPS[filters.group_by], limited).fetchall(),
                 "trend": connection.execute(_SQL_TREND, limited).fetchall(),
                 "chart_row_limit": self.db.settings.page_size,
+                "test_records": connection.execute(
+                    _SQL_TEST_COUNT, (principal.tenant_id, *usage_scope(principal))
+                ).fetchone()["count"],
             }
+
+    def label_test(self, principal, event_id, is_test, reason):
+        """Label verified test evidence reversibly without changing original billing payloads."""
+        require_admin(principal)
+        with self.db.tenant(principal.tenant_id) as connection:
+            row = connection.execute(
+                _SQL_LABEL,
+                (
+                    is_test,
+                    reason,
+                    principal.subject_id,
+                    principal.tenant_id,
+                    event_id,
+                ),
+            ).fetchone()
+        if not row:
+            raise HTTPException(404, "Event not found")
+        return {"event_id": event_id, "is_test": is_test}
+
+    def filter_options(self, principal):
+        """Offer observed values within the same role and test-data scope as the dashboard."""
+        options = {}
+        with self.db.tenant(principal.tenant_id) as connection:
+            for field in ("app_name", "source", "provider", "model", "user_id"):
+                rows = connection.execute(
+                    _SQL_GROUPS[field],
+                    (*self._args(principal, UsageFilter()), self.db.settings.page_size),
+                ).fetchall()
+                options[field] = sorted({row["label"] for row in rows if row["label"]})
+        return options
 
     def events(self, principal, filters=None):
         """Read a bounded page with explicit verified versus app-reported user attribution."""
@@ -201,7 +252,7 @@ class Reporter:
 
     def event(self, principal, event_id: UUID):
         """Return one visible attempt, including its original plan/evidence metadata."""
-        args = (*self._args(principal, UsageFilter()), event_id)
+        args = (*self._args(principal, UsageFilter(include_test=True)), event_id)
         with self.db.tenant(principal.tenant_id) as connection:
             row = connection.execute(_SQL_EVENT_ONE, args).fetchone()
         if not row:
