@@ -11,18 +11,9 @@ import httpx
 import pytest
 
 
-@pytest.mark.parametrize(
-    "usage,standard",
-    [
-        ({"prompt_tokens": 4, "completion_tokens": 2}, {}),
-        ({"input_tokens": 4, "output_tokens": 2}, {}),
-        ({}, {"prompt_tokens": 4, "completion_tokens": 2, "response_cost": 0.125}),
-    ],
-)
-def test_policy_callback_requested_served_models_and_distinct_attempts(
-    monkeypatch, usage, standard
-):
-    """The real image smoke complements this isolated hook-order fixture."""
+@pytest.fixture
+def handler(monkeypatch):
+    """Load the real callback with only provider imports stubbed."""
     litellm = ModuleType("litellm")
     litellm.completion_cost = lambda **kwargs: "0.2"
     logger = ModuleType("litellm.integrations.custom_logger")
@@ -41,7 +32,19 @@ def test_policy_callback_requested_served_models_and_distinct_attempts(
     spec = importlib.util.spec_from_file_location("callbacks_under_test", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    handler = module.proxy_handler
+    return module.proxy_handler
+
+
+@pytest.mark.parametrize(
+    "usage,standard",
+    [
+        ({"prompt_tokens": 4, "completion_tokens": 2}, {}),
+        ({"input_tokens": 4, "output_tokens": 2}, {}),
+        ({}, {"prompt_tokens": 4, "completion_tokens": 2, "response_cost": 0.125}),
+    ],
+)
+def test_policy_callback_requested_served_models_and_distinct_attempts(handler, usage, standard):
+    """The real image smoke complements this isolated hook-order fixture."""
     observations = []
     assignment = str(uuid4())
     operation = str(uuid4())
@@ -106,3 +109,54 @@ def test_policy_callback_requested_served_models_and_distinct_attempts(
     assert observations[1]["input_tokens"] == 4
     assert observations[1]["output_tokens"] == 2
     assert observations[1]["reported_cost"] == ("0.125" if standard else "0.2")
+
+
+@pytest.mark.parametrize("override", [None, "api_key", "api_base", "model_list"])
+def test_default_uses_trusted_key_metadata_and_overwrites_caller_routes(handler, override):
+    """An app cannot set its default through request metadata or override the chosen provider."""
+    from fastapi import HTTPException
+
+    service_id = str(uuid4())
+
+    async def post(path, body):
+        assert body["default_model"] == "approved-model"
+        assert body["model"] == "misspelled"
+        return httpx.Response(
+            200,
+            json={
+                "service_id": service_id,
+                "app": "fixture",
+                "environment": "test",
+                "requested_model": "misspelled",
+                "model": "approved-model",
+                "policy_version": None,
+                "fallbacks": [],
+            },
+        )
+
+    handler._post = post
+
+    async def run():
+        key = SimpleNamespace(
+            metadata={
+                "dispatcher_service_id": service_id,
+                "dispatcher_default_model": "approved-model",
+            }
+        )
+        body = {
+            "model": "misspelled",
+            "fallbacks": [{"misspelled": ["forbidden"]}],
+            "metadata": {"dispatcher_default_model": "forbidden"},
+        }
+        if override:
+            body[override] = "forbidden"
+            with pytest.raises(HTTPException) as denied:
+                await handler.async_pre_call_hook(key, None, body, "completion")
+            assert denied.value.status_code == 403
+            return
+        result = await handler.async_pre_call_hook(key, None, body, "completion")
+        assert result["model"] == "approved-model"
+        assert result["fallbacks"] == [{"approved-model": []}]
+        assert result["metadata"]["_dispatcher"]["attributes"]["requested_model"] == "misspelled"
+
+    asyncio.run(run())

@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { KeyRound } from "lucide-react";
 import { api, type Key } from "./api";
 import { credentialSources, type CredentialSource } from "./sourceTypes";
+import { GatewayRouting } from "./GatewayRouting";
 
 /** Manage scoped source credentials; editing cannot widen application or model access. */
 export function SourceKeys({
@@ -19,6 +20,7 @@ export function SourceKeys({
 }) {
   const gateway = source === "gateway";
   const [editing, setEditing] = useState<Key | null>(null);
+  const [routing, setRouting] = useState<Key | null>(null);
   const [busy, setBusy] = useState(false);
   const [secret, setSecret] = useState("");
   async function create(event: FormEvent<HTMLFormElement>) {
@@ -82,6 +84,7 @@ export function SourceKeys({
       await api(`/keys/${id}`, tenant, { method: "DELETE" });
       setEditing(null);
       setSecret("");
+      setRouting(null);
       refresh();
     } catch (error) {
       report((error as Error).message);
@@ -203,6 +206,15 @@ export function SourceKeys({
           </form>
         </section>
       )}
+      {gateway && routing && (
+        <GatewayRouting
+          key={`${tenant}:${routing.id}`}
+          tenant={tenant}
+          connection={routing}
+          close={() => setRouting(null)}
+          report={report}
+        />
+      )}
       <section className="panel">
         <div className="section-heading">
           <h2>Connections</h2>
@@ -240,6 +252,17 @@ export function SourceKeys({
                           : "active"}
                     </td>
                     <td>
+                      {gateway &&
+                        !key.revoked_at &&
+                        new Date(key.expires_at) > new Date() && (
+                          <button
+                            className="text-button connection-edit"
+                            disabled={busy}
+                            onClick={() => setRouting(key)}
+                          >
+                            Services &amp; default
+                          </button>
+                        )}
                       {!key.revoked_at && (
                         <button
                           className="text-button connection-edit"

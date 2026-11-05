@@ -1,6 +1,116 @@
 import { expect, test, type Page } from "@playwright/test";
 import { openSource } from "./navigation";
 
+test("manage gateway services and default without changing app identity", async ({
+  page,
+}) => {
+  const base = process.env.DISPATCHER_TEST_UI_URL;
+  const session = process.env.DISPATCHER_TEST_SESSION;
+  test.skip(!base || !session, "Requires a synthetic administrator fixture");
+  await page
+    .context()
+    .addCookies([
+      {
+        name: "dispatcher_session",
+        value: session!,
+        url: base!,
+        httpOnly: true,
+      },
+    ]);
+  let routing = {
+    aliases: {} as Record<string, string>,
+    default_model: null as string | null,
+    allowed_models: ["configured-model", "second-model"],
+    revision: "a".repeat(64),
+  };
+  await page.route("**/api/gateway/keys", (route) =>
+    route.fulfill({
+      json: [
+        {
+          id: "synthetic-gateway",
+          name: "AgentTrade",
+          app: "agenttrade",
+          environment: "test",
+          expires_at: "2099-01-01T00:00:00Z",
+          revoked_at: null,
+          allowed_models: routing.allowed_models,
+        },
+      ],
+    }),
+  );
+  await page.route(
+    "**/api/gateway/keys/synthetic-gateway/routing",
+    async (route) => {
+      if (route.request().method() === "PUT") {
+        const body = route.request().postDataJSON();
+        expect(body.revision).toBe(routing.revision);
+        routing = { ...routing, ...body, revision: "b".repeat(64) };
+      }
+      await route.fulfill({ json: routing });
+    },
+  );
+  await page.goto("/");
+  await openSource(page, "gateway");
+  await page
+    .getByRole("button", { name: "Services & default", exact: true })
+    .click();
+  await page
+    .getByLabel("Default provider / model")
+    .selectOption("second-model");
+  await page.getByRole("button", { name: "Add service", exact: true }).click();
+  await page
+    .getByLabel("Service name 1", { exact: true })
+    .fill("trade-analysis");
+  await page
+    .getByRole("combobox", { name: "Target model 1", exact: true })
+    .selectOption("configured-model");
+  await page
+    .getByRole("button", { name: "Save services", exact: true })
+    .click();
+  await expect(page.getByLabel("Gateway routing", { exact: true })).toHaveCount(
+    0,
+  );
+  expect(routing.aliases).toEqual({ "trade-analysis": "configured-model" });
+  expect(routing.default_model).toBe("second-model");
+  await page
+    .getByRole("button", { name: "Services & default", exact: true })
+    .click();
+  await expect(page.getByLabel("Service name 1", { exact: true })).toHaveValue(
+    "trade-analysis",
+  );
+  await page
+    .getByLabel("Service name 1", { exact: true })
+    .fill("market-research");
+  await page.screenshot({
+    path: `test-results/gateway-services-${test.info().project.name}.png`,
+    fullPage: true,
+  });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBeTruthy();
+  await page
+    .getByRole("button", { name: "Save services", exact: true })
+    .click();
+  expect(routing.aliases).toEqual({ "market-research": "configured-model" });
+  await page
+    .getByRole("button", { name: "Services & default", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Remove service 1", exact: true })
+    .click();
+  await page.getByLabel("Default provider / model").selectOption("");
+  await page
+    .getByRole("button", { name: "Save services", exact: true })
+    .click();
+  expect(routing.aliases).toEqual({});
+  expect(routing.default_model).toBeNull();
+  await expect(
+    page.getByRole("row").filter({ hasText: "AgentTrade" }),
+  ).toContainText("agenttrade");
+});
+
 async function openReporting(page: Page, source: string) {
   await openSource(page, source);
   await page

@@ -129,6 +129,33 @@ existing OpenAI-compatible client. Both schedulers and user requests then report
 usage automatically. An additional SDK key, collector or CLI exporter is **not**
 required for these calls.
 
+Give **each app/environment its own key**, even when all apps share this URL.
+The key establishes the tenant, app and environment; a supplied app name cannot
+change that scope. For user breakdowns, the application can additionally send
+`metadata.dispatcher_context.user_id` (an app-reported identifier).
+
+On a connection, open **Services & default** to add or rename service names such
+as `trade-analysis`, and choose a default provider/model route. Each target is an
+allowed LiteLLM model name; that native model definition owns its provider,
+actual model and provider credential. Your app YAML can keep selecting the service
+name while you change its target here. Connection display names remain editable
+through **Edit** without changing app attribution or historical usage.
+
+A model name unrecognized by that connection uses its optional default. An allowed
+model retains its own route; no default means unrecognized names are denied. Requests
+must still supply a model name. This handles missing service mappings, not provider
+failures or incompatible API formats. Renaming removes the old alias: old callers
+then use the default, or fail if no default is selected. Model policies still apply.
+
+Aliases and default metadata are persisted with native LiteLLM keys in PostgreSQL,
+with no second alias registry. Enabling a default lets unknown names reach the
+mandatory Dispatcher callback; the callback enforces the original key allow-list
+and policy before provider execution. Keep that callback enabled and gateway
+management private. Request-supplied provider credentials and routing overrides
+are rejected or replaced with the authorized route. Removing the default restores
+the native key's explicit model list. The bundled configuration also enables native
+database model storage for operator-managed model definitions.
+
 The bundled web server exposes only selected inference endpoints at `/llm/v1`
 (chat completions, responses, messages, embeddings and models). Streaming HTTP
 responses are forwarded without buffering; WebSocket upgrades and stored-response

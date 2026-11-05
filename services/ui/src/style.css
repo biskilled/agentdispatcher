@@ -52,6 +52,15 @@
 .form-panel fieldset {
   min-width: 0;
 }
+.gateway-routing-fields {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.gateway-routing-fields legend {
+  font-weight: 600;
+  margin-bottom: 16px;
+}
 .credits-body pre {
   white-space: pre-wrap;
   overflow-wrap: anywhere;

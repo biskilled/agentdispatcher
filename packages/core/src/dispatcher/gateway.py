@@ -1,5 +1,7 @@
 """LiteLLM virtual-key lifecycle and authenticated, metadata-only callback boundary."""
 
+import hashlib
+import json
 import logging
 import secrets
 from datetime import UTC, datetime, timedelta
@@ -27,6 +29,11 @@ FROM mng_sdk_keys WHERE tenant_id=%s AND purpose='gateway' ORDER BY created_at D
 """
 _SQL_AUDIT = """
 INSERT INTO mng_auth_audit(tenant_id,actor_id,action,target_id) VALUES(%s,%s,%s,%s)
+"""
+_SQL_MANAGE = """
+SELECT id,token_hash,allowed_models FROM mng_sdk_keys
+WHERE id=%s AND tenant_id=%s AND purpose='gateway'
+AND revoked_at IS NULL AND expires_at>now() FOR UPDATE
 """
 
 
@@ -103,12 +110,92 @@ class Gateway:
             return {**result, "state": "unavailable"}
         return {**result, "state": "ready" if models else "no_models", "models": models}
 
-    def route(self, principal, requested_model, task_id):
+    def route(self, principal, requested_model, task_id, default_model=None):
         """Select policy routes only when every candidate is also allowed by this virtual key."""
-        route = Policies(self.db).route(principal, requested_model, task_id)
+        selected = requested_model
+        try:
+            self.principal(principal.subject_id, selected)
+        except HTTPException as error:
+            if error.status_code != 403 or not default_model:
+                raise
+            selected = default_model
+            self.principal(principal.subject_id, selected)
+        route = Policies(self.db).route(principal, selected, task_id)
         for model in [route["model"], *route["fallbacks"]]:
             self.principal(principal.subject_id, model)
-        return route
+        return {**route, "requested_model": requested_model}
+
+    def routing(self, principal, service_id, update=None):
+        """Manage native LiteLLM aliases/defaults, locking tenant scope against concurrent edits."""
+        require_admin(principal)
+        with self.db.auth() as connection:
+            row = connection.execute(_SQL_MANAGE, (service_id, principal.tenant_id)).fetchone()
+            if not row:
+                raise HTTPException(404, "Active gateway connection not found")
+            try:
+                with self.client() as client:
+                    response = client.get("key/info", params={"key": row["token_hash"]})
+                    response.raise_for_status()
+                    info = response.json()["info"]
+                    current = self._routing_view(info, row["allowed_models"])
+                    if update is None:
+                        return current
+                    if update.revision != current["revision"]:
+                        raise HTTPException(409, "Routing changed. Close and reopen before saving.")
+                    self._validate_routing(update, row["allowed_models"])
+                    metadata = {
+                        **(info.get("metadata") or {}),
+                        "dispatcher_service_id": str(service_id),
+                        "dispatcher_default_model": update.default_model,
+                    }
+                    response = client.post(
+                        "key/update",
+                        json={
+                            "key": row["token_hash"],
+                            "aliases": update.aliases,
+                            "metadata": metadata,
+                            # Unknown names must reach our mandatory authorization callback.
+                            # The local allow-list still constrains every resolved model.
+                            "models": ["*"] if update.default_model else row["allowed_models"],
+                        },
+                    )
+                    response.raise_for_status()
+                    connection.execute(
+                        _SQL_AUDIT,
+                        (
+                            principal.tenant_id,
+                            principal.subject_id,
+                            "gateway_routing.updated",
+                            service_id,
+                        ),
+                    )
+                    return self._routing_view(
+                        {"aliases": update.aliases, "metadata": metadata}, row["allowed_models"]
+                    )
+            except (httpx.HTTPError, ValueError, KeyError, TypeError):
+                raise HTTPException(502, "LiteLLM routing could not be read or saved") from None
+
+    @staticmethod
+    def _routing_view(info, models):
+        value = {
+            "aliases": info.get("aliases") or {},
+            "default_model": (info.get("metadata") or {}).get("dispatcher_default_model"),
+            "allowed_models": models,
+        }
+        revision = hashlib.sha256(json.dumps(value, sort_keys=True).encode()).hexdigest()
+        return {**value, "revision": revision}
+
+    @staticmethod
+    def _validate_routing(update, models):
+        targets = [*update.aliases.values()]
+        if update.default_model:
+            targets.append(update.default_model)
+        if any(target not in models for target in targets):
+            raise HTTPException(
+                400, "Services and default must target this connection's allowed models"
+            )
+        if any(name in models or name == "*" for name in update.aliases):
+            raise HTTPException(400, "Service names cannot replace allowed model names or use '*'")
 
     def issue(self, principal, name, app, environment, models):
         """Create an upstream virtual key then register its scope; unregistered keys cannot run."""

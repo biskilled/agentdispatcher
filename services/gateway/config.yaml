@@ -5,6 +5,7 @@ model_list:
       model: os.environ/LLM_PROVIDER_MODEL
       api_key: os.environ/LLM_API_KEY
 general_settings:
+  store_model_in_db: true
   master_key: os.environ/LITELLM_MASTER_KEY
   database_url: os.environ/LITELLM_DATABASE_URL
 litellm_settings:

@@ -137,6 +137,20 @@ class GatewayAuthorization(Contract):
     service_id: UUID
     model: str = Field(min_length=1, max_length=100)
     task_id: UUID = Field(default_factory=uuid4)
+    default_model: str | None = Field(default=None, min_length=1, max_length=100)
+
+
+class GatewayRoutingRequest(Contract):
+    """Replace a key's native aliases/default only when its displayed revision is current."""
+
+    aliases: dict[
+        Annotated[
+            str, Field(min_length=1, max_length=100, pattern=r"^[A-Za-z0-9][A-Za-z0-9._/-]*$")
+        ],
+        Annotated[str, Field(min_length=1, max_length=100)],
+    ] = Field(default_factory=dict, max_length=100)
+    default_model: str | None = Field(default=None, min_length=1, max_length=100)
+    revision: str = Field(pattern=r"^[a-f0-9]{64}$")
 
 
 class GatewayObservation(Contract):
@@ -570,13 +584,25 @@ def create_app(settings: Settings | None = None, mailer=None, oauth_transport=No
     @app.post("/internal/gateway/authorize", dependencies=[Depends(gateway_callback)])
     def gateway_authorize(body: GatewayAuthorization):
         """Deny upstream LLM execution for unknown, revoked or out-of-policy keys."""
-        principal = gateway.principal(body.service_id, body.model)
+        principal = gateway.principal(body.service_id)
         return {
             "service_id": principal.subject_id,
             "app": principal.app,
             "environment": principal.environment,
-            **gateway.route(principal, body.model, body.task_id),
+            **gateway.route(principal, body.model, body.task_id, body.default_model),
         }
+
+    @app.get("/api/gateway/keys/{service_id}/routing")
+    def gateway_routing(service_id: UUID, principal=Depends(human)):
+        """Read the tenant connection's service names and optional default."""
+        return gateway.routing(principal, service_id)
+
+    @app.put("/api/gateway/keys/{service_id}/routing")
+    def update_gateway_routing(
+        service_id: UUID, body: GatewayRoutingRequest, principal=Depends(human)
+    ):
+        """Update native LiteLLM routing without exposing or rotating the app's key."""
+        return gateway.routing(principal, service_id, body)
 
     @app.post("/internal/gateway/ingest", status_code=202, dependencies=[Depends(gateway_callback)])
     def gateway_ingest(body: GatewayObservation):

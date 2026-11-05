@@ -1,12 +1,25 @@
 # AgentDispatcher — current product specification
 
 Use case: **US10000**
-Revision: **2026-11-04**
+Revision: **2026-11-05**
 Status: **Approved; implementation in progress.** See [verified implementation coverage](implementation-progress.md).
 
 This revision incorporates the user's monitoring, embedded-agent, tenant storage, deployment and open-source requirements. It supersedes conflicting details in the 2026-10-19 design export, especially desktop-first delivery and the unvalidated 2–3 week estimate. The original export remains intact in AgentDesk.
 
 ## Product purpose
+
+Service/default clarification (2026-11-05): each application/environment has its own
+native LiteLLM key, which determines tenant and app attribution on a shared gateway
+URL. Sources → LLM gateway lets administrators add, rename and remove per-key service
+aliases and select an optional default from that key's allowed native model routes.
+An unrecognized model name resolves to that default before model-policy enforcement;
+without a default it is rejected. An explicit model name is still required. Default
+resolution is distinct from provider-error fallback. Each target's provider, actual
+model and credentials remain configured once in LiteLLM. Store aliases and default
+metadata in LiteLLM's PostgreSQL key records; keep the original Dispatcher model
+allow-list authoritative after resolution. Connection display names may change
+without changing application scope or rewriting usage history. Optimistic edits
+protect against another administrator's concurrent routing changes.
 
 Gateway-first clarification (2026-11-04): LiteLLM is the default execution and usage
 source for controlled LLM traffic. Applications and supported coding tools configure

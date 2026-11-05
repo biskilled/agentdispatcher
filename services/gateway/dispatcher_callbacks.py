@@ -44,9 +44,8 @@ class DispatcherCallbacks(CustomLogger):
 
     async def async_pre_call_hook(self, user_api_key_dict, cache, data, call_type):
         """Block LLM execution when the registered key is revoked, unscoped or out of policy."""
-        service_id = (getattr(user_api_key_dict, "metadata", None) or {}).get(
-            "dispatcher_service_id"
-        )
+        key_metadata = getattr(user_api_key_dict, "metadata", None) or {}
+        service_id = key_metadata.get("dispatcher_service_id")
         if not service_id:
             raise HTTPException(403, "A Dispatcher-managed virtual key is required")
         metadata = dict(data.get("metadata") or {})
@@ -63,7 +62,12 @@ class DispatcherCallbacks(CustomLogger):
         try:
             response = await self._post(
                 "/internal/gateway/authorize",
-                {"service_id": service_id, "model": data.get("model", ""), "task_id": task_id},
+                {
+                    "service_id": service_id,
+                    "model": data.get("model", ""),
+                    "task_id": task_id,
+                    "default_model": key_metadata.get("dispatcher_default_model"),
+                },
             )
             if not response.is_success:
                 raise HTTPException(403, "Virtual key or requested model is not authorised")
@@ -86,22 +90,17 @@ class DispatcherCallbacks(CustomLogger):
                 if scope.get(key) is not None
             }
         )
-        if scope.get("policy_version"):
-            if any(
-                key in data
-                for key in (
-                    "api_base",
-                    "api_key",
-                    "base_url",
-                    "model_list",
-                    "custom_llm_provider",
-                )
-            ):
-                raise HTTPException(403, "Policy requests must use configured provider routes")
-            data["model"] = scope["model"]
-            data["fallbacks"] = [{scope["model"]: scope["fallbacks"]}]
-            data["context_window_fallbacks"] = []
-            data["content_policy_fallbacks"] = []
+        if any(
+            key in data
+            for key in ("api_base", "api_key", "base_url", "model_list", "custom_llm_provider")
+        ):
+            raise HTTPException(403, "Requests must use configured provider routes")
+        # Apply verified routes even without a policy: caller-supplied fallbacks must
+        # never widen a key's model access, especially when a default accepts typos.
+        data["model"] = scope["model"]
+        data["fallbacks"] = [{scope["model"]: scope["fallbacks"]}]
+        data["context_window_fallbacks"] = []
+        data["content_policy_fallbacks"] = []
         metadata["_dispatcher"] = {
             "scope": scope,
             "operation_id": operation,
