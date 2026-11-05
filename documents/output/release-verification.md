@@ -1,5 +1,23 @@
 # Release verification
 
+## Functional update — 2026-11-05
+
+Change `c0d7524` adds native per-key service aliases and optional app defaults. Local
+verification passes 133 PostgreSQL/backend tests, four desktop/mobile Sources flows,
+TypeScript/Vite build and changed-file Ruff checks. The live Railway LiteLLM 1.106.6
+test passes for two app keys on the shared public inference URL: named aliases,
+unknown-name defaults, correct app attribution, alias rename, default removal,
+model denial and revocation. Five successful synthetic calls produce exactly five
+usage records. Temporary model definitions and native keys are removed; local keys
+are revoked. No provider credentials or paid requests are used.
+
+The test is reproducible with `python scripts/verify_gateway_services.py` in the API
+runtime using its configured private gateway and public inference URLs. It uses an
+isolated fixture tenant and invalid provider credentials with native mock responses.
+Native PostgreSQL model storage must be enabled, as in the supplied gateway config.
+GitHub Actions were not enabled or run; these are manual functional checks, not a
+new container-security scan. The November 4 security findings below remain separate.
+
 ## Current scan — 2026-11-04
 
 The gateway-first change `6f751bc` passes 128 local backend tests, six desktop/mobile

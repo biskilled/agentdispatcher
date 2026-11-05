@@ -1,16 +1,29 @@
 # US10000 implementation progress
 
-Updated 2026-11-04. The gateway-first flow is deployed: Sources defaults to LiteLLM,
-native keys authorize and report model calls without a separate SDK/exporter, and
-the UI exposes a restricted inference address while keeping management private.
-The current change passes 128 backend tests, six desktop/mobile workflows and live
-Railway checks. Provider credentials remain deferred; the gateway correctly reports
-no configured models. Temporary test-account authentication is verified; Google and
+Updated 2026-11-05. Sources → LLM gateway now supports per-connection service aliases
+and an optional default provider/model route, stored with native LiteLLM keys in
+PostgreSQL. Separate keys identify apps sharing one gateway URL. Unknown names use
+that key's allowed default; model policies, revocation and tenant boundaries remain
+enforced. The change passes 133 backend tests and four desktop/mobile source workflows.
+A live synthetic test on Railway verifies aliases, renaming, two-app default routing,
+exact usage attribution, default removal and revocation through the public gateway.
+Temporary mock models and keys are cleaned up; no paid provider calls were made.
+Provider credentials remain deferred. Temporary test-account authentication is verified; Google and
 SMTP credentials remain deferred. The new container security scan fails on upstream
 SQLite findings: see [current release evidence](release-verification.md). This remains
 an open release item. See [Railway services and configuration](railway.md).
 
 ## Implemented and verified
+
+- Gateway connections expose **Services & default** in Sources. Administrators can add,
+  rename and remove service aliases without rotating app keys, choose an allowed native
+  model as the default, and rename connection display labels independently of app scope.
+  Native model definitions continue to own the provider, actual model and credentials.
+  Optimistic revisions prevent lost routing edits. The callback replaces caller routing
+  overrides and checks the final route against the original key allow-list and policy.
+  `scripts/verify_gateway_services.py` reproduces the synthetic native integration test.
+  GitHub Actions remain disabled at the owner's request; verification and deployment
+  were performed locally and directly on Railway.
 
 - A Python/FastAPI API, independent worker, React/TypeScript mobile dashboard, separately installable monitoring SDK and PostgreSQL ledger share reusable application services. LiteLLM is a default Compose service; collector and MCP are optional.
 - PostgreSQL enforces tenant isolation with forced RLS, separate auth/runtime grants and transaction-local scope. Human sessions, invitations, live membership/app grants, owner safeguards and scoped SDK keys have integration tests. SDK secrets are displayed once and stored only as hashes.
