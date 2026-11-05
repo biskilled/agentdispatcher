@@ -16,7 +16,19 @@ CodexBar is an optional external MIT-licensed runtime, with upstream source/vers
 and license text in runtime notices. The bridge is not full desktop-feature parity.
 The live dispatcher-collector records inspected on November 5 are four synthetic
 Railway verification events from November 3, not actual application spending. Only
-those exact reviewed records are candidates for explicit test labeling.
+those exact reviewed records were reversibly labeled; the live default view now
+contains zero attempts, while `include_test=true` still returns all four.
+
+Manual Railway rollout succeeded: migration job `29a898fa-e5e6-493c-9a00-77a3e9c81d10`,
+API `92d5aa79-c7bd-4018-8f2a-4da9f3159032`, worker
+`6c0f6985-7865-46c6-aef4-dd289cec1a23`, and UI
+`5e529916-3ab3-4abc-9e44-735597264b34`. Implementation `998de3f`, UI wording
+`d12879d`; GitHub Actions stayed disabled. Live desktop/mobile checks verify the
+three source tabs, visible filters, test-label notice, account/filter APIs, Settings
+and invitation placement. Two live password login/logout tests pass, and the worker
+health command succeeds. LiteLLM discovery still reports `no_models`: provider/model
+configuration and real CodexBar accounts remain user setup. No real account-quota
+fetch, paid model request, or invoice validation is implied.
 
 ## Functional update — 2026-11-05
 

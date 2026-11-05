@@ -141,3 +141,13 @@ For an operator-requested test account, configure these three variables on **API
 All three are empty by default. Clearing all three and redeploying disables new password sign-ins; already-issued sessions retain their normal lifetime, bounded by the original cutoff, and can be revoked through normal logout/operator session revocation. Changing the hash also affects new sign-ins only.
 
 The browser shows a password field only while this method is enabled. Google and email links remain available when configured. Password attempts use the shared PostgreSQL account/IP throttle, CSRF Origin check and HttpOnly session cookie; tenant roles are loaded from current memberships on every request. No credentials are bundled in the React build.
+
+## CLI account snapshots and unified overview — November 5
+
+Migration versions 18/19 add scoped account snapshots, reversible test labels and
+snapshot-retention grants/indexes. Deploy the migration job before API/worker, then
+the UI. `DISPATCHER_ACCOUNT_STALE_SECONDS` is an optional API variable (default 900).
+The local sync process uses `DISPATCHER_URL`, `DISPATCHER_ACCOUNT_KEY` and optional
+`CODEXBAR_BIN`; provider login/session credentials stay on that device and are not
+Railway variables. No additional Railway service is required. See the
+[CLI guide](../../integrations/cli/README.md#codexbar-account-sync).
