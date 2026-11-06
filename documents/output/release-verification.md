@@ -1,5 +1,26 @@
 # Release verification
 
+## Gateway onboarding and standalone account uploader — 2026-11-06
+
+Commit `e081145` clarifies the provider-key/Dispatcher-key distinction, saved service
+names, per-app scope and unknown-name default behavior. Account sync no longer
+requires installing the Dispatcher SDK: the UI downloads the same source module as
+a standalone standard-library Python script. CodexBar remains the local reader.
+
+Twenty focused backend/integration tests and four desktop/mobile source workflows
+pass, including actual HTTP upload from `python -I -S`, redirect rejection and exact
+downloaded-source equality. Type checking/build and Ruff pass. The previous temporary
+local PostgreSQL/configuration fixture was absent, so verification used freshly
+initialized disposable local databases and a generated session secret.
+
+Railway UI deployment `ca75d882-520a-4ab1-b1ce-20db60b60fdc` succeeded. Live desktop/mobile
+checks verify the expanded guide, script HTTP download, layout and account API; two
+login/logout browser tests pass. The first live verifier used an unresolved relative
+asset URL; correcting the verifier allowed the download check to pass without a
+production code change. LiteLLM still reports `no_models`; real provider configuration
+and CodexBar account authentication remain user setup. No paid requests were made.
+No API/worker migration or deployment was needed. GitHub Actions stayed disabled.
+
 ## Unified overview and CodexBar account sync — 2026-11-05
 
 Local verification: 138 backend tests pass against an isolated PostgreSQL database;
