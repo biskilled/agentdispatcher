@@ -40,9 +40,16 @@ _Auto-filled from the tenant's available skills._
 - **DietrichGebert/ponytail** (cli) — Makes your AI agent think like the laziest senior dev. The best code is the code you never wrote. · https://github.com/DietrichGebert/ponytail
 - **pragmar/mcp-server-webcrawl** (backend) — web crawl MCP · https://github.com/pragmar/mcp-server-webcrawl
 
-<!-- Last updated: 2026-11-05 22:23 UTC -->
+## Org rules — always apply
+_🌐 = all tenants (platform) · 🏢 = this tenant. Managed in Settings/Admin._
+_When one of these rules shapes an action or answer, SAY SO briefly — e.g. “per org rule ‘session start checks’ …” — so rule usage is visible._
+
+- 🏢 **session start checks**: Always check that all hooks are running when you start a session, and make sure you are connected to AgentDesk.
+- 🏢 **node_modules folder**: Always store node_modules under /Users/user/Documents/node_modules folder (linked folder) and venv under /Users/user/Documents/venv
+
+<!-- Last updated: 2026-11-05 23:08 UTC -->
 # agentdispatcher
-_2026-11-05 22:23 UTC | Memory synced: 2026-11-05_
+_2026-11-05 23:08 UTC | Memory synced: 2026-11-05_
 
 ## Recent Work
 - [ui] Default provider/model fallback and gateway configuration: users can add/rename service names and configure default provider/model routes through Sources → LLM gateway → Services & default; apps identified by separate gateway keys
