@@ -147,6 +147,41 @@ must still supply a model name. This handles missing service mappings, not provi
 failures or incompatible API formats. Renaming removes the old alias: old callers
 then use the default, or fail if no default is selected. Model policies still apply.
 
+For example, create an AgentTrade connection allowing `configured-model`, then
+open **Services & default**, add `trade-analysis → configured-model` and optionally
+select `configured-model` as its default. For the supplied gateway template, the
+operator sets `LLM_PROVIDER_MODEL` to the provider/model identifier and `LLM_API_KEY`
+to the **real provider key** on the gateway service. The app uses a different key:
+
+```sh
+DISPATCHER_LLM_BASE_URL=https://your-dispatcher-host/llm/v1
+DISPATCHER_LLM_KEY=<Dispatcher LLM key generated for AgentTrade>
+DISPATCHER_SERVICE=trade-analysis
+```
+
+```python
+import os
+from openai import OpenAI
+
+client = OpenAI(
+    base_url=os.environ["DISPATCHER_LLM_BASE_URL"],
+    api_key=os.environ["DISPATCHER_LLM_KEY"],
+)
+response = client.chat.completions.create(
+    model=os.environ["DISPATCHER_SERVICE"],
+    messages=[{"role": "user", "content": "Your request"}],
+)
+```
+
+The OpenAI-compatible client can reach the configured LiteLLM upstream, not only
+OpenAI. Its custom URL/key arguments are documented in the
+[official OpenAI Python reference](https://developers.openai.com/api/reference/python).
+If your existing client uses `OPENAI_API_KEY`, that variable must contain the
+**Dispatcher key** when `OPENAI_BASE_URL` points here. The `model` field in your app's
+YAML/request can contain the saved service name. Changing its target in Dispatcher
+keeps that app configuration stable. A default still requires a requested name;
+unknown names use the default, while existing aliases/routes keep their own mapping.
+
 Aliases and default metadata are persisted with native LiteLLM keys in PostgreSQL,
 with no second alias registry. Enabling a default lets unknown names reach the
 mandatory Dispatcher callback; the callback enforces the original key allow-list
@@ -254,7 +289,9 @@ the gateway does not connect to arbitrary MCP servers or expose their hidden cos
 
 [CodexBar account sync](integrations/cli/README.md#codexbar-account-sync) reuses the
 upstream CLI's enabled providers, including providers added by future CodexBar versions.
-It sends selected quota windows, resets, credit balances, period spend and display rows
+Download its standard-library Python uploader from Sources; no Dispatcher SDK or
+repository installation is needed. It sends selected quota windows, resets, credit
+balances, period spend and display rows
 through one device-scoped key. No provider-specific tabs or second provider credential
 store. CodexBar currently supplies macOS/Linux runtimes; viewing works in any browser.
 This is account-status integration, not all CodexBar desktop features or a per-call

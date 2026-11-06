@@ -15,6 +15,14 @@ an open release item. See [Railway services and configuration](railway.md).
 
 ## Implemented and verified
 
+- November 6 onboarding: explicit Dispatcher key/service examples and a three-step
+  provider route → app key → service/default guide. The account uploader is a
+  downloadable standard-library Python script; CodexBar remains the account reader,
+  with no Dispatcher SDK installation required. Twenty focused backend/integration
+  tests and four desktop/mobile source workflows pass, including isolated Python
+  without site-packages, credential-safe redirect rejection and downloaded source
+  equality. Build/type-check and Ruff pass. Routing semantics are unchanged.
+
 - Unified Overview with visible filters; Sources now has Application LLM calls,
   CLI account usage and Other API usage. Optional reporters/diagnostics are collapsed.
   CodexBar account sync uses the installed upstream CLI across dynamic provider IDs,

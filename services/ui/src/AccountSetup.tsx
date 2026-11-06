@@ -1,59 +1,85 @@
-/** Explain one shared local sync path for all providers supported by the installed CodexBar. */
+import collectorUrl from "../../../packages/sdk/src/agentdispatcher_sdk/codexbar.py?url";
+
+/** Explain optional account collection with one reader and a dependency-free uploader. */
 export function AccountSetup() {
   return (
     <section className="panel form-panel">
-      <h2>Connect your CLI accounts with CodexBar</h2>
+      <h2>Connect CLI subscription accounts</h2>
       <p>
-        See subscription limits, reset times and available balances for Codex,
-        Claude, Cursor, Copilot and other providers supported by your installed
-        CodexBar. This reads account usage without changing how your tools call
-        models.
+        Use this for subscription limits, reset times, balances and
+        provider-reported spending. If your tool already sends LLM calls through
+        the gateway, those calls are monitored automatically; this setup is
+        optional account information.
+      </p>
+      <p>
+        Account collection runs on the machine holding your provider sessions.
+        We reuse CodexBar's open-source account readers for supported providers,
+        including Codex, Claude, Cursor and Copilot. Your browser cannot read
+        sessions on another machine. No Dispatcher desktop app is required.
       </p>
       <ol>
         <li>
-          Install{" "}
+          Install the{" "}
           <a
-            href="https://github.com/steipete/CodexBar#install"
+            href="https://github.com/steipete/CodexBar/blob/main/docs/cli.md"
             target="_blank"
             rel="noreferrer"
           >
-            CodexBar and its CLI
+            CodexBar CLI
           </a>{" "}
-          on the machine that holds your provider sessions. Enable and
-          authenticate the providers you use.
+          on that machine, unless you already have it. Enable and authenticate
+          the providers you use. CodexBar is the account-reading dependency for
+          this integration.
         </li>
         <li>
-          Add one connection below for that device or user, then save its sync
+          Add one connection below for that device or user and save its sync
           key.
         </li>
         <li>
-          Install the Dispatcher SDK from this repository (
-          <code>pip install ./packages/sdk</code>) and run the sync command on
-          that machine.
+          <a
+            className="secondary"
+            href={collectorUrl}
+            download="dispatcher-account-sync.py"
+          >
+            Download account sync script
+          </a>
+          <p>
+            Run the downloaded script with Python 3.12 or newer. It uses only
+            Python's standard library: no Dispatcher SDK, repository clone or
+            pip packages.
+          </p>
         </li>
       </ol>
       <details>
         <summary>Sync command and environment variables</summary>
         <p>
-          Set these variables in your shell or scheduler. DISPATCHER_URL is this
-          app's public address, without /llm/v1. Keep keys out of source files.
+          Set these variables in your shell or scheduler. The sync key comes
+          from this tab's Add connection, not from the LLM gateway or a
+          provider.
         </p>
-        <pre>{`DISPATCHER_URL=${window.location.origin}\nDISPATCHER_ACCOUNT_KEY=<connection key>\n\npython -m agentdispatcher_sdk.codexbar --interval 300`}</pre>
+        <pre>{`export DISPATCHER_URL="${window.location.origin}"\nexport DISPATCHER_ACCOUNT_KEY="<CLI account sync key>"\n\npython3 dispatcher-account-sync.py --interval 300`}</pre>
         <p>
-          Without --interval it syncs once. Enabled providers are read from
-          CodexBar; use --provider with a supported provider ID to select one.
-          Existing JSON exports can be sent with --file.
+          Run from the folder where you saved the script. Keep keys in your
+          secret environment. DISPATCHER_URL is the public app address without
+          /llm/v1.
+        </p>
+        <p>
+          Omit --interval to sync once. Enabled providers come from CodexBar;
+          --provider selects one. Existing CodexBar JSON exports can be sent
+          with --file, without invoking CodexBar on the uploading machine.
         </p>
       </details>
       <p>
         Provider credentials stay on your device. Only selected account
-        measurements and display labels are sent here. A failed provider appears
-        as unavailable; unsupported or missing measurements stay unknown.
+        measurements and display labels are sent here. Failed readings are
+        unavailable; missing measurements remain unknown. Account balances do
+        not add request charges.
       </p>
       <p className="muted">
-        CodexBar publishes macOS and Linux runtimes. Native Windows support is
-        not provided by this integration. All reported accounts remain viewable
-        here from any browser, including Windows and mobile.
+        The account reader currently uses upstream macOS/Linux runtimes; native
+        Windows collection is not included. View synced accounts from any
+        browser, including Windows and mobile. Credits: CodexBar by Peter
+        Steinberger and contributors (MIT).
       </p>
     </section>
   );

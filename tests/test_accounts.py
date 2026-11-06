@@ -176,8 +176,18 @@ def test_bridge_cli_contract_partial_results_and_http_sync(system, monkeypatch, 
     monkeypatch.setenv("DISPATCHER_ACCOUNT_KEY", key["secret"])
     monkeypatch.setattr("sys.argv", ["codexbar", "--file", str(path)])
     from contextlib import nullcontext
+    from types import SimpleNamespace
 
-    monkeypatch.setattr(codexbar.httpx, "Client", lambda **kwargs: nullcontext(system["client"]))
+    def send(request, timeout):
+        result = system["client"].post(
+            request.full_url,
+            content=request.data,
+            headers=dict(request.header_items()),
+        )
+        assert result.status_code == 202
+        return nullcontext(SimpleNamespace(status=result.status_code))
+
+    monkeypatch.setattr(codexbar, "build_opener", lambda *args: SimpleNamespace(open=send))
     codexbar.main()
     assert len(system["client"].get("/api/accounts").json()) == 1
     assert system["client"].get("/api/overview").json()["counts"]["attempts"] == 0

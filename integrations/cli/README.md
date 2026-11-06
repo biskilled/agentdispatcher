@@ -14,14 +14,18 @@ its enabled providers. The Dispatcher browser cannot read another machine's sess
 This optional integration currently uses upstream macOS/Linux builds. Native Windows
 collection is not supplied; Windows/mobile browsers can view already synced accounts.
 
-In **Sources → CLI account usage**, create a connection for a device or user. Then,
-from a clone of this repository, install the separately packaged SDK (Python 3.12+):
+In **Sources → CLI account usage**, create a connection for a device or user, then
+select **Download account sync script**. Save `dispatcher-account-sync.py` on the
+machine with CodexBar and run it with Python 3.12+. No Dispatcher SDK, repository
+clone or `pip install` is required; the uploader uses Python's standard library.
+CodexBar remains the local account reader; the script only normalizes and uploads
+its measurements. If your tools already use LiteLLM, no local collector is needed
+for their request usage. Account collection is an optional additional view.
 
 ```sh
-pip install ./packages/sdk
 export DISPATCHER_URL="https://your-dispatcher-host"
 export DISPATCHER_ACCOUNT_KEY="<CLI account sync key shown once>"
-python -m agentdispatcher_sdk.codexbar --interval 300
+python3 dispatcher-account-sync.py --interval 300
 ```
 
 `DISPATCHER_URL` is the public app root, without `/llm/v1`. Optionally set
@@ -32,8 +36,12 @@ configured accounts for that provider. To inspect/export before uploading:
 
 ```sh
 codexbar usage --format json > usage.json
-python -m agentdispatcher_sdk.codexbar --file usage.json
+python3 dispatcher-account-sync.py --file usage.json
 ```
+
+Existing SDK users may still run `python -m agentdispatcher_sdk.codexbar` with the
+same options; both entry points use the same source file. HTTP redirects are refused
+so a sync key cannot be forwarded to a different endpoint.
 
 Raw files stay local. The bridge selects only provider/account display labels, source,
 version, measured timestamps, quota windows, reset times, credit balances, provider

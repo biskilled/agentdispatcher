@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { readFile } from "node:fs/promises";
 import { openSource } from "./navigation";
 
 test("manage gateway services and default without changing app identity", async ({
@@ -140,12 +141,24 @@ test("connections use three clear paths and one provider-independent account syn
     "Other API usage",
   ]);
   await expect(page.getByLabel("Gateway API base URL")).toBeVisible();
+  await page.getByText("Application setup", { exact: true }).click();
+  const setup = page.locator(".gateway-setup");
+  await expect(setup.locator("pre").filter({ hasText: 'base_url=os.environ["DISPATCHER_LLM_BASE_URL"]' })).toBeVisible();
+  await expect(setup.locator("pre").filter({ hasText: "DISPATCHER_SERVICE=trade-analysis" })).toBeVisible();
+  await page.screenshot({ path: `test-results/gateway-setup-${test.info().project.name}.png`, fullPage: true });
   await page
     .getByRole("tab", { name: "Application LLM calls", exact: true })
     .press("ArrowRight");
   await expect(
     page.getByRole("tab", { name: "CLI account usage", exact: true }),
   ).toHaveAttribute("aria-selected", "true");
+  const downloadEvent = page.waitForEvent("download");
+  await page.getByRole("link", { name: "Download account sync script" }).click();
+  const download = await downloadEvent;
+  expect(download.suggestedFilename()).toBe("dispatcher-account-sync.py");
+  expect(await readFile((await download.path())!, "utf8")).toBe(
+    await readFile("packages/sdk/src/agentdispatcher_sdk/codexbar.py", "utf8"),
+  );
   const name = `Account sync ${test.info().project.name} ${Date.now()}`;
   await page.getByLabel("Connection name", { exact: true }).fill(name);
   await page

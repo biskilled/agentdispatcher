@@ -70,19 +70,91 @@ export function GatewaySetup({
               <strong>{connection.models.join(", ")}</strong>
             </p>
           )}
+          <div className="source-intro">
+            <h3>Set up your app in three steps</h3>
+            <ol>
+              <li>
+                <strong>Configure a provider route in LiteLLM.</strong> The
+                gateway stores the real provider API key and model. A route such
+                as <code>{connection.models[0] || "configured-model"}</code>{" "}
+                selects that provider/model. The app never needs the provider's
+                key.
+              </li>
+              <li>
+                <strong>
+                  Add a connection below for each app/environment.
+                </strong>{" "}
+                Choose its allowed gateway routes and save the generated
+                Dispatcher LLM key. This key identifies the tenant and app, even
+                when all apps share the same gateway URL.
+              </li>
+              <li>
+                <strong>Open that connection's Services &amp; default.</strong>{" "}
+                Add a service named <code>trade-analysis</code> and select its
+                target route. Optionally select a default provider/model route,
+                then save. Your app can keep the same service name when you
+                change its target here.
+              </li>
+            </ol>
+          </div>
           <details>
             <summary>Application setup</summary>
             <p>
-              Set these environment variables in your app. Use the new LLM key
-              and one of its allowed model names.
+              After saving the example service above, set these variables in
+              your app's environment or secret store. The key is the
+              <strong> Dispatcher LLM key generated here</strong>, not an
+              OpenAI, Anthropic or other provider API key.
             </p>
-            <pre>{`OPENAI_BASE_URL=${connection.base_url}\nOPENAI_API_KEY=<your LLM key>\nLLM_MODEL=<allowed model name>`}</pre>
-            <pre>{`import os\nfrom openai import OpenAI\n\nclient = OpenAI()\nresponse = client.chat.completions.create(\n    model=os.environ["LLM_MODEL"],\n    messages=[{"role": "user", "content": "Your request"}],\n)`}</pre>
+            <pre>{`DISPATCHER_LLM_BASE_URL=${connection.base_url}\nDISPATCHER_LLM_KEY=<Dispatcher key from Add connection>\nDISPATCHER_SERVICE=trade-analysis`}</pre>
+            <pre>{`import os\nfrom openai import OpenAI\n\n# The OpenAI-compatible client talks to Dispatcher.\nclient = OpenAI(\n    base_url=os.environ["DISPATCHER_LLM_BASE_URL"],\n    api_key=os.environ["DISPATCHER_LLM_KEY"],\n)\nresponse = client.chat.completions.create(\n    model=os.environ["DISPATCHER_SERVICE"],  # Saved service name\n    messages=[{"role": "user", "content": "Your request"}],\n)\nprint(response.choices[0].message.content)`}</pre>
             <p>
-              The same client works in user requests and scheduled jobs.
-              Optional request metadata can identify a user, project or job; use
-              the SDK only when you also need job lifecycle events or other API
-              usage.
+              The Python example uses the OpenAI client as an HTTP client; the
+              actual provider can be any compatible route configured in LiteLLM.
+              It requires the openai package in your app, but no Dispatcher SDK.
+              If your existing app uses OPENAI_BASE_URL and OPENAI_API_KEY, set
+              them to the same gateway URL and Dispatcher key respectively.
+            </p>
+            <p>
+              In your existing YAML, put the saved service name in the model
+              field your app sends to the gateway. Configure your shared client
+              to use the gateway URL and Dispatcher key from the environment.
+              The same configuration works for user requests and scheduled jobs.
+            </p>
+            <h3>What does the model field select?</h3>
+            <ul>
+              <li>
+                <strong>Service name:</strong> trade-analysis uses the target
+                saved under Services &amp; default.
+              </li>
+              <li>
+                <strong>Allowed route name:</strong> sends directly to that
+                configured provider/model route.
+              </li>
+              <li>
+                <strong>Unrecognized name:</strong> uses this connection's
+                default, if one is configured; otherwise it is rejected.
+              </li>
+            </ul>
+            <p>
+              A model/service name is required even with a default. The default
+              applies to unrecognized names, not provider errors or missing
+              fields. Renaming a connection label does not rename its services.
+              Optional user/job metadata adds attribution; the SDK is only
+              needed for extra job lifecycle events or other API usage.
+            </p>
+          </details>
+          <details>
+            <summary>Operator setup: real provider key and model</summary>
+            <p>
+              For this repository's supplied gateway template, set the following
+              variables on the <strong>gateway service</strong> and redeploy it:
+            </p>
+            <pre>{`LLM_PROVIDER_MODEL=<LiteLLM provider/model identifier>\nLLM_API_KEY=<real API key issued by that provider>`}</pre>
+            <p>
+              The supplied template exposes this as configured-model. For
+              multiple providers/models, define additional routes in LiteLLM.
+              Provider credentials stay in the gateway's secret configuration;
+              they are not the Dispatcher keys issued below.
             </p>
           </details>
         </>
@@ -110,7 +182,8 @@ export function GatewaySetup({
       <p className="muted">
         Provider credentials and model definitions are managed once in LiteLLM.
         AgentDispatcher uses its native virtual keys and usage callbacks to
-        populate this workspace. Confirm received requests in Reporting diagnostics below.
+        populate this workspace. Confirm received requests in Reporting
+        diagnostics below.
       </p>
     </section>
   );

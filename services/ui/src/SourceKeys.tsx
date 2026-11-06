@@ -144,7 +144,9 @@ export function SourceKeys({
               Allowed model names
               <input name="models" required placeholder="configured-model" />
               <small>
-                Comma-separated names from your gateway configuration.
+                Comma-separated configured LiteLLM route names. Each route
+                selects a provider/model; service aliases are added after
+                creating this key.
               </small>
             </label>
           )}

@@ -1,4 +1,5 @@
-"""Sync CodexBar's existing provider fetchers to Dispatcher without exporting credentials."""
+# SPDX-License-Identifier: Apache-2.0
+"""Sync account measurements using Python's standard library and the local CodexBar CLI."""
 
 import argparse
 import json
@@ -8,9 +9,31 @@ import subprocess
 import tempfile
 import time
 from datetime import UTC, datetime
+from http.client import HTTPException
 from pathlib import Path
+from urllib.parse import urlsplit
+from urllib.request import HTTPRedirectHandler, Request, build_opener
 
-import httpx
+
+class NoRedirect(HTTPRedirectHandler):
+    """Keep the sync credential on the configured origin, even if a server redirects."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        """Reject redirects instead of forwarding account data and bearer credentials."""
+        return None
+
+
+def upload(endpoint, credential, snapshots, timeout):
+    """Send sanitized snapshots without requiring the Dispatcher SDK or third-party packages."""
+    request = Request(
+        endpoint,
+        data=json.dumps({"snapshots": snapshots}, allow_nan=False).encode(),
+        headers={"Authorization": "Bearer " + credential, "Content-Type": "application/json"},
+        method="POST",
+    )
+    with build_opener(NoRedirect()).open(request, timeout=timeout) as response:
+        if not 200 <= response.status < 300:
+            raise RuntimeError(f"Dispatcher rejected account sync (HTTP {response.status})")
 
 
 def _text(value, limit=200):
@@ -186,6 +209,18 @@ def main():
     base, credential = os.getenv("DISPATCHER_URL"), os.getenv("DISPATCHER_ACCOUNT_KEY")
     if not base or not credential:
         parser.error("Set DISPATCHER_URL and DISPATCHER_ACCOUNT_KEY")
+    address = urlsplit(base)
+    if (
+        address.scheme not in {"https", "http"}
+        or not address.hostname
+        or address.username
+        or address.password
+        or address.query
+        or address.fragment
+    ):
+        parser.error(
+            "DISPATCHER_URL must be an HTTP(S) app URL without credentials, query or fragment"
+        )
     endpoint = base.rstrip("/") + "/api/accounts/snapshots"
     while True:
         try:
@@ -197,16 +232,7 @@ def main():
                 args.file,
                 args.all_accounts,
             )
-            with httpx.Client(timeout=args.timeout) as client:
-                result = client.post(
-                    endpoint,
-                    json={"snapshots": snapshots},
-                    headers={"Authorization": "Bearer " + credential},
-                )
-                if not result.is_success:
-                    raise RuntimeError(
-                        f"Dispatcher rejected account sync (HTTP {result.status_code})"
-                    )
+            upload(endpoint, credential, snapshots, args.timeout)
             print(
                 f"Synced {len(snapshots)} account snapshots"
                 + ("; some providers failed" if partial else ""),
@@ -217,7 +243,7 @@ def main():
             ValueError,
             RuntimeError,
             subprocess.TimeoutExpired,
-            httpx.HTTPError,
+            HTTPException,
         ) as error:
             # Provider stderr may contain session data; never forward it or print raw HTTP bodies.
             print(

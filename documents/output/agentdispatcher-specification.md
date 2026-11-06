@@ -8,6 +8,16 @@ This revision incorporates the user's monitoring, embedded-agent, tenant storage
 
 ## Product purpose
 
+Onboarding clarification (2026-11-06): label the application credential as the
+Dispatcher LLM key, distinct from real provider credentials kept on LiteLLM.
+Examples explicitly pass the gateway base URL/key and a saved service name in the
+client's model field. Explain provider route setup, per-app key scope, aliases,
+unknown-name defaults and required model names before showing code. CLI account
+collection reuses CodexBar locally, with a downloadable standard-library Python
+uploader; do not require installing the Dispatcher SDK or cloning this repository.
+Keep CodexBar attribution visible and distinguish optional account limits from
+automatically monitored gateway requests. No native Windows reader is implied.
+
 UI/account clarification (2026-11-05): one Overview combines app request usage and
 CLI account state, with visible app/device, source, provider, model and user filters.
 Remove the three application/CLI/person view tabs. Sources offers Application LLM
