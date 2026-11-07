@@ -25,3 +25,22 @@ no Python/CodexBar on PATH; 10 desktop/mobile browser regressions; TypeScript/Vi
 build; Ruff and diff checks. Final licensed artifact rechecked with all four collector
 tests. Reader binaries were compared with the verified upstream archives. No live
 provider requests or account credentials were used. Live rollout results follow.
+
+## Published and deployed
+
+Implementation: `c3528ff28062a44acac7a9dfb42eed6b6803182f`, pushed directly to main
+with `[skip ci]`; GitHub Actions remained disabled.
+
+- API deployment: `c2167e25-734c-4959-9675-24407bcfeaa3` — SUCCESS.
+- UI deployment: `35eb319e-4ddf-485a-9c94-1f939ad66e50` — SUCCESS.
+- Download: https://github.com/biskilled/agentdispatcher/releases/tag/collector-v0.1.0
+- ZIP SHA-256: `4690f78ade0a357485a58aa36265e7fc288c12b53f2f8e2b02b122d195673e58`.
+
+The published ZIP was downloaded again, its checksum and executable permissions
+verified, and its included reader reported CodexBar 0.84.0. Production verification
+passed desktop/mobile Sources and Settings checks, secure password login/logout,
+owner scope, unauthorized gateway rejection, and two password browser tests.
+The four labeled synthetic events remain excluded from default usage totals.
+Live LiteLLM reports `no_models`; provider/model configuration is still needed before
+real gateway calls or populated dropdowns. No paid inference or live account reads
+were performed. AgentDesk task TA10010 is recorded as review, score 4.
