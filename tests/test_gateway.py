@@ -120,8 +120,11 @@ def test_gateway_connection_uses_native_model_list_without_provider_calls(
     assert client.get("/api/gateway/connection").json()["state"] == "not_configured"
 
     def upstream(request):
-        assert request.method == "GET" and request.url.path == "/v1/models"
+        assert request.method == "GET"
         assert request.headers["Authorization"] == "Bearer operator-secret"
+        if request.url.path == "/model/info":
+            return httpx.Response(200, json={"data": []})
+        assert request.url.path == "/v1/models"
         return response
 
     gateway.settings = gateway.settings.model_copy(
@@ -137,6 +140,10 @@ def test_gateway_connection_uses_native_model_list_without_provider_calls(
         "state": state,
         "models": models,
         "base_url": "http://client.example.test/v1",
+        "catalog": [
+            {"id": name, "provider": "Unspecified provider", "model": name} for name in models
+        ],
+        "catalog_warning": None,
     }
     assert "private" not in result.text and "operator-secret" not in result.text
     client.headers["X-Tenant-ID"] = str(system["other"].tenant_id)
@@ -258,3 +265,63 @@ def test_native_services_default_scope_and_optimistic_updates(system):
     client.delete("/api/keys/" + key["id"])
     assert client.get(endpoint).status_code == 404
     assert client.post("/internal/gateway/authorize", json=body, headers=headers).status_code == 401
+
+
+def test_live_catalog_refresh_projects_metadata_and_optional_key_scope(system):
+    client, gateway = system["client"], system["client"].app.state.gateway
+    routes = ["analysis"]
+    issued = []
+
+    def upstream(request):
+        if request.url.path == "/v1/models":
+            return httpx.Response(200, json={"data": [{"id": name} for name in routes]})
+        if request.url.path == "/model/info":
+            return httpx.Response(
+                200,
+                json={
+                    "data": [
+                        {
+                            "model_name": name,
+                            "litellm_params": {
+                                "model": "openai/" + name,
+                                "api_key": "never-return-this",
+                                "api_base": "https://private.internal",
+                            },
+                            "model_info": {"litellm_provider": "openai"},
+                        }
+                        for name in routes
+                    ]
+                },
+            )
+        assert request.url.path == "/key/generate"
+        data = json.loads(request.content)
+        issued.append(data)
+        return httpx.Response(200, json={"key": data["key"]})
+
+    gateway.settings = gateway.settings.model_copy(
+        update={
+            "gateway_url": "https://gateway.example.test",
+            "gateway_master_key": SecretStr("operator-secret"),
+            "gateway_default_environment": "unspecified",
+        }
+    )
+    gateway.transport = httpx.MockTransport(upstream)
+    first = client.get("/api/gateway/connection")
+    assert first.json()["catalog"] == [
+        {"id": "analysis", "provider": "openai", "model": "openai/analysis"}
+    ]
+    assert "never-return" not in first.text and "private.internal" not in first.text
+    routes.append("new-model")
+    assert len(client.get("/api/gateway/connection").json()["catalog"]) == 2
+    assert (
+        client.post("/api/gateway/keys", json={"name": "  ", "models": ["analysis"]}).status_code
+        == 422
+    )
+    result = client.post("/api/gateway/keys", json={"name": "AgentTrade", "models": ["analysis"]})
+    assert result.status_code == 201
+    key = next(
+        row for row in client.get("/api/gateway/keys").json() if row["id"] == result.json()["id"]
+    )
+    assert key["app"] == "AgentTrade" and key["environment"] == "unspecified"
+    assert key["allowed_models"] == ["analysis"] and issued[-1]["models"] == ["analysis"]
+    assert client.get("/api/gateway/connection").json()["models"] == routes

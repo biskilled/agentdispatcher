@@ -267,7 +267,10 @@ test("authenticated monitoring, catalog and scoped keys work at this viewport", 
   ).toBeVisible();
   await openSource(page, "gateway");
   await expect(
-    page.getByLabel("Allowed model names", { exact: false }),
+    page.getByRole("group", {
+      name: "Allowed providers and models",
+      exact: true,
+    }),
   ).toBeVisible();
   await openSettings(page, "Workspace");
   await expect(

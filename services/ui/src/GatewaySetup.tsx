@@ -1,13 +1,6 @@
-import { useEffect, useState } from "react";
-import { api } from "./api";
+import { type GatewayConnection } from "./gatewayConnection";
 
-type Connection = {
-  base_url: string;
-  state: "not_configured" | "unavailable" | "no_models" | "ready";
-  models: string[];
-};
-
-const statusText: Record<Connection["state"], string> = {
+const statusText: Record<GatewayConnection["state"], string> = {
   not_configured:
     "The operator needs to configure the LiteLLM gateway connection.",
   unavailable:
@@ -18,32 +11,14 @@ const statusText: Record<Connection["state"], string> = {
     "LiteLLM is reachable. Model availability is checked without making a paid request.",
 };
 
-/** Read connection details from LiteLLM; clients need no separate usage exporter. */
+/** Explain routing using the same catalog shown by the key form. */
 export function GatewaySetup({
-  tenant,
-  revision,
+  connection,
+  error,
 }: {
-  tenant: string;
-  revision: number;
+  connection: GatewayConnection | null;
+  error: string;
 }) {
-  const [connection, setConnection] = useState<Connection | null>(null);
-  const [error, setError] = useState("");
-  useEffect(() => {
-    let active = true;
-    setConnection(null);
-    setError("");
-    api<Connection>("/gateway/connection", tenant)
-      .then((value) => {
-        if (active) setConnection(value);
-      })
-      .catch((reason: Error) => {
-        if (active) setError(reason.message);
-      });
-    return () => {
-      active = false;
-    };
-  }, [tenant, revision]);
-
   return (
     <section className="panel form-panel gateway-setup">
       <h2>Connect once through LiteLLM</h2>
@@ -81,12 +56,11 @@ export function GatewaySetup({
                 key.
               </li>
               <li>
-                <strong>
-                  Add a connection below for each app/environment.
-                </strong>{" "}
-                Choose its allowed gateway routes and save the generated
-                Dispatcher LLM key. This key identifies the tenant and app, even
-                when all apps share the same gateway URL.
+                <strong>Add an LLM key below.</strong> Choose its allowed
+                providers/models and save the generated Dispatcher LLM key.
+                Application and environment labels are optional. This key
+                identifies the tenant and application scope, even when all apps
+                share the same gateway URL.
               </li>
               <li>
                 <strong>Open that connection's Services &amp; default.</strong>{" "}
@@ -119,6 +93,20 @@ export function GatewaySetup({
               field your app sends to the gateway. Configure your shared client
               to use the gateway URL and Dispatcher key from the environment.
               The same configuration works for user requests and scheduled jobs.
+            </p>
+            <h3>YAML configuration example</h3>
+            <p>
+              Map these fields into your app's existing configuration loader.
+              The *_env fields name environment variables; they are references,
+              not literal credentials and are not expanded automatically by
+              YAML.
+            </p>
+            <pre>{`llm:\n  base_url_env: DISPATCHER_LLM_BASE_URL\n  api_key_env: DISPATCHER_LLM_KEY\n  model: trade-analysis`}</pre>
+            <p>
+              The Python example above reads those same URL/key variables and
+              sends the service name from DISPATCHER_SERVICE. If your YAML
+              loader supplies model, pass that value to the client's model
+              argument instead.
             </p>
             <h3>What does the model field select?</h3>
             <ul>

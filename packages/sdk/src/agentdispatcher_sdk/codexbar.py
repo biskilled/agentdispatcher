@@ -2,9 +2,11 @@
 """Sync account measurements using Python's standard library and the local CodexBar CLI."""
 
 import argparse
+import getpass
 import json
 import math
 import os
+import platform
 import subprocess
 import tempfile
 import time
@@ -13,6 +15,60 @@ from http.client import HTTPException
 from pathlib import Path
 from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
+
+
+def configuration_path():
+    """Allow managed deployments to choose the collector's private configuration location."""
+    return Path(
+        os.getenv(
+            "DISPATCHER_COLLECTOR_CONFIG", Path.home() / ".agentdispatcher" / "collector.json"
+        )
+    )
+
+
+def validate_url(base):
+    """Reject credentials and ambiguous destinations before sending the sync key."""
+    address = urlsplit(base)
+    if (
+        address.scheme not in {"https", "http"}
+        or not address.hostname
+        or address.username
+        or address.password
+        or address.query
+        or address.fragment
+    ):
+        raise ValueError("Enter the HTTP(S) app URL without credentials, query or fragment")
+
+
+def configure(path):
+    """Save a user-entered URL/key in an owner-only file; never echo the key."""
+    base = input("Dispatcher app URL: ").strip().rstrip("/")
+    validate_url(base)
+    key = getpass.getpass("CLI account sync key: ").strip()
+    if not key:
+        raise ValueError("A sync key is required")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.NamedTemporaryFile(mode="w", dir=path.parent, delete=False) as output:
+        temporary = Path(output.name)
+        json.dump({"url": base, "key": key}, output)
+    try:
+        temporary.chmod(0o600)
+        temporary.replace(path)
+    finally:
+        temporary.unlink(missing_ok=True)
+    print("Configuration saved. Run this collector with --interval 300 to sync periodically.")
+
+
+def reader_executable():
+    """Use the bundled reader, with an explicit override for developers and managed hosts."""
+    if os.getenv("CODEXBAR_BIN"):
+        return os.environ["CODEXBAR_BIN"]
+    root = Path(__file__).resolve().parent
+    manifest = root / "collector-manifest.json"
+    if manifest.exists():
+        metadata = json.loads(manifest.read_text())
+        return str(root / "readers" / platform.machine() / metadata["executable"])
+    return "codexbar"
 
 
 class NoRedirect(HTTPRedirectHandler):
@@ -185,6 +241,13 @@ def collect(executable, provider, timeout, max_bytes, file=None, all_accounts=Fa
 def main():
     """Send one account snapshot batch, or poll at an explicitly requested interval."""
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--configure", action="store_true", help="Save the Dispatcher URL and sync key"
+    )
+    parser.add_argument("--config", type=Path, default=configuration_path())
+    parser.add_argument(
+        "--reader", nargs=argparse.REMAINDER, help="Run the included account reader's own commands"
+    )
     parser.add_argument("--file", help="Read an existing CodexBar usage JSON export")
     parser.add_argument("--provider", help="CodexBar provider ID; omitted uses enabled providers")
     parser.add_argument(
@@ -196,6 +259,17 @@ def main():
     parser.add_argument("--timeout", type=float, default=60)
     parser.add_argument("--max-bytes", type=int, default=1048576)
     args = parser.parse_args()
+    if args.configure:
+        try:
+            configure(args.config)
+        except (OSError, ValueError) as error:
+            parser.error(str(error))
+        return
+    if args.reader is not None:
+        try:
+            raise SystemExit(subprocess.call([reader_executable(), *args.reader]))
+        except OSError:
+            parser.error("Could not start the account reader; check the collector installation")
     if (
         not math.isfinite(args.interval)
         or not math.isfinite(args.timeout)
@@ -206,26 +280,27 @@ def main():
         parser.error("Interval must be nonnegative; timeout and max-bytes must be positive")
     if args.all_accounts and (not args.provider or args.provider == "all"):
         parser.error("--all-accounts requires one --provider")
-    base, credential = os.getenv("DISPATCHER_URL"), os.getenv("DISPATCHER_ACCOUNT_KEY")
+    config = {}
+    if args.config.exists():
+        try:
+            config = _object(json.loads(args.config.read_text()))
+        except (OSError, ValueError):
+            parser.error("Could not read collector configuration; run --configure again")
+    base = os.getenv("DISPATCHER_URL") or config.get("url")
+    credential = os.getenv("DISPATCHER_ACCOUNT_KEY") or config.get("key")
     if not base or not credential:
-        parser.error("Set DISPATCHER_URL and DISPATCHER_ACCOUNT_KEY")
-    address = urlsplit(base)
-    if (
-        address.scheme not in {"https", "http"}
-        or not address.hostname
-        or address.username
-        or address.password
-        or address.query
-        or address.fragment
-    ):
-        parser.error(
-            "DISPATCHER_URL must be an HTTP(S) app URL without credentials, query or fragment"
-        )
+        parser.error("Run --configure, or set DISPATCHER_URL and DISPATCHER_ACCOUNT_KEY")
+    if not isinstance(base, str) or not isinstance(credential, str):
+        parser.error("Invalid collector configuration; run --configure again")
+    try:
+        validate_url(base)
+    except ValueError as error:
+        parser.error(str(error))
     endpoint = base.rstrip("/") + "/api/accounts/snapshots"
     while True:
         try:
             snapshots, partial = collect(
-                os.environ.get("CODEXBAR_BIN", "codexbar"),
+                reader_executable(),
                 args.provider,
                 args.timeout,
                 args.max_bytes,

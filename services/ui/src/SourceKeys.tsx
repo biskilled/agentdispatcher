@@ -3,6 +3,8 @@ import { KeyRound } from "lucide-react";
 import { api, type Key } from "./api";
 import { credentialSources, type CredentialSource } from "./sourceTypes";
 import { GatewayRouting } from "./GatewayRouting";
+import { GatewayModelPicker } from "./GatewayModelPicker";
+import { type GatewayConnection } from "./gatewayConnection";
 
 /** Manage scoped source credentials; editing cannot widen application or model access. */
 export function SourceKeys({
@@ -11,12 +13,14 @@ export function SourceKeys({
   refresh,
   report,
   source,
+  gatewayConnection,
 }: {
   tenant: string;
   keys: Key[];
   refresh: () => void;
   report: (s: string) => void;
   source: CredentialSource | "gateway";
+  gatewayConnection?: GatewayConnection | null;
 }) {
   const gateway = source === "gateway";
   const accountSync = source === "codexbar";
@@ -24,9 +28,14 @@ export function SourceKeys({
   const [routing, setRouting] = useState<Key | null>(null);
   const [busy, setBusy] = useState(false);
   const [secret, setSecret] = useState("");
+  const [selectedModels, setSelectedModels] = useState<string[]>([]);
   async function create(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (busy) return;
+    if (gateway && !selectedModels.length) {
+      report("Select at least one allowed model.");
+      return;
+    }
     setBusy(true);
     const form = event.currentTarget;
     const fields = Object.fromEntries(new FormData(form));
@@ -34,10 +43,7 @@ export function SourceKeys({
     const data = gateway
       ? {
           ...scope,
-          models: String(models)
-            .split(",")
-            .map((model) => model.trim())
-            .filter(Boolean),
+          models: selectedModels,
         }
       : { ...scope, source_type: source };
     try {
@@ -51,6 +57,7 @@ export function SourceKeys({
       );
       setSecret(result.secret);
       form.reset();
+      setSelectedModels([]);
       refresh();
     } catch (error) {
       report((error as Error).message);
@@ -96,7 +103,7 @@ export function SourceKeys({
   return (
     <>
       <section className="panel form-panel">
-        <h2>Add connection</h2>
+        <h2>{gateway ? "Add connection LLM key" : "Add connection"}</h2>
         <p>
           {gateway
             ? "Create a native LiteLLM key for one application and environment. This key both authorizes model calls and attributes their usage; no second monitoring key is needed."
@@ -104,7 +111,10 @@ export function SourceKeys({
               ? "Create one sync credential for a device or user. It can report every provider enabled in CodexBar; you do not need a connection for each provider."
               : "Create a reporting credential for one application and environment. This is needed only for usage or job events sent outside the LLM gateway."}
         </p>
-        <form className="inline-form" onSubmit={create}>
+        <form
+          className={gateway ? "catalog-form gateway-key-form" : "inline-form"}
+          onSubmit={create}
+        >
           <label>
             Connection name
             <input
@@ -115,10 +125,14 @@ export function SourceKeys({
             />
           </label>
           <label>
-            {accountSync ? "Device / user label" : "Application"}
+            {accountSync
+              ? "Device / user label"
+              : gateway
+                ? "Application (optional)"
+                : "Application"}
             <input
               name="app"
-              required
+              required={!gateway}
               maxLength={100}
               placeholder="agenttrade"
               defaultValue={
@@ -131,27 +145,34 @@ export function SourceKeys({
             />
           </label>
           <label>
-            Environment
+            {gateway ? "Environment (optional)" : "Environment"}
             <input
               name="environment"
-              required
+              required={!gateway}
               maxLength={50}
               placeholder="production"
             />
           </label>
           {gateway && (
-            <label>
-              Allowed model names
-              <input name="models" required placeholder="configured-model" />
-              <small>
-                Comma-separated configured LiteLLM route names. Each route
-                selects a provider/model; service aliases are added after
-                creating this key.
-              </small>
-            </label>
+            <>
+              <p className="field-note">
+                If omitted, application uses the connection name and environment
+                uses the installation default. The resulting scope stays fixed
+                when the label is renamed.
+              </p>
+              <GatewayModelPicker
+                connection={gatewayConnection || null}
+                value={selectedModels}
+                onChange={setSelectedModels}
+                refresh={refresh}
+              />
+            </>
           )}
-          <button className="primary" disabled={busy}>
-            Add connection
+          <button
+            className="primary"
+            disabled={busy || (gateway && !gatewayConnection)}
+          >
+            {gateway ? "Add connection LLM key" : "Add connection"}
           </button>
         </form>
         {secret && (
@@ -197,7 +218,10 @@ export function SourceKeys({
                 </select>
               </label>
             )}
-            <button className="primary" disabled={busy}>
+            <button
+              className="primary"
+              disabled={busy || (gateway && !gatewayConnection)}
+            >
               Save connection
             </button>
             <button

@@ -1,5 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
-import { readFile } from "node:fs/promises";
+import { readFileSync } from "node:fs";
+const collector = JSON.parse(
+  readFileSync("packaging/collector/downloads.json", "utf8"),
+);
 import { openSource } from "./navigation";
 
 test("manage gateway services and default without changing app identity", async ({
@@ -143,22 +146,32 @@ test("connections use three clear paths and one provider-independent account syn
   await expect(page.getByLabel("Gateway API base URL")).toBeVisible();
   await page.getByText("Application setup", { exact: true }).click();
   const setup = page.locator(".gateway-setup");
-  await expect(setup.locator("pre").filter({ hasText: 'base_url=os.environ["DISPATCHER_LLM_BASE_URL"]' })).toBeVisible();
-  await expect(setup.locator("pre").filter({ hasText: "DISPATCHER_SERVICE=trade-analysis" })).toBeVisible();
-  await page.screenshot({ path: `test-results/gateway-setup-${test.info().project.name}.png`, fullPage: true });
+  await expect(
+    setup
+      .locator("pre")
+      .filter({ hasText: 'base_url=os.environ["DISPATCHER_LLM_BASE_URL"]' }),
+  ).toBeVisible();
+  await expect(
+    setup
+      .locator("pre")
+      .filter({ hasText: "DISPATCHER_SERVICE=trade-analysis" }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: `test-results/gateway-setup-${test.info().project.name}.png`,
+    fullPage: true,
+  });
   await page
     .getByRole("tab", { name: "Application LLM calls", exact: true })
     .press("ArrowRight");
   await expect(
     page.getByRole("tab", { name: "CLI account usage", exact: true }),
   ).toHaveAttribute("aria-selected", "true");
-  const downloadEvent = page.waitForEvent("download");
-  await page.getByRole("link", { name: "Download account sync script" }).click();
-  const download = await downloadEvent;
-  expect(download.suggestedFilename()).toBe("dispatcher-account-sync.py");
-  expect(await readFile((await download.path())!, "utf8")).toBe(
-    await readFile("packages/sdk/src/agentdispatcher_sdk/codexbar.py", "utf8"),
-  );
+  await expect(
+    page.getByRole("link", { name: "Download AgentDispatcher Collector" }),
+  ).toHaveAttribute("href", collector.url);
+  await expect(
+    page.getByText("No separate CodexBar,", { exact: false }),
+  ).toBeVisible();
   const name = `Account sync ${test.info().project.name} ${Date.now()}`;
   await page.getByLabel("Connection name", { exact: true }).fill(name);
   await page
@@ -234,8 +247,12 @@ test("connections use three clear paths and one provider-independent account syn
   ).toBeTruthy();
   await openSource(page, "accounts");
   await page.getByRole("button", { name: "Overview", exact: true }).click();
-  await expect(page.getByLabel("Provider", { exact: true })).toHaveValue("cursor");
-  await expect(page.getByRole("heading", { name: "cursor", exact: true })).toHaveCount(1);
+  await expect(page.getByLabel("Provider", { exact: true })).toHaveValue(
+    "cursor",
+  );
+  await expect(
+    page.getByRole("heading", { name: "cursor", exact: true }),
+  ).toHaveCount(1);
   await openSource(page, "accounts");
   await page
     .getByRole("row")
@@ -249,5 +266,97 @@ test("connections use three clear paths and one provider-independent account syn
   await page.screenshot({
     path: `test-results/sources-${test.info().project.name}.png`,
     fullPage: true,
+  });
+});
+
+test("LLM keys select live provider routes, refresh safely and accept optional scope", async ({
+  page,
+}) => {
+  const base = process.env.DISPATCHER_TEST_UI_URL;
+  const session = process.env.DISPATCHER_TEST_SESSION;
+  test.skip(!base || !session, "Requires synthetic administrator");
+  await page.context().addCookies([
+    {
+      name: "dispatcher_session",
+      value: session!,
+      url: base!,
+      httpOnly: true,
+    },
+  ]);
+  let revision = 0;
+  let created: Record<string, unknown> | null = null;
+  await page.route("**/api/gateway/connection", (route) => {
+    const ids = revision++ ? ["analysis", "new-model"] : ["analysis"];
+    return route.fulfill({
+      json: {
+        base_url: `${base}/llm/v1`,
+        state: "ready",
+        models: ids,
+        catalog_warning: null,
+        catalog: ids.map((id) => ({ id, provider: "openai", model: id })),
+      },
+    });
+  });
+  await page.route("**/api/gateway/keys", (route) => {
+    if (route.request().method() === "POST") {
+      created = route.request().postDataJSON();
+      return route.fulfill({
+        status: 201,
+        json: { secret: "synthetic-not-a-real-key" },
+      });
+    }
+    return route.fulfill({ json: [] });
+  });
+  await page.goto("/");
+  await openSource(page, "gateway");
+  await page
+    .locator(".gateway-key-form")
+    .getByLabel("Connection name", { exact: true })
+    .fill("AgentTrade");
+  await expect(page.getByLabel("Application (optional)")).not.toHaveAttribute(
+    "required",
+    "",
+  );
+  await expect(page.getByLabel("Environment (optional)")).not.toHaveAttribute(
+    "required",
+    "",
+  );
+  await page.getByText("Providers · 0 selected", { exact: true }).click();
+  await page.getByRole("checkbox", { name: "openai", exact: true }).check();
+  await page.getByText("Models · 0 selected", { exact: true }).click();
+  await page.locator('input[name="models"][value="analysis"]').check();
+  await page
+    .getByRole("button", { name: "Refresh providers & models" })
+    .click();
+  const fresh = page.locator('input[name="models"][value="new-model"]');
+  await expect(fresh).toBeVisible();
+  await expect(fresh).not.toBeChecked();
+  await expect(
+    page.locator('input[name="models"][value="analysis"]'),
+  ).toBeChecked();
+  await page.getByText("Application setup", { exact: true }).click();
+  await expect(
+    page.locator("pre").filter({ hasText: "api_key_env: DISPATCHER_LLM_KEY" }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: `test-results/model-picker-${test.info().project.name}.png`,
+    fullPage: true,
+  });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBeTruthy();
+  await page
+    .getByRole("button", { name: "Add connection LLM key", exact: true })
+    .click();
+  await expect(page.locator(".secret code")).toHaveText(
+    "synthetic-not-a-real-key",
+  );
+  expect(created).toMatchObject({
+    name: "AgentTrade",
+    app: "",
+    environment: "",
+    models: ["analysis"],
   });
 });

@@ -7,41 +7,41 @@ The dashboard works on macOS, Windows and mobile; CLI export runs on the CLI's h
 
 ## CodexBar account sync
 
-For subscription/account usage, reuse [CodexBar](https://github.com/steipete/CodexBar)
-and its [CLI](https://github.com/steipete/CodexBar/blob/main/docs/cli.md). Install it
-on the machine holding the authorized provider sessions; configure and authenticate
-its enabled providers. The Dispatcher browser cannot read another machine's sessions.
-This optional integration currently uses upstream macOS/Linux builds. Native Windows
-collection is not supplied; Windows/mobile browsers can view already synced accounts.
+The **AgentDispatcher Collector** includes the [CodexBar](https://github.com/steipete/CodexBar)
+account reader and Python runtime in one download. It is an additional reader, not
+an alternative to Codex, Cursor or Claude Code. No separate CodexBar or SDK install
+is required. It does not intercept prompts or change coding tools.
 
-In **Sources → CLI account usage**, create a connection for a device or user, then
-select **Download account sync script**. Save `dispatcher-account-sync.py` on the
-machine with CodexBar and run it with Python 3.12+. No Dispatcher SDK, repository
-clone or `pip install` is required; the uploader uses Python's standard library.
-CodexBar remains the local account reader; the script only normalizes and uploads
-its measurements. If your tools already use LiteLLM, no local collector is needed
-for their request usage. Account collection is an optional additional view.
+In **Sources → CLI account usage**, create a connection for a device/user, download
+the collector, unzip it and open a terminal in its folder:
 
 ```sh
-export DISPATCHER_URL="https://your-dispatcher-host"
-export DISPATCHER_ACCOUNT_KEY="<CLI account sync key shown once>"
-python3 dispatcher-account-sync.py --interval 300
+./AgentDispatcherCollector --configure
+./AgentDispatcherCollector --interval 300
 ```
 
-`DISPATCHER_URL` is the public app root, without `/llm/v1`. Optionally set
-`CODEXBAR_BIN` to the installed executable. Omit `--interval` to sync once from a
-scheduler. `--provider copilot` selects one upstream provider; otherwise CodexBar's
-enabled-provider configuration is used. `--provider codex --all-accounts` syncs all
-configured accounts for that provider. To inspect/export before uploading:
+Enter the Dispatcher app root (without `/llm/v1`) and the account sync key when
+prompted. Configuration is stored in an owner-only file; `--config` or
+`DISPATCHER_COLLECTOR_CONFIG` selects another location. `DISPATCHER_URL` and
+`DISPATCHER_ACCOUNT_KEY` override saved values. Omit `--interval` for one check;
+Ctrl-C stops polling. This does not install a startup service.
 
-```sh
-codexbar usage --format json > usage.json
-python3 dispatcher-account-sync.py --file usage.json
-```
+Use `--provider copilot` to select a reader, or `--provider codex --all-accounts`
+for all configured accounts for one provider. Otherwise enabled provider settings
+apply. Provider sign-in may be required on the local device. Use `--reader --help`
+to inspect the bundled reader's options. Existing JSON exports can be uploaded
+using `--file usage.json`. HTTP redirects never forward the sync credential.
 
-Existing SDK users may still run `python -m agentdispatcher_sdk.codexbar` with the
-same options; both entry points use the same source file. HTTP redirects are refused
-so a sync key cannot be forwarded to a different endpoint.
+The current bundle supports macOS Apple Silicon and Intel (runtime-tested on Apple
+Silicon). It is ad-hoc signed, not Apple notarized. See the bundled README and
+checksum before granting macOS approval. Native Windows collection and packaged
+Linux collection are not included; the dashboard works from any browser.
+[Packaging and licensing details](../../packaging/collector/README.md).
+
+Source/SDK users can still run `python -m agentdispatcher_sdk.codexbar` with their
+own installed reader (`CODEXBAR_BIN` override). This developer path is not needed
+for the downloadable collector. LiteLLM gateway traffic needs no local collector;
+account limits are optional and distinct from per-request usage.
 
 Raw files stay local. The bridge selects only provider/account display labels, source,
 version, measured timestamps, quota windows, reset times, credit balances, provider

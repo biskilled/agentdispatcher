@@ -58,6 +58,7 @@ class Settings(BaseSettings):
     http_timeout: float = 10
     gateway_url: str = ""
     gateway_client_url: str = ""
+    gateway_default_environment: str = Field(default="default", min_length=1, max_length=50)
     gateway_master_key: SecretStr = SecretStr("")
     gateway_callback_secret: SecretStr = SecretStr("")
     config_sources: dict[str, ConfigSource] = Field(default_factory=dict)

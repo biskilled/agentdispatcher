@@ -1,12 +1,13 @@
 # Third-party notices
 
 The optional CLI account integration uses [CodexBar](https://github.com/steipete/CodexBar),
-copyright © 2026 Peter Steinberger, under the MIT license. CodexBar is installed
-separately on the user's machine; its existing provider fetchers supply JSON account
-snapshots. AgentDispatcher does not bundle its executable or copy its authentication
-implementations. The reviewed JSON contract revision is recorded in
-`third_party/integrations.json`, which includes the upstream license and feeds the
-in-app Open-source licenses screen.
+copyright © 2026 Peter Steinberger, under the MIT license. The optional macOS
+collector bundles version 0.84.0 with its upstream resources and notices. Pinned
+archive URLs and digests are in `packaging/collector/upstream.json`; attribution
+in `third_party/integrations.json` feeds the in-app Open-source licenses screen.
+The collector also ships Python's PSF license and PyInstaller's license with its
+bootloader redistribution exception. These are optional download components,
+not extra server services. See `packaging/collector/README.md`.
 
 AgentDispatcher's original code is licensed under Apache-2.0. This does not relicense dependencies.
 
@@ -37,7 +38,7 @@ Pinned upstream component versions, source links and original license texts are 
 credits. Versions are checked against `.env.example`. LiteLLM's community code is
 MIT; enterprise directories retain separate terms. AgentDispatcher uses community
 key/routing/callback paths, requires no enterprise license and does not relicense
-those upstream components. QuotaBar and CodexBar informed planning; their code is
+those upstream components. QuotaBar informed planning; its code is
 not included.
 
 The gateway is labelled `1.106.6+dispatcher.1`: an explicit dependency-only backport

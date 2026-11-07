@@ -13,7 +13,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, Res
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse, RedirectResponse
 from joserfc.errors import JoseError
-from pydantic import Field, SecretStr
+from pydantic import Field, SecretStr, field_validator
 from starlette.concurrency import run_in_threadpool
 from starlette.middleware.sessions import SessionMiddleware
 
@@ -130,6 +130,14 @@ class GatewayKeyRequest(KeyRequest):
     models: list[Annotated[str, Field(min_length=1, max_length=100)]] = Field(
         min_length=1, max_length=100
     )
+    app: str | None = Field(default=None, max_length=100)
+    environment: str | None = Field(default=None, max_length=50)
+
+    @field_validator("name", "app", "environment", mode="before")
+    @classmethod
+    def trim_scope(cls, value):
+        """A required name cannot be whitespace; optional scopes resolve on the server."""
+        return value.strip() if isinstance(value, str) else value
 
 
 class GatewayAuthorization(Contract):

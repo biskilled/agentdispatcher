@@ -94,6 +94,8 @@ class Gateway:
             or self.settings.public_url.rstrip("/") + "/llm/v1",
             "state": "not_configured",
             "models": [],
+            "catalog": [],
+            "catalog_warning": None,
         }
         if not self.settings.gateway_url or not self.settings.gateway_master_key.get_secret_value():
             return result
@@ -105,10 +107,56 @@ class Gateway:
                 if not isinstance(rows, list):
                     raise ValueError("Invalid model list")
                 models = sorted({row["id"] for row in rows if isinstance(row["id"], str)})
+                catalog, warning = self.model_catalog(client, models)
         except (httpx.HTTPError, ValueError, KeyError, TypeError):
             # Upstream errors can contain infrastructure details; keep them out of the browser.
             return {**result, "state": "unavailable"}
-        return {**result, "state": "ready" if models else "no_models", "models": models}
+        return {
+            **result,
+            "state": "ready" if models else "no_models",
+            "models": models,
+            "catalog": catalog,
+            "catalog_warning": warning,
+        }
+
+    def model_catalog(self, client, models):
+        """Expose only public route/provider/model labels, never upstream credentials or URLs."""
+        entries = []
+        warning = None
+        if models:
+            try:
+                response = client.get("model/info")
+                response.raise_for_status()
+                entries = response.json()["data"]
+                if not isinstance(entries, list):
+                    raise ValueError("Invalid model metadata")
+            except (httpx.HTTPError, KeyError, TypeError, ValueError):
+                warning = "Provider details unavailable. Configured route names remain selectable."
+                entries = []
+        catalog = set()
+        for row in entries:
+            if not isinstance(row, dict) or row.get("model_name") not in models:
+                continue
+            params = row.get("litellm_params") or {}
+            info = row.get("model_info") or {}
+            if not isinstance(params, dict) or not isinstance(info, dict):
+                continue
+            model = params.get("model")
+            if not isinstance(model, str) or "://" in model:
+                model = row["model_name"]
+            provider = params.get("custom_llm_provider") or info.get("litellm_provider")
+            if not provider and isinstance(model, str) and "/" in model:
+                provider = model.split("/", 1)[0]
+            provider = provider if isinstance(provider, str) else "Unspecified provider"
+            catalog.add((row["model_name"], provider[:100], model[:200]))
+        described = {entry[0] for entry in catalog}
+        catalog.update(
+            (name, "Unspecified provider", name) for name in models if name not in described
+        )
+        return [
+            {"id": name, "provider": provider, "model": model}
+            for name, provider, model in sorted(catalog)
+        ], warning
 
     def route(self, principal, requested_model, task_id, default_model=None):
         """Select policy routes only when every candidate is also allowed by this virtual key."""
@@ -200,6 +248,8 @@ class Gateway:
     def issue(self, principal, name, app, environment, models):
         """Create an upstream virtual key then register its scope; unregistered keys cannot run."""
         require_admin(principal)
+        app = app or name
+        environment = environment or self.settings.gateway_default_environment
         service_id = uuid4()
         requested_key = "sk-" + secrets.token_urlsafe(32)
         expiry = datetime.now(UTC) + timedelta(seconds=self.settings.key_seconds)

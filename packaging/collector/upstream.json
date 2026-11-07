@@ -1,0 +1,15 @@
+{
+  "version": "0.84.0",
+  "source": "https://github.com/steipete/CodexBar",
+  "artifacts": {
+    "arm64": {
+      "url": "https://github.com/steipete/CodexBar/releases/download/v0.84.0/CodexBarCLI-v0.84.0-macos-arm64.tar.gz",
+      "sha256": "77a318c6b904983711f1b7d248211b1bbd4a77b5e038258a79ba2258683f2603"
+    },
+    "x86_64": {
+      "url": "https://github.com/steipete/CodexBar/releases/download/v0.84.0/CodexBarCLI-v0.84.0-macos-x86_64.tar.gz",
+      "sha256": "b35454380d73ea0d76e9406533bff997063963e2c5b31c6a55767aa45d72515d"
+    }
+  },
+  "executable": "CodexBarCLI"
+}

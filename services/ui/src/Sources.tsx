@@ -6,6 +6,7 @@ import { SourceKeys } from "./SourceKeys";
 import { AccountSetup } from "./AccountSetup";
 import { AccountUsage } from "./AccountUsage";
 import { GatewaySetup } from "./GatewaySetup";
+import { useGatewayConnection } from "./gatewayConnection";
 import {
   credentialSources,
   sourceTabs,
@@ -34,6 +35,7 @@ export function SourcesView({
   revision: number;
 }) {
   const [selected, setSelected] = useState<SourceTab>("gateway");
+  const gateway = useGatewayConnection(tenant, revision, admin);
   const tabs = useRef<HTMLDivElement>(null);
   const [advancedSource, setAdvancedSource] = useState<CredentialSource>("sdk");
   function move(event: KeyboardEvent<HTMLButtonElement>, index: number) {
@@ -96,10 +98,11 @@ export function SourcesView({
           />
         ) : selected === "gateway" ? (
           <>
-            <GatewaySetup tenant={tenant} revision={revision} />
+            <GatewaySetup {...gateway} />
             <SourceKeys
               tenant={tenant}
               source="gateway"
+              gatewayConnection={gateway.connection}
               keys={gatewayKeys}
               refresh={refresh}
               report={report}

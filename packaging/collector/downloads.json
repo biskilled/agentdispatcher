@@ -1,0 +1,6 @@
+{
+  "version": "0.1.0",
+  "platform": "macOS (Apple Silicon and Intel)",
+  "url": "https://github.com/biskilled/agentdispatcher/releases/download/collector-v0.1.0/AgentDispatcherCollector-macos-universal.zip",
+  "checksum_url": "https://github.com/biskilled/agentdispatcher/releases/download/collector-v0.1.0/AgentDispatcherCollector-macos-universal.zip.sha256"
+}

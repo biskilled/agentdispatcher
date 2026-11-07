@@ -288,12 +288,12 @@ An owned MCP server routes its internal LLM calls through LiteLLM like any other
 the gateway does not connect to arbitrary MCP servers or expose their hidden costs.
 
 [CodexBar account sync](integrations/cli/README.md#codexbar-account-sync) reuses the
-upstream CLI's enabled providers, including providers added by future CodexBar versions.
-Download its standard-library Python uploader from Sources; no Dispatcher SDK or
-repository installation is needed. It sends selected quota windows, resets, credit
+bundled reader's enabled providers. Reader updates require a new collector release.
+Download the self-contained collector from Sources; no separate reader, Python, SDK
+or repository installation is needed. It sends selected quota windows, resets, credit
 balances, period spend and display rows
 through one device-scoped key. No provider-specific tabs or second provider credential
-store. CodexBar currently supplies macOS/Linux runtimes; viewing works in any browser.
+store. The collector includes CodexBar and Python in one macOS download; viewing works in any browser.
 This is account-status integration, not all CodexBar desktop features or a per-call
 ledger for every provider. Live accounts require local CodexBar authentication.
 
@@ -431,4 +431,4 @@ This seeds synthetic data through the real SDK, checks desktop/mobile screens wi
 
 ## Built on
 
-Thanks to the maintainers of FastAPI, Starlette, Pydantic, Psycopg/PostgreSQL, Authlib, HTTPX, OpenTelemetry, React, Vite, Lucide, LiteLLM and the other dependencies that make this project possible. AgentDispatcher is Apache-2.0; dependencies retain their own terms, including Psycopg's LGPL terms. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), the generated [runtime notices](third_party/notices.json), and **Open-source licenses** in the UI. The optional account-sync bridge invokes [CodexBar](https://github.com/steipete/CodexBar) (Peter Steinberger and contributors, MIT) as an installed external CLI; it does not copy its provider fetchers. QuotaBar code is not included.
+Thanks to the maintainers of FastAPI, Starlette, Pydantic, Psycopg/PostgreSQL, Authlib, HTTPX, OpenTelemetry, React, Vite, Lucide, LiteLLM and the other dependencies that make this project possible. AgentDispatcher is Apache-2.0; dependencies retain their own terms, including Psycopg's LGPL terms. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), the generated [runtime notices](third_party/notices.json), and **Open-source licenses** in the UI. The optional account-sync bridge invokes [CodexBar](https://github.com/steipete/CodexBar) (Peter Steinberger and contributors, MIT) inside the downloadable macOS collector; its upstream reader and notices are preserved. QuotaBar code is not included.

@@ -1,11 +1,11 @@
 [
   {
     "name": "CodexBar",
-    "version": "external CLI",
+    "version": "0.84.0",
     "license": "MIT",
-    "ecosystem": "Optional local integration (not bundled)",
+    "ecosystem": "Optional bundled account collector",
     "source": "https://github.com/steipete/CodexBar",
-    "contract_revision": "e051aa059b0942de90ca679d563cda0f036e8969",
+    "contract_revision": "v0.84.0",
     "texts": [
       {
         "file": "LICENSE",
